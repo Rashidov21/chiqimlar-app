@@ -3,22 +3,27 @@
 {% block nav %}{% endblock %}
 
 {% block content %}
-<div class="min-h-screen flex flex-col items-center justify-center px-4">
-    <div class="w-full max-w-sm card">
-        <h1 class="text-xl font-bold text-gray-800 mb-4">Ro'yxatdan o'tish</h1>
-        <form method="post" action="{% url 'accounts:register' %}" class="space-y-4">
+<div style="min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 24px;">
+    <div class="card" style="width: 100%; max-width: 400px;">
+        <div style="text-align: center; margin-bottom: 24px;">
+            <div style="font-size: 40px; margin-bottom: 8px;">📝</div>
+            <h1 style="font-size: 1.25rem; font-weight: 700; color: #1e293b;">Ro'yxatdan o'tish</h1>
+        </div>
+        <form method="post" action="{% url 'accounts:register' %}" style="display: flex; flex-direction: column; gap: 16px;">
             {% csrf_token %}
             {% for field in form %}
             <div>
-                <label for="{{ field.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">{{ field.label }}</label>
+                <label for="{{ field.id_for_label }}" style="display: block; font-size: 0.875rem; font-weight: 500; color: #374151; margin-bottom: 6px;">{{ field.label }}</label>
                 {{ field }}
-                {% if field.errors %}<p class="mt-1 text-sm text-red-600">{{ field.errors.0 }}</p>{% endif %}
+                {% if field.errors %}<p style="margin-top: 6px; font-size: 0.875rem; color: #dc2626;">{{ field.errors.0 }}</p>{% endif %}
             </div>
             {% endfor %}
-            <button type="submit" class="btn-primary w-full">Hisob yaratish</button>
+            <button type="submit" class="btn-primary" style="width: 100%;">
+                <i class="bi bi-person-plus"></i> Hisob yaratish
+            </button>
         </form>
-        <p class="mt-4 text-center">
-            <a href="{% url 'accounts:login' %}" class="text-primary-600 hover:underline">Allaqachon hisobingiz bormi? Kirish</a>
+        <p style="margin-top: 20px; text-align: center;">
+            <a href="{% url 'accounts:login' %}" style="color: #16a34a; font-weight: 500; text-decoration: none;">← Kirish sahifasiga</a>
         </p>
     </div>
 </div>

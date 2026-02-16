@@ -3,26 +3,50 @@
 {% block title %}Barcha turkumlar{% endblock %}
 
 {% block content %}
-<h1 class="text-2xl font-bold text-gray-800 mb-6">🗂 Barcha turkumlar</h1>
-<p class="text-gray-600 mb-4">Bu oy uchun tranzaksiyalar soni va summa ko'rsatilgan.</p>
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+    <div>
+        <h1 style="font-size: 1.5rem; font-weight: 700; color: #1e293b; display: flex; align-items: center; gap: 8px;">
+            <i class="bi bi-folder"></i> Barcha turkumlar
+        </h1>
+        <p style="font-size: 0.875rem; color: #64748b; margin-top: 4px;">Bu oy uchun tranzaksiyalar va summa</p>
+    </div>
+    <a href="{% url 'categories:create' %}" class="btn-primary">
+        <i class="bi bi-plus-lg"></i> Yangi turkum
+    </a>
+</div>
 <div class="card">
-    <a href="{% url 'categories:create' %}" class="btn-primary inline-block mb-4">+ Yangi turkum</a>
-    <ul class="divide-y divide-gray-100">
+    {% if categories %}
+    <ul style="list-style: none; padding: 0; margin: 0;">
         {% for cat in categories %}
-        <li class="py-4 flex justify-between items-center">
-            <div>
-                <span class="text-2xl">{{ cat.emoji }}</span>
-                <span class="font-medium ml-2">{{ cat.name }}</span>
-                <p class="text-sm text-gray-500 mt-1">Bu oy: {{ cat.tx_count }} ta, jami {{ cat.total_spent|default:0|intcomma }} so'm</p>
+        <li style="display: flex; justify-content: space-between; align-items: center; padding: 20px 0; border-bottom: 1px solid #f1f5f9; gap: 16px;">
+            <div style="display: flex; align-items: center; gap: 16px;">
+                <span style="font-size: 2rem;">{{ cat.emoji }}</span>
+                <div>
+                    <span style="font-weight: 600; color: #1e293b;">{{ cat.name }}</span>
+                    <p style="font-size: 0.875rem; color: #64748b; margin-top: 4px;">
+                        Bu oy: {{ cat.tx_count }} ta — {{ cat.total_spent|default:0|intcomma }} so'm
+                    </p>
+                </div>
             </div>
-            <div class="flex gap-2">
-                <a href="{% url 'categories:edit' cat.pk %}" class="btn-secondary py-2 text-sm">Tahrir</a>
-                <form method="post" action="{% url 'categories:delete' cat.pk %}" class="inline">{% csrf_token %}<button type="submit" class="rounded-xl border border-red-200 text-red-600 px-3 py-2 text-sm hover:bg-red-50">O'chirish</button></form>
+            <div style="display: flex; gap: 8px;">
+                <a href="{% url 'categories:edit' cat.pk %}" class="btn-secondary" style="padding: 10px 16px; font-size: 0.875rem;">
+                    <i class="bi bi-pencil"></i> Tahrir
+                </a>
+                <form method="post" action="{% url 'categories:delete' cat.pk %}" style="display: inline;">{% csrf_token %}
+                    <button type="submit" style="border-radius: 12px; border: 1px solid #fecaca; color: #dc2626; padding: 10px 16px; font-size: 0.875rem; background: white; cursor: pointer; display: inline-flex; align-items: center; gap: 6px;">
+                        <i class="bi bi-trash"></i> O'chirish
+                    </button>
+                </form>
             </div>
         </li>
-        {% empty %}
-        <li class="py-8 text-center text-gray-500">Turkumlar yo'q. <a href="{% url 'categories:create' %}" class="text-primary-600 hover:underline">Birinchi turkum qo'shing</a>.</li>
         {% endfor %}
     </ul>
+    {% else %}
+    <p style="text-align: center; color: #64748b; padding: 48px 24px;">
+        <i class="bi bi-folder-x" style="font-size: 3rem; display: block; margin-bottom: 16px; color: #cbd5e1;"></i>
+        Turkumlar yo'q.<br>
+        <a href="{% url 'categories:create' %}" class="btn-primary" style="margin-top: 16px;">Birinchi turkum qo'shing</a>
+    </p>
+    {% endif %}
 </div>
 {% endblock %}

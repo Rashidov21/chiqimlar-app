@@ -3,32 +3,45 @@
 {% block title %}Barcha xarajatlar{% endblock %}
 
 {% block content %}
-<h1 class="text-2xl font-bold text-gray-800 mb-6">Barcha xarajatlar</h1>
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+    <h1 style="font-size: 1.5rem; font-weight: 700; color: #1e293b; display: flex; align-items: center; gap: 8px;">
+        <i class="bi bi-receipt"></i> Barcha xarajatlar
+    </h1>
+    <a href="{% url 'expenses:add' %}" class="btn-primary">
+        <i class="bi bi-plus-lg"></i> Qo'shish
+    </a>
+</div>
 <div class="card">
-    <ul class="divide-y divide-gray-100">
+    {% if page_obj %}
+    <ul style="list-style: none; padding: 0; margin: 0;">
         {% for e in page_obj %}
-        <li class="py-4 flex justify-between items-start gap-4">
-            <div>
-                <span class="font-medium">{{ e.category.emoji|default:"📌" }} {{ e.category.name|default:"Boshqa" }}</span>
-                {% if e.note %}<p class="text-sm text-gray-500">{{ e.note }}</p>{% endif %}
-                <p class="text-sm text-gray-400">{{ e.date }}</p>
+        <li style="display: flex; justify-content: space-between; align-items: flex-start; padding: 16px 0; border-bottom: 1px solid #f1f5f9; gap: 16px;">
+            <div style="flex: 1; min-width: 0;">
+                <span style="font-weight: 500;">{{ e.category.emoji|default:"📌" }} {{ e.category.name|default:"Boshqa" }}</span>
+                {% if e.note %}<p style="font-size: 0.875rem; color: #64748b; margin-top: 2px;">{{ e.note }}</p>{% endif %}
+                <p style="font-size: 0.75rem; color: #94a3b8; margin-top: 4px;">{{ e.date }}</p>
             </div>
-            <div class="flex items-center gap-3">
-                <span class="font-semibold">{{ e.amount|intcomma }} so'm</span>
-                <a href="{% url 'expenses:edit' e.pk %}" class="text-primary-600 text-sm hover:underline">Tahrir</a>
-                <form method="post" action="{% url 'expenses:delete' e.pk %}" class="inline">{% csrf_token %}<input type="hidden" name="next" value="{{ request.path }}"><button type="submit" class="text-red-500 text-sm hover:underline">O'chirish</button></form>
+            <div style="display: flex; align-items: center; gap: 12px;">
+                <span style="font-weight: 600;">{{ e.amount|intcomma }} so'm</span>
+                <a href="{% url 'expenses:edit' e.pk %}" style="color: #64748b; text-decoration: none;" title="Tahrir"><i class="bi bi-pencil"></i></a>
+                <form method="post" action="{% url 'expenses:delete' e.pk %}" style="display: inline;">{% csrf_token %}<input type="hidden" name="next" value="{{ request.path }}"><button type="submit" style="background: none; border: none; color: #dc2626; cursor: pointer;" title="O'chirish"><i class="bi bi-trash"></i></button></form>
             </div>
         </li>
-        {% empty %}
-        <li class="py-8 text-center text-gray-500">Xarajatlar yo'q. <a href="{% url 'expenses:add' %}" class="text-primary-600 hover:underline">Birinchi xarajatni qo'shing</a>.</li>
         {% endfor %}
     </ul>
     {% if page_obj.has_other_pages %}
-    <div class="mt-4 flex justify-center gap-2">
-        {% if page_obj.has_previous %}<a href="?page={{ page_obj.previous_page_number }}" class="btn-secondary py-2">← Oldingi</a>{% endif %}
-        <span class="py-2 text-gray-600">{{ page_obj.number }} / {{ page_obj.paginator.num_pages }}</span>
-        {% if page_obj.has_next %}<a href="?page={{ page_obj.next_page_number }}" class="btn-secondary py-2">Keyingi →</a>{% endif %}
+    <div style="display: flex; justify-content: center; align-items: center; gap: 16px; margin-top: 24px; padding-top: 24px; border-top: 1px solid #f1f5f9;">
+        {% if page_obj.has_previous %}<a href="?page={{ page_obj.previous_page_number }}" class="btn-secondary" style="padding: 8px 16px;">← Oldingi</a>{% endif %}
+        <span style="color: #64748b; font-size: 0.875rem;">{{ page_obj.number }} / {{ page_obj.paginator.num_pages }}</span>
+        {% if page_obj.has_next %}<a href="?page={{ page_obj.next_page_number }}" class="btn-secondary" style="padding: 8px 16px;">Keyingi →</a>{% endif %}
     </div>
+    {% endif %}
+    {% else %}
+    <p style="text-align: center; color: #64748b; padding: 48px 24px;">
+        <i class="bi bi-inbox" style="font-size: 3rem; display: block; margin-bottom: 16px; color: #cbd5e1;"></i>
+        Xarajatlar yo'q.<br>
+        <a href="{% url 'expenses:add' %}" class="btn-primary" style="margin-top: 16px;">Birinchi xarajatni qo'shing</a>
+    </p>
     {% endif %}
 </div>
 {% endblock %}

@@ -2,30 +2,35 @@
 {% block title %}{{ title }}{% endblock %}
 
 {% block content %}
-<h1 class="text-2xl font-bold text-gray-800 mb-6">{{ title }}</h1>
-<div class="card max-w-lg">
-    <form method="post" class="space-y-4">
+<div style="display: flex; align-items: center; gap: 12px; margin-bottom: 24px;">
+    <a href="{% url 'expenses:dashboard' %}" style="color: #64748b; text-decoration: none; font-size: 1.25rem;"><i class="bi bi-arrow-left"></i></a>
+    <h1 style="font-size: 1.5rem; font-weight: 700; color: #1e293b;">{{ title }}</h1>
+</div>
+<div class="card" style="max-width: 480px;">
+    <form method="post" style="display: flex; flex-direction: column; gap: 20px;">
         {% csrf_token %}
         <div>
-            <label for="id_amount" class="block text-sm font-medium text-gray-700 mb-1">Summa (so'm)</label>
+            <label for="id_amount" style="display: block; font-size: 0.875rem; font-weight: 500; color: #374151; margin-bottom: 6px;">💵 Summa (so'm)</label>
             {{ form.amount }}
-            {% if form.amount.errors %}<p class="mt-1 text-sm text-red-600">{{ form.amount.errors.0 }}</p>{% endif %}
+            {% if form.amount.errors %}<p style="margin-top: 6px; font-size: 0.875rem; color: #dc2626;">{{ form.amount.errors.0 }}</p>{% endif %}
         </div>
         <div>
-            <label for="id_category" class="block text-sm font-medium text-gray-700 mb-1">Turkum</label>
+            <label for="id_category" style="display: block; font-size: 0.875rem; font-weight: 500; color: #374151; margin-bottom: 6px;">📁 Turkum</label>
             {{ form.category }}
         </div>
         <div>
-            <label for="id_note" class="block text-sm font-medium text-gray-700 mb-1">Izoh (ixtiyoriy)</label>
+            <label for="id_note" style="display: block; font-size: 0.875rem; font-weight: 500; color: #374151; margin-bottom: 6px;">📝 Izoh <span style="color: #94a3b8; font-weight: 400;">(ixtiyoriy)</span></label>
             {{ form.note }}
         </div>
         <div>
-            <label for="id_date" class="block text-sm font-medium text-gray-700 mb-1">Sana</label>
+            <label for="id_date" style="display: block; font-size: 0.875rem; font-weight: 500; color: #374151; margin-bottom: 6px;">📅 Sana</label>
             {{ form.date }}
-            {% if form.date.errors %}<p class="mt-1 text-sm text-red-600">{{ form.date.errors.0 }}</p>{% endif %}
+            {% if form.date.errors %}<p style="margin-top: 6px; font-size: 0.875rem; color: #dc2626;">{{ form.date.errors.0 }}</p>{% endif %}
         </div>
-        <div class="flex gap-3">
-            <button type="submit" class="btn-primary">Saqlash</button>
+        <div style="display: flex; gap: 12px; margin-top: 8px;">
+            <button type="submit" class="btn-primary" style="flex: 1;">
+                <i class="bi bi-check-lg"></i> Saqlash
+            </button>
             <a href="{% url 'expenses:dashboard' %}" class="btn-secondary">Bekor qilish</a>
         </div>
     </form>

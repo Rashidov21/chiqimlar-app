@@ -2,25 +2,30 @@
 {% block title %}{{ title }}{% endblock %}
 
 {% block content %}
-<h1 class="text-2xl font-bold text-gray-800 mb-6">{{ title }}</h1>
-<div class="card max-w-lg">
-    <form method="post" class="space-y-4">
+<div style="display: flex; align-items: center; gap: 12px; margin-bottom: 24px;">
+    <a href="{% url 'categories:list' %}" style="color: #64748b; text-decoration: none; font-size: 1.25rem;"><i class="bi bi-arrow-left"></i></a>
+    <h1 style="font-size: 1.5rem; font-weight: 700; color: #1e293b;">{{ title }}</h1>
+</div>
+<div class="card" style="max-width: 480px;">
+    <form method="post" style="display: flex; flex-direction: column; gap: 20px;">
         {% csrf_token %}
         <div>
-            <label for="id_name" class="block text-sm font-medium text-gray-700 mb-1">Turkum nomi</label>
+            <label for="id_name" style="display: block; font-size: 0.875rem; font-weight: 500; color: #374151; margin-bottom: 6px;">📁 Turkum nomi</label>
             {{ form.name }}
-            {% if form.name.errors %}<p class="mt-1 text-sm text-red-600">{{ form.name.errors.0 }}</p>{% endif %}
+            {% if form.name.errors %}<p style="margin-top: 6px; font-size: 0.875rem; color: #dc2626;">{{ form.name.errors.0 }}</p>{% endif %}
         </div>
         <div>
-            <label for="id_emoji" class="block text-sm font-medium text-gray-700 mb-1">Emoji</label>
+            <label for="id_emoji" style="display: block; font-size: 0.875rem; font-weight: 500; color: #374151; margin-bottom: 6px;">😊 Emoji</label>
             {{ form.emoji }}
         </div>
         <div>
-            <label for="id_order" class="block text-sm font-medium text-gray-700 mb-1">Tartib</label>
+            <label for="id_order" style="display: block; font-size: 0.875rem; font-weight: 500; color: #374151; margin-bottom: 6px;">🔢 Tartib</label>
             {{ form.order }}
         </div>
-        <div class="flex gap-3">
-            <button type="submit" class="btn-primary">Saqlash</button>
+        <div style="display: flex; gap: 12px; margin-top: 8px;">
+            <button type="submit" class="btn-primary" style="flex: 1;">
+                <i class="bi bi-check-lg"></i> Saqlash
+            </button>
             <a href="{% url 'categories:list' %}" class="btn-secondary">Bekor qilish</a>
         </div>
     </form>
