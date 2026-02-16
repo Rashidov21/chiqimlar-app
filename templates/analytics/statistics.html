@@ -1,0 +1,93 @@
+{% extends "base.html" %}
+{% load humanize %}
+{% block title %}Umumiy statistika{% endblock %}
+
+{% block content %}
+<h1 class="text-2xl font-bold text-gray-800 mb-6">📈 Umumiy statistika</h1>
+
+<div class="mb-6">
+    <form method="get" action="{% url 'analytics:statistics' %}" class="flex gap-2 items-center flex-wrap">
+        <select name="year" class="input-field w-auto py-2">
+            {% for y in years %}
+            <option value="{{ y }}" {% if selected_year == y %}selected{% endif %}>{{ y }}</option>
+            {% endfor %}
+        </select>
+        <select name="month" class="input-field w-auto py-2">
+            {% for m in months %}
+            <option value="{{ m }}" {% if selected_month == m %}selected{% endif %}>{{ m }} oy</option>
+            {% endfor %}
+        </select>
+        <button type="submit" class="btn-primary py-2">Ko'rsatish</button>
+    </form>
+</div>
+
+<div class="grid gap-4 md:grid-cols-3 mb-6">
+    <div class="card">
+        <p class="text-sm text-gray-500">Oylik byudjet</p>
+        <p class="text-xl font-bold">{{ totals.budget|intcomma }} so'm</p>
+    </div>
+    <div class="card">
+        <p class="text-sm text-gray-500">Jami sarflangan</p>
+        <p class="text-xl font-bold text-primary-600">{{ totals.total_spent|intcomma }} so'm</p>
+    </div>
+    <div class="card">
+        <p class="text-sm text-gray-500">Qolgan</p>
+        <p class="text-xl font-bold">{{ totals.remaining|intcomma }} so'm</p>
+    </div>
+</div>
+
+{% if insights %}
+<div class="card mb-6 bg-primary-50 border border-primary-100">
+    <h2 class="font-semibold text-gray-800 mb-2">🧠 Moliyaviy tushunchalar</h2>
+    <ul class="space-y-1 text-sm text-gray-700">
+        {% for msg in insights %}
+        <li>{{ msg }}</li>
+        {% endfor %}
+    </ul>
+</div>
+{% endif %}
+
+<div class="grid md:grid-cols-2 gap-6 mb-6">
+    <div class="card">
+        <h2 class="font-semibold mb-3">Turkumlar bo'yicha (bu oy)</h2>
+        {% if breakdown %}
+        <ul class="space-y-2">
+            {% for item in breakdown %}
+            <li class="flex justify-between"><span>{{ item.category.emoji }} {{ item.category.name }}</span><span>{{ item.total|intcomma }} so'm</span></li>
+            {% endfor %}
+        </ul>
+        {% else %}
+        <p class="text-gray-500 text-sm">Ma'lumot yo'q.</p>
+        {% endif %}
+    </div>
+    <div class="card">
+        <h2 class="font-semibold mb-3">Kunlik xarajat</h2>
+        {% if daily %}
+        <div class="h-64 flex items-end gap-0.5">
+            {% for d in daily %}
+            <div class="flex-1 bg-primary-400 rounded-t hover:bg-primary-500 transition" title="{{ d.date }}: {{ d.total|intcomma }} so'm" style="height: {% widthratio d.total daily_max 100 %}%;"></div>
+            {% endfor %}
+        </div>
+        <p class="text-xs text-gray-500 mt-2">Kunlar (oy bo'yicha)</p>
+        {% else %}
+        <p class="text-gray-500 text-sm">Bu oy ma'lumot yo'q.</p>
+        {% endif %}
+    </div>
+</div>
+
+<div class="card">
+    <h2 class="font-semibold mb-3">Oylik trend (oxirgi 6 oy)</h2>
+    {% if trend %}
+    <div class="h-64 flex items-end gap-2">
+        {% for t in trend %}
+        <div class="flex-1 flex flex-col items-center min-w-0">
+            <div class="w-full bg-primary-500 rounded-t min-h-[8px] transition hover:bg-primary-600" style="height: {% widthratio t.total trend_max 80 %}%;" title="{{ t.label }}: {{ t.total|floatformat:0 }} so'm"></div>
+            <span class="text-xs text-gray-500 mt-1 truncate w-full text-center">{{ t.label }}</span>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <p class="text-gray-500 text-sm">Ma'lumot yo'q.</p>
+    {% endif %}
+</div>
+{% endblock %}

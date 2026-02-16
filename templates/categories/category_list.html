@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% load humanize %}
+{% block title %}Barcha turkumlar{% endblock %}
+
+{% block content %}
+<h1 class="text-2xl font-bold text-gray-800 mb-6">🗂 Barcha turkumlar</h1>
+<p class="text-gray-600 mb-4">Bu oy uchun tranzaksiyalar soni va summa ko'rsatilgan.</p>
+<div class="card">
+    <a href="{% url 'categories:create' %}" class="btn-primary inline-block mb-4">+ Yangi turkum</a>
+    <ul class="divide-y divide-gray-100">
+        {% for cat in categories %}
+        <li class="py-4 flex justify-between items-center">
+            <div>
+                <span class="text-2xl">{{ cat.emoji }}</span>
+                <span class="font-medium ml-2">{{ cat.name }}</span>
+                <p class="text-sm text-gray-500 mt-1">Bu oy: {{ cat.tx_count }} ta, jami {{ cat.total_spent|default:0|intcomma }} so'm</p>
+            </div>
+            <div class="flex gap-2">
+                <a href="{% url 'categories:edit' cat.pk %}" class="btn-secondary py-2 text-sm">Tahrir</a>
+                <form method="post" action="{% url 'categories:delete' cat.pk %}" class="inline">{% csrf_token %}<button type="submit" class="rounded-xl border border-red-200 text-red-600 px-3 py-2 text-sm hover:bg-red-50">O'chirish</button></form>
+            </div>
+        </li>
+        {% empty %}
+        <li class="py-8 text-center text-gray-500">Turkumlar yo'q. <a href="{% url 'categories:create' %}" class="text-primary-600 hover:underline">Birinchi turkum qo'shing</a>.</li>
+        {% endfor %}
+    </ul>
+</div>
+{% endblock %}

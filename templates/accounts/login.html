@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% block title %}Kirish{% endblock %}
+{% block nav %}{% endblock %}
+
+{% block content %}
+<div class="min-h-screen flex flex-col items-center justify-center px-4">
+    <div class="w-full max-w-sm card">
+        <div class="text-center mb-6">
+            <h1 class="text-2xl font-bold text-gray-800">💰 Chiqimlar</h1>
+            <p class="text-gray-500 mt-1">Shaxsiy moliya yordamchi</p>
+        </div>
+        <p class="text-sm text-gray-600 mb-4">Telegram botda <strong>/start</strong> yuboring va quyidagi kodni kiriting:</p>
+        <form method="post" action="{% url 'accounts:login' %}" class="space-y-4">
+            {% csrf_token %}
+            <div>
+                <label for="id_code" class="block text-sm font-medium text-gray-700 mb-1">Tasdiqlash kodi</label>
+                <input type="text" name="code" id="id_code" maxlength="8" placeholder="XXXXXX" autocomplete="one-time-code" inputmode="numeric" autofocus
+                    class="input-field text-center text-lg tracking-widest">
+                {% if form.code.errors %}<p class="mt-1 text-sm text-red-600">{{ form.code.errors.0 }}</p>{% endif %}
+            </div>
+            <button type="submit" class="btn-primary w-full">Kirish</button>
+        </form>
+        <p class="mt-4 text-center text-sm text-gray-500">
+            Kod olmadingizmi? Telegramda <strong>/code</strong> yuboring.
+        </p>
+        <p class="mt-3 text-center">
+            <a href="{% url 'accounts:register' %}" class="text-primary-600 hover:underline">Ro'yxatdan o'tish</a>
+        </p>
+    </div>
+    <p class="mt-6 text-xs text-gray-400">Muallif: Abdurahmon Rashidov</p>
+</div>
+{% endblock %}

@@ -1,0 +1,90 @@
+{% extends "base.html" %}
+{% load humanize %}
+{% block title %}Bu Oy{% endblock %}
+
+{% block content %}
+<h1 class="text-2xl font-bold text-gray-800 mb-6">📊 Bu Oy</h1>
+
+<div class="grid gap-4 md:grid-cols-3 mb-6">
+    <div class="card">
+        <p class="text-sm text-gray-500">Oylik byudjet</p>
+        <p class="text-2xl font-bold text-gray-800">{{ totals.budget|intcomma }} so'm</p>
+    </div>
+    <div class="card">
+        <p class="text-sm text-gray-500">Jami sarflangan</p>
+        <p class="text-2xl font-bold text-primary-600">{{ totals.total_spent|intcomma }} so'm</p>
+    </div>
+    <div class="card">
+        <p class="text-sm text-gray-500">Qolgan</p>
+        <p class="text-2xl font-bold {% if totals.remaining < 0 %}text-red-600{% else %}text-gray-800{% endif %}">{{ totals.remaining|intcomma }} so'm</p>
+    </div>
+</div>
+
+{% if totals.budget and totals.budget > 0 %}
+<div class="card mb-6">
+    <p class="text-sm text-gray-600 mb-2">Byudjet bajarilishi</p>
+    {% widthratio totals.total_spent totals.budget 100 as pct %}
+    <div class="h-4 rounded-full bg-gray-200 overflow-hidden">
+        <div class="h-full rounded-full {% if pct >= 100 %}bg-red-500{% elif pct >= 90 %}bg-amber-500{% else %}bg-primary-500{% endif %}" style="width: min(100%, {{ pct }}%);"></div>
+    </div>
+    <p class="text-sm text-gray-500 mt-1">{{ totals.total_spent|intcomma }} / {{ totals.budget|intcomma }} ({{ pct }}%)</p>
+    {% if pct >= 90 and pct < 100 %}
+    <p class="text-amber-700 text-sm mt-2">⚠️ Byudjetingizning ko'p qismi sarflandi.</p>
+    {% elif pct >= 100 %}
+    <p class="text-red-700 text-sm mt-2">⚠️ Byudjet ortiq sarflandi.</p>
+    {% endif %}
+</div>
+{% endif %}
+
+{% if insights %}
+<div class="card mb-6 bg-primary-50 border-primary-100">
+    <h2 class="font-semibold text-gray-800 mb-2">🧠 Moliyaviy tushunchalar</h2>
+    <ul class="space-y-1 text-sm text-gray-700">
+        {% for msg in insights %}
+        <li>{{ msg }}</li>
+        {% endfor %}
+    </ul>
+</div>
+{% endif %}
+
+<div class="grid md:grid-cols-2 gap-6">
+    <div class="card">
+        <h2 class="font-semibold text-gray-800 mb-3">Turkumlar bo'yicha</h2>
+        {% if breakdown %}
+        <ul class="space-y-2">
+            {% for item in breakdown %}
+            <li class="flex justify-between items-center">
+                <span>{{ item.category.emoji }} {{ item.category.name }}</span>
+                <span class="font-medium">{{ item.total|intcomma }} so'm</span>
+            </li>
+            {% endfor %}
+        </ul>
+        {% else %}
+        <p class="text-gray-500 text-sm">Bu oy hali xarajat yo'q.</p>
+        {% endif %}
+    </div>
+    <div class="card">
+        <div class="flex justify-between items-center mb-3">
+            <h2 class="font-semibold text-gray-800">So'nggi xarajatlar</h2>
+            <a href="{% url 'expenses:add' %}" class="text-primary-600 text-sm hover:underline">+ Qo'shish</a>
+        </div>
+        {% if recent %}
+        <ul class="space-y-2">
+            {% for e in recent %}
+            <li class="flex justify-between items-center py-2 border-b border-gray-100 last:border-0">
+                <span>{{ e.category.emoji|default:"📌" }} {{ e.category.name|default:"Boshqa" }} — {{ e.note|default:""|truncatechars:15 }}</span>
+                <span class="font-medium">{{ e.amount|intcomma }}</span>
+                <div class="flex gap-2">
+                    <a href="{% url 'expenses:edit' e.pk %}" class="text-gray-500 hover:text-primary-600 text-sm">Tahrir</a>
+                    <form method="post" action="{% url 'expenses:delete' e.pk %}" class="inline">{% csrf_token %}<input type="hidden" name="next" value="{{ request.path }}"><button type="submit" class="text-red-500 hover:text-red-700 text-sm">O'chirish</button></form>
+                </div>
+            </li>
+            {% endfor %}
+        </ul>
+        <a href="{% url 'expenses:list' %}" class="inline-block mt-2 text-primary-600 text-sm hover:underline">Barcha xarajatlar →</a>
+        {% else %}
+        <p class="text-gray-500 text-sm">Hali xarajat qo'shilmagan. <a href="{% url 'expenses:add' %}" class="text-primary-600 hover:underline">Birinchi xarajatni qo'shing</a>.</p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

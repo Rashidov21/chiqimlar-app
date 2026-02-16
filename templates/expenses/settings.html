@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{% load humanize %}
+{% block title %}Sozlamalar{% endblock %}
+
+{% block content %}
+<h1 class="text-2xl font-bold text-gray-800 mb-6">⚙️ Sozlamalar</h1>
+
+<div class="card max-w-lg space-y-6">
+    <form method="post" action="{% url 'expenses:settings' %}">
+        {% csrf_token %}
+        <div class="mb-4">
+            <label for="monthly_budget" class="block text-sm font-medium text-gray-700 mb-1">Oylik byudjet (so'm)</label>
+            <input type="number" name="monthly_budget" id="monthly_budget" value="{{ user.monthly_budget }}" min="0" step="1000" class="input-field" placeholder="0">
+        </div>
+        <div class="space-y-3 mb-4">
+            <p class="text-sm font-medium text-gray-700">Telegram bildirishnomalar</p>
+            <label class="flex items-center gap-2"><input type="checkbox" name="telegram_notifications" {% if user.telegram_notifications %}checked{% endif %} class="rounded"> Umumiy bildirishnomalar</label>
+            <label class="flex items-center gap-2"><input type="checkbox" name="daily_reminder" {% if user.daily_reminder %}checked{% endif %} class="rounded"> Kunlik eslatma (xarajat kiritish)</label>
+            <label class="flex items-center gap-2"><input type="checkbox" name="weekly_summary" {% if user.weekly_summary %}checked{% endif %} class="rounded"> Haftalik xulosa</label>
+            <label class="flex items-center gap-2"><input type="checkbox" name="limit_warning" {% if user.limit_warning %}checked{% endif %} class="rounded"> Byudjet ogohlantirishi</label>
+        </div>
+        <button type="submit" class="btn-primary">Saqlash</button>
+    </form>
+
+    <hr class="border-gray-200">
+    <div>
+        <p class="text-sm font-medium text-gray-700 mb-1">Kirish kodini almashtirish</p>
+        <p class="text-sm text-gray-500">Telegram botda <strong>/code</strong> yuboring — yangi kod olasiz va veb-ilovada qayta kiring.</p>
+    </div>
+
+    <hr class="border-gray-200">
+    <div>
+        <p class="text-sm font-medium text-gray-700 mb-1">Turkumlar</p>
+        <a href="{% url 'categories:list' %}" class="text-primary-600 hover:underline">Barcha turkumlarni boshqarish →</a>
+    </div>
+
+    <hr class="border-gray-200">
+    <div>
+        <p class="text-sm font-medium text-gray-700 mb-1">Ma'lumotlarni eksport qilish</p>
+        <a href="{% url 'expenses:export' %}" class="btn-secondary py-2">CSV yuklab olish</a>
+    </div>
+</div>
+{% endblock %}

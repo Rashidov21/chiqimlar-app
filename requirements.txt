@@ -1,0 +1,24 @@
+# Chiqimlar - Shaxsiy moliya ilovasi
+# Django
+Django>=5.0,<6.0
+djangorestframework>=3.14
+django-cors-headers>=4.3
+psycopg[binary]>=3.1
+python-dotenv>=1.0
+
+# Telegram
+python-telegram-bot>=21.0
+
+# Celery (optional - eslatmalar uchun)
+celery>=5.3
+redis>=5.0
+
+# Utils
+django-environ>=0.11
+Pillow>=10.0
+whitenoise>=6.6
+gunicorn>=21.0
+
+# Development
+django-debug-toolbar>=4.2
+django-extensions>=3.2

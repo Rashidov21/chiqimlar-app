@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+<h1 class="text-2xl font-bold text-gray-800 mb-6">{{ title }}</h1>
+<div class="card max-w-lg">
+    <form method="post" class="space-y-4">
+        {% csrf_token %}
+        <div>
+            <label for="id_amount" class="block text-sm font-medium text-gray-700 mb-1">Summa (so'm)</label>
+            {{ form.amount }}
+            {% if form.amount.errors %}<p class="mt-1 text-sm text-red-600">{{ form.amount.errors.0 }}</p>{% endif %}
+        </div>
+        <div>
+            <label for="id_category" class="block text-sm font-medium text-gray-700 mb-1">Turkum</label>
+            {{ form.category }}
+        </div>
+        <div>
+            <label for="id_note" class="block text-sm font-medium text-gray-700 mb-1">Izoh (ixtiyoriy)</label>
+            {{ form.note }}
+        </div>
+        <div>
+            <label for="id_date" class="block text-sm font-medium text-gray-700 mb-1">Sana</label>
+            {{ form.date }}
+            {% if form.date.errors %}<p class="mt-1 text-sm text-red-600">{{ form.date.errors.0 }}</p>{% endif %}
+        </div>
+        <div class="flex gap-3">
+            <button type="submit" class="btn-primary">Saqlash</button>
+            <a href="{% url 'expenses:dashboard' %}" class="btn-secondary">Bekor qilish</a>
+        </div>
+    </form>
+</div>
+{% endblock %}
