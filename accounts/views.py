@@ -11,7 +11,7 @@ from .services import verify_code_and_login
 from .forms import LoginForm, RegisterForm
 
 
-@require_http_methods(["GET", "POST"])
+@require_http_methods(["GET", "POST", "HEAD"])
 def login_view(request):
     if request.user.is_authenticated:
         return redirect("expenses:dashboard")
@@ -25,7 +25,7 @@ def login_view(request):
     return render(request, "accounts/login.html", {"form": form})
 
 
-@require_http_methods(["GET", "POST"])
+@require_http_methods(["GET", "POST", "HEAD"])
 def register_view(request):
     if request.user.is_authenticated:
         return redirect("expenses:dashboard")

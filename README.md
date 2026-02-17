@@ -100,3 +100,4 @@ python manage.py test
 - `templates/` — HTML (base, login, dashboard, statistika, …)
 
 Litsenziya: MIT (yoki loyiha qoidalariga qarab).
+cd /var/www/chiqimlar-app && source venv/bin/activate
