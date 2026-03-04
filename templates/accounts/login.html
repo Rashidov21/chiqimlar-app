@@ -3,8 +3,11 @@
 {% block nav %}{% endblock %}
 
 {% block content %}
-<div style="min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 24px;">
-    <div class="card" style="width: 100%; max-width: 400px;">
+<div id="login-root" style="min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 24px;">
+    <div id="login-loading" style="display: none; text-align: center; color: #64748b;">
+        <p>Kirish...</p>
+    </div>
+    <div id="login-form-wrap" class="card" style="width: 100%; max-width: 400px;">
         <div style="text-align: center; margin-bottom: 24px;">
             <div style="font-size: 48px; margin-bottom: 8px;">💰</div>
             <h1 style="font-size: 1.5rem; font-weight: 700; color: #1e293b;">Chiqimlar</h1>
@@ -42,4 +45,46 @@
     </div>
     <p style="margin-top: 24px; font-size: 0.75rem; color: #94a3b8;">Muallif: Abdurahmon Rashidov</p>
 </div>
+
+{% block extra_js %}
+<script>
+(function() {
+    var tg = window.Telegram && window.Telegram.WebApp;
+    var initData = tg && tg.initData;
+    if (!initData) return;
+
+    var root = document.getElementById('login-root');
+    var loading = document.getElementById('login-loading');
+    var formWrap = document.getElementById('login-form-wrap');
+    if (!root || !loading || !formWrap) return;
+
+    formWrap.style.display = 'none';
+    loading.style.display = 'block';
+
+    var formData = new FormData();
+    formData.append('init_data', initData);
+    formData.append('csrfmiddlewaretoken', '{{ csrf_token }}');
+
+    fetch('{% url "accounts:telegram_webapp_auth" %}', {
+        method: 'POST',
+        body: formData,
+        credentials: 'same-origin',
+        headers: { 'X-Requested-With': 'XMLHttpRequest' }
+    })
+    .then(function(r) { return r.json().then(function(data) { return { ok: data.ok, redirect: data.redirect, status: r.status }; }); })
+    .then(function(result) {
+        if (result.ok && result.redirect) {
+            window.location.href = result.redirect;
+        } else {
+            formWrap.style.display = 'block';
+            loading.style.display = 'none';
+        }
+    })
+    .catch(function() {
+        formWrap.style.display = 'block';
+        loading.style.display = 'none';
+    });
+})();
+</script>
+{% endblock %}
 {% endblock %}

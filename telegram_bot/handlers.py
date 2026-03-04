@@ -11,32 +11,46 @@ logger = logging.getLogger(__name__)
 WEBAPP_URL = getattr(settings, "TELEGRAM_WEBAPP_URL", "").rstrip("/")
 
 
-def _send_message(chat_id: int, text: str) -> bool:
+def _send_message(chat_id: int, text: str, reply_markup: dict = None) -> bool:
     token = getattr(settings, "TELEGRAM_BOT_TOKEN", None)
     if not token:
         return False
     url = f"https://api.telegram.org/bot{token}/sendMessage"
+    payload = {"chat_id": chat_id, "text": text, "parse_mode": "HTML"}
+    if reply_markup:
+        payload["reply_markup"] = reply_markup
     try:
-        r = requests.post(url, json={"chat_id": chat_id, "text": text, "parse_mode": "HTML"}, timeout=10)
+        r = requests.post(url, json=payload, timeout=10)
         return r.status_code == 200
     except Exception as e:
         logger.warning("Telegram send_message failed: %s", e)
         return False
 
 
+def _web_app_keyboard():
+    """Mini App ochish tugmasi."""
+    if not WEBAPP_URL:
+        return None
+    return {
+        "keyboard": [
+            [{"text": "💰 Chiqimlarni ochish", "web_app": {"url": WEBAPP_URL}}]
+        ],
+        "resize_keyboard": True,
+    }
+
+
 def handle_start(chat_id: int, first_name: str = ""):
-    """/start - Tasdiqlash kodi yuborish va veb-ilova tugmasi."""
+    """/start - Tasdiqlash kodi + Mini App tugmasi."""
     vc = VerificationCode.generate(chat_id)
     minutes = getattr(settings, "VERIFICATION_CODE_EXPIRE_MINUTES", 10)
     text = (
         f"Salom, {first_name or 'do\'st'}! 👋\n\n"
         f"Veb-ilovaga kirish uchun tasdiqlash kodingiz:\n\n"
-        f"🔑 {vc.code}\n\n"
+        f"🔑 <code>{vc.code}</code>\n\n"
         f"Kod {minutes} daqiqa amal qiladi.\n\n"
-        f"Veb-ilovani ochish: {WEBAPP_URL}/"
+        f"Pastdagi tugmani bosing yoki veb-ilovada kodni kiriting."
     )
-    _send_message(chat_id, text)
-    # Inline button requires reply_markup; for simplicity we just send URL in text
+    _send_message(chat_id, text, reply_markup=_web_app_keyboard())
     return True
 
 
