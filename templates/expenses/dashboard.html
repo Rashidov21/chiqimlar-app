@@ -23,6 +23,9 @@
     <div class="card card-compact">
         <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 2px;">💵 Qolgan</p>
         <p style="font-size: 1.1rem; font-weight: 700; {% if totals.remaining < 0 %}color: var(--danger);{% endif %}">{{ totals.remaining|intcomma }} so'm</p>
+        {% if not totals.budget or totals.budget == 0 %}
+        <p style="font-size: 0.75rem; color: var(--text-muted); margin-top: 4px;"><a href="{% url 'expenses:settings' %}" style="color: var(--primary);">Byudjetni sozlamalarda kiriting</a></p>
+        {% endif %}
     </div>
 </div>
 
@@ -109,10 +112,10 @@
                         <a href="{% url 'expenses:edit' e.pk %}" style="font-size: 0.8rem; color: var(--text-muted); text-decoration: none;">
                             <i class="bi bi-pencil"></i>
                         </a>
-                        <form method="post" action="{% url 'expenses:delete' e.pk %}" style="display: inline;">
+                        <form method="post" action="{% url 'expenses:delete' e.pk %}" style="display: inline;" onsubmit="return confirm('Ushbu xarajatni o\u2018chirishni xohlaysizmi?');">
                             {% csrf_token %}
                             <input type="hidden" name="next" value="{{ request.path }}">
-                            <button type="submit" style="background: none; border: none; color: var(--danger); cursor: pointer; font-size: 0.8rem;">
+                            <button type="submit" style="background: none; border: none; color: var(--danger); cursor: pointer; font-size: 0.8rem;" title="O'chirish">
                                 <i class="bi bi-trash"></i>
                             </button>
                         </form>

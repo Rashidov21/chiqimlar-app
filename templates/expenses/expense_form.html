@@ -29,12 +29,30 @@
             {{ form.date }}
             {% if form.date.errors %}<p style="margin-top: 4px; font-size: 0.8rem; color: var(--danger);">{{ form.date.errors.0 }}</p>{% endif %}
         </div>
-        <div style="display: flex; flex-direction: column; gap: 8px; margin-top: 4px;">
-            <button type="submit" class="btn-primary">
-                <i class="bi bi-check-lg"></i> Saqlash
-            </button>
-            <a href="{% url 'expenses:dashboard' %}" class="btn-secondary">Bekor qilish</a>
+        <div class="form-actions-sticky">
+            <div style="display: flex; flex-direction: column; gap: 8px;">
+                <button type="submit" class="btn-primary" id="expense-submit-btn">
+                    <i class="bi bi-check-lg"></i> <span class="btn-text">Saqlash</span>
+                </button>
+                <a href="{% url 'expenses:dashboard' %}" class="btn-secondary">Bekor qilish</a>
+            </div>
         </div>
     </form>
 </div>
+{% block extra_js %}
+<script>
+(function() {
+    var form = document.querySelector('form');
+    var btn = document.getElementById('expense-submit-btn');
+    if (form && btn) {
+        form.addEventListener('submit', function() {
+            btn.disabled = true;
+            var t = btn.querySelector('.btn-text');
+            if (t) t.textContent = 'Saqlanmoqda…';
+            if (window.haptic) window.haptic();
+        });
+    }
+})();
+</script>
+{% endblock %}
 {% endblock %}

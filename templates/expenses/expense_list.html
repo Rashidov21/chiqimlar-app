@@ -3,10 +3,14 @@
 {% block title %}Barcha xarajatlar{% endblock %}
 
 {% block content %}
-<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
-    <h1 style="font-size: 1.5rem; font-weight: 700; color: #1e293b; display: flex; align-items: center; gap: 8px;">
-        <i class="bi bi-receipt"></i> Barcha xarajatlar
-    </h1>
+<div class="page-header" style="justify-content: space-between;">
+    <div style="display: flex; align-items: center; gap: 10px;">
+        <i class="bi bi-receipt" style="font-size: 1.3rem; color: var(--primary);"></i>
+        <div>
+            <h1 class="page-title" style="margin-bottom: 0;">Barcha xarajatlar</h1>
+            <p class="page-subtitle">Barcha yozuvlar, sahifalab</p>
+        </div>
+    </div>
     <a href="{% url 'expenses:add' %}" class="btn-primary">
         <i class="bi bi-plus-lg"></i> Qo'shish
     </a>
@@ -24,7 +28,7 @@
             <div style="display: flex; align-items: center; gap: 12px;">
                 <span style="font-weight: 600;">{{ e.amount|intcomma }} so'm</span>
                 <a href="{% url 'expenses:edit' e.pk %}" style="color: #64748b; text-decoration: none;" title="Tahrir"><i class="bi bi-pencil"></i></a>
-                <form method="post" action="{% url 'expenses:delete' e.pk %}" style="display: inline;">{% csrf_token %}<input type="hidden" name="next" value="{{ request.path }}"><button type="submit" style="background: none; border: none; color: #dc2626; cursor: pointer;" title="O'chirish"><i class="bi bi-trash"></i></button></form>
+                <form method="post" action="{% url 'expenses:delete' e.pk %}" style="display: inline;" onsubmit="return confirm('Ushbu xarajatni o\u2018chirishni xohlaysizmi?');">{% csrf_token %}<input type="hidden" name="next" value="{{ request.path }}"><button type="submit" style="background: none; border: none; color: #dc2626; cursor: pointer;" title="O'chirish"><i class="bi bi-trash"></i></button></form>
             </div>
         </li>
         {% endfor %}

@@ -37,7 +37,7 @@
                 {% csrf_token %}
                 <div>
                     <label for="id_code" style="display: block; font-size: 0.85rem; font-weight: 500; color: #374151; margin-bottom: 4px;">🔑 Tasdiqlash kodi</label>
-                    <input type="text" name="code" id="id_code" maxlength="8" placeholder="XXXXXX" autocomplete="one-time-code" inputmode="numeric" autofocus
+                    <input type="text" name="code" id="id_code" maxlength="6" placeholder="000000" autocomplete="one-time-code" inputmode="numeric" autofocus
                         class="input-field" style="text-align: center; font-size: 1.25rem; letter-spacing: 0.2em;">
                     {% if form.code.errors %}<p style="margin-top: 4px; font-size: 0.8rem; color: #dc2626;">{{ form.code.errors.0 }}</p>{% endif %}
                 </div>

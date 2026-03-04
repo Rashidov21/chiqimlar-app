@@ -20,7 +20,8 @@ class ExpenseForm(forms.ModelForm):
         self.fields["amount"].widget.attrs["placeholder"] = "Summa (so'm)"
         self.fields["amount"].widget.attrs["inputmode"] = "numeric"
         self.fields["note"].widget.attrs["class"] = "input-field"
-        self.fields["note"].widget.attrs["placeholder"] = "Izoh (ixtiyoriy)"
+        self.fields["note"].widget.attrs["placeholder"] = "Izoh (ixtiyoriy, max 255 belgi)"
+        self.fields["note"].widget.attrs["maxlength"] = "255"
         self.fields["date"].widget.attrs["class"] = "input-field"
         self.fields["category"].widget.attrs["class"] = "input-field"
 

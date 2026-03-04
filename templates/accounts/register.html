@@ -28,6 +28,7 @@
                 <div>
                     <label for="{{ field.id_for_label }}" style="display: block; font-size: 0.85rem; font-weight: 500; color: #374151; margin-bottom: 4px;">{{ field.label }}</label>
                     {{ field }}
+                    {% if field.help_text %}<p style="margin-top: 4px; font-size: 0.8rem; color: var(--text-muted);">{{ field.help_text }}</p>{% endif %}
                     {% if field.errors %}<p style="margin-top: 4px; font-size: 0.8rem; color: #dc2626;">{{ field.errors.0 }}</p>{% endif %}
                 </div>
                 {% endfor %}

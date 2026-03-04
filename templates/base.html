@@ -3,7 +3,7 @@
 <html lang="uz">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, interactive-widget=resize-visual">
     <title>{% block title %}Chiqimlar{% endblock %} — Shaxsiy moliya</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
@@ -183,6 +183,7 @@
             justify-content: space-around;
             align-items: center;
             padding: 10px 0;
+            padding-bottom: calc(10px + env(safe-area-inset-bottom, 0px));
             background: #ffffff;
             border-top: 1px solid var(--border-soft);
             position: fixed;
@@ -203,10 +204,12 @@
             border-radius: 9999px;
             transition: all 0.15s;
         }
-        .bottom-nav a:hover {
+        .bottom-nav a:hover,
+        .bottom-nav a.active {
             color: var(--primary);
             background: #ecfdf3;
         }
+        .bottom-nav a.active { font-weight: 600; }
         .bottom-nav a i {
             font-size: 1.2rem;
         }
@@ -232,19 +235,42 @@
         }
 
         main {
-            padding-bottom: 80px;
+            padding-bottom: calc(80px + env(safe-area-inset-bottom, 0px));
         }
         @media (min-width: 768px) {
             main { padding-bottom: 24px; }
+        }
+
+        /* Form action tugmalari klaviatura ochiqda ham ko‘rinsin (mobil) */
+        .form-actions-sticky {
+            position: sticky;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            z-index: 40;
+            background: var(--bg-card);
+            padding: 14px 0;
+            padding-bottom: calc(14px + env(safe-area-inset-bottom, 0px));
+            margin-top: 8px;
+            box-shadow: 0 -2px 12px rgba(15, 23, 42, 0.06);
+        }
+        @media (min-width: 769px) {
+            .form-actions-sticky {
+                position: static;
+                padding: 0;
+                margin-top: 0;
+                box-shadow: none;
+                background: transparent;
+            }
         }
     </style>
     {% block extra_head %}{% endblock %}
 </head>
 <body>
     {% if messages %}
-    <div class="message-toast" style="display: flex; flex-direction: column; gap: 8px;">
+    <div id="message-toast" class="message-toast" style="display: flex; flex-direction: column; gap: 8px;">
         {% for message in messages %}
-        <div class="rounded-xl px-4 py-3 shadow-lg" style="{% if message.tags == 'error' %}background: #fef2f2; color: #991b1b; border: 1px solid #fecaca{% elif message.tags == 'success' %}background: #f0fdf4; color: #166534; border: 1px solid #bbf7d0{% else %}background: #eff6ff; color: #1e40af; border: 1px solid #bfdbfe{% endif %}">
+        <div class="rounded-xl px-4 py-3 shadow-lg msg-item" data-msg-tag="{{ message.tags|default:'info' }}" style="{% if message.tags == 'error' %}background: #fef2f2; color: #991b1b; border: 1px solid #fecaca{% elif message.tags == 'success' %}background: #f0fdf4; color: #166534; border: 1px solid #bbf7d0{% else %}background: #eff6ff; color: #1e40af; border: 1px solid #bfdbfe{% endif %}">
             {% if message.tags == 'success' %}<i class="bi bi-check-circle-fill" style="margin-right: 8px;"></i>{% elif message.tags == 'error' %}<i class="bi bi-exclamation-circle-fill" style="margin-right: 8px;"></i>{% endif %}{{ message }}
         </div>
         {% endfor %}
@@ -253,7 +279,7 @@
 
     {% block nav %}
     {% if user.is_authenticated %}
-    <nav class="bg-white border-b border-gray-100 shadow-sm sticky top-0 z-40">
+    <nav class="bg-white border-b border-gray-100 shadow-sm sticky top-0 z-40" style="padding-top: env(safe-area-inset-top, 0px);">
         <div class="max-w-4xl mx-auto px-4 py-3 flex items-center justify-between">
             <a href="{% url 'expenses:dashboard' %}" class="text-xl font-semibold flex items-center gap-2" style="color: #15803d;">
                 <i class="bi bi-wallet2"></i> Chiqimlar
@@ -284,11 +310,11 @@
     </nav>
 
     <div class="bottom-nav">
-        <a href="{% url 'expenses:dashboard' %}"><i class="bi bi-speedometer2"></i> Bu Oy</a>
-        <a href="{% url 'expenses:add' %}"><i class="bi bi-plus-circle-fill" style="color: #16a34a;"></i> Qo'shish</a>
-        <a href="{% url 'analytics:statistics' %}"><i class="bi bi-bar-chart"></i> Statistika</a>
-        <a href="{% url 'categories:list' %}"><i class="bi bi-folder"></i> Turkumlar</a>
-        <a href="{% url 'expenses:settings' %}"><i class="bi bi-gear"></i> Sozlamalar</a>
+        <a href="{% url 'expenses:dashboard' %}" class="{% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}"><i class="bi bi-speedometer2"></i> Bu Oy</a>
+        <a href="{% url 'expenses:add' %}" class="{% if request.resolver_match.url_name == 'add' %}active{% endif %}"><i class="bi bi-plus-circle-fill" style="color: #16a34a;"></i> Qo'shish</a>
+        <a href="{% url 'analytics:statistics' %}" class="{% if request.resolver_match.url_name == 'statistics' %}active{% endif %}"><i class="bi bi-bar-chart"></i> Statistika</a>
+        <a href="{% url 'categories:list' %}" class="{% if 'categories' in request.path %}active{% endif %}"><i class="bi bi-folder"></i> Turkumlar</a>
+        <a href="{% url 'expenses:settings' %}" class="{% if 'settings' in request.path %}active{% endif %}"><i class="bi bi-gear"></i> Sozlamalar</a>
     </div>
     {% endif %}
     {% endblock %}
@@ -305,8 +331,25 @@
                 tg.expand();
                 if (tg.setHeaderColor) tg.setHeaderColor('#16a34a');
                 if (tg.setBackgroundColor) tg.setBackgroundColor('#f8fafc');
+                if (tg.BackButton && window.history.length > 1) {
+                    tg.BackButton.show();
+                    tg.BackButton.onClick(function() { window.history.back(); });
+                }
+            }
+            var toast = document.getElementById('message-toast');
+            if (toast && tg && tg.showPopup) {
+                var first = toast.querySelector('.msg-item');
+                if (first) {
+                    var title = first.getAttribute('data-msg-tag') === 'error' ? 'Xato' : 'Chiqimlar';
+                    var msg = (first.textContent || first.innerText || '').trim().replace(/\s+/g, ' ');
+                    if (msg) { tg.showPopup({ title: title, message: msg }); toast.style.display = 'none'; }
+                }
             }
         })();
+        window.haptic = function(style) {
+            var tg = window.Telegram && window.Telegram.WebApp;
+            if (tg && tg.HapticFeedback) tg.HapticFeedback.impactOccurred(style || 'light');
+        };
     </script>
     {% block extra_js %}{% endblock %}
 </body>

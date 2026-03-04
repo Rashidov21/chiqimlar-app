@@ -33,9 +33,9 @@
                 <a href="{% url 'categories:edit' cat.pk %}" class="btn-secondary" style="padding-inline: 12px; font-size: 0.8rem;">
                     <i class="bi bi-pencil"></i> Tahrir
                 </a>
-                <form method="post" action="{% url 'categories:delete' cat.pk %}" style="display: inline;">
+                <form method="post" action="{% url 'categories:delete' cat.pk %}" style="display: inline;" onsubmit="return confirm('«{{ cat.name }}» turkumini o\u2018chirishni xohlaysizmi? Ushbu turkumdagi xarajatlar «Boshqa» ga o\u2018tadi.');">
                     {% csrf_token %}
-                    <button type="submit" style="border-radius: 9999px; border: 1px solid #fecaca; color: #dc2626; padding: 8px 14px; font-size: 0.8rem; background: white; cursor: pointer; display: inline-flex; align-items: center; gap: 6px;">
+                    <button type="submit" style="border-radius: 9999px; border: 1px solid #fecaca; color: #dc2626; padding: 8px 14px; font-size: 0.8rem; background: white; cursor: pointer; display: inline-flex; align-items: center; gap: 6px;" title="O'chirish">
                         <i class="bi bi-trash"></i> O'chirish
                     </button>
                 </form>

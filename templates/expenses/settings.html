@@ -41,10 +41,16 @@
                 </label>
             </div>
         </div>
-        <button type="submit" class="btn-primary">
-            <i class="bi bi-check-lg"></i> Saqlash
-        </button>
+        <div class="form-actions-sticky">
+            <button type="submit" class="btn-primary" id="settings-submit-btn">
+                <i class="bi bi-check-lg"></i> <span class="btn-text">Saqlash</span>
+            </button>
+        </div>
     </form>
+    <script>
+    (function(){ var f=document.querySelector('form'); var b=document.getElementById('settings-submit-btn');
+    if(f&&b){ f.addEventListener('submit',function(){ b.disabled=true; var t=b.querySelector('.btn-text'); if(t)t.textContent='Saqlanmoqda…'; if(window.haptic)window.haptic(); }); } })();
+    </script>
 
     <div style="margin-top: 20px; display: flex; flex-direction: column; gap: 16px;">
         <div style="display: flex; align-items: flex-start; gap: 12px;">
