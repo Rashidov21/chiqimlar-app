@@ -3,137 +3,89 @@
 {% block title %}Bu Oy{% endblock %}
 
 {% block content %}
-<div class="page-header">
-    <i class="bi bi-speedometer2" style="font-size: 1.3rem; color: var(--primary);"></i>
-    <div>
-        <h1 class="page-title">Bu Oy</h1>
-        <p class="page-subtitle">Byudjet, sarflangan summa va so'nggi xarajatlar</p>
-    </div>
-</div>
+<p style="text-align: center; font-size: 0.95rem; color: var(--text-muted); margin-bottom: 4px;">{{ month_display }}</p>
+<p style="text-align: center; font-size: 2rem; font-weight: 800; color: var(--text-main); margin-bottom: 20px; letter-spacing: -0.02em;">{{ totals.total_spent|intcomma }}</p>
 
-<div class="section-grid" style="margin-bottom: 16px; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));">
-    <div class="card card-compact">
-        <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 2px;">💰 Oylik byudjet</p>
-        <p style="font-size: 1.1rem; font-weight: 700;">{{ totals.budget|intcomma }} so'm</p>
+<div class="card card-compact" style="margin-bottom: 20px;">
+    <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 10px;">
+        <div>
+            <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 2px;">Ishlatildi</p>
+            <p style="font-size: 1.1rem; font-weight: 700;">{{ totals.total_spent|intcomma }}</p>
+        </div>
+        <div style="text-align: right;">
+            <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 2px;">Oylik limit</p>
+            <p style="font-size: 1.1rem; font-weight: 700;">{{ totals.budget|intcomma }}</p>
+        </div>
     </div>
-    <div class="card card-compact">
-        <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 2px;">📊 Jami sarflangan</p>
-        <p style="font-size: 1.1rem; font-weight: 700; color: var(--primary);">{{ totals.total_spent|intcomma }} so'm</p>
-    </div>
-    <div class="card card-compact">
-        <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 2px;">💵 Qolgan</p>
-        <p style="font-size: 1.1rem; font-weight: 700; {% if totals.remaining < 0 %}color: var(--danger);{% endif %}">{{ totals.remaining|intcomma }} so'm</p>
-        {% if not totals.budget or totals.budget == 0 %}
-        <p style="font-size: 0.75rem; color: var(--text-muted); margin-top: 4px;"><a href="{% url 'expenses:settings' %}" style="color: var(--primary);">Byudjetni sozlamalarda kiriting</a></p>
-        {% endif %}
-    </div>
-</div>
-
-{% if totals.budget and totals.budget > 0 %}
-<div class="card card-compact" style="margin-bottom: 12px;">
-    <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 8px;">📈 Byudjet bajarilishi</p>
+    {% if totals.budget and totals.budget > 0 %}
     {% widthratio totals.total_spent totals.budget 100 as pct %}
-    <div style="height: 10px; border-radius: 9999px; background: #e2e8f0; overflow: hidden;">
-        <div style="height: 100%; border-radius: 9999px; width: min(100%, {{ pct }}%); {% if pct >= 100 %}background: #dc2626;{% elif pct >= 90 %}background: #f59e0b;{% else %}background: #22c55e;{% endif %}"></div>
+    <div style="height: 10px; border-radius: 9999px; background: #eee; overflow: hidden;">
+        <div style="height: 100%; border-radius: 9999px; width: min(100%, {{ pct }}%); background: linear-gradient(90deg, #f97316, #38bdf8, var(--primary));"></div>
     </div>
-    <p style="font-size: 0.8rem; color: var(--text-muted); margin-top: 6px;">{{ totals.total_spent|intcomma }} / {{ totals.budget|intcomma }} ({{ pct }}%)</p>
     {% if pct >= 90 and pct < 100 %}
     <p style="font-size: 0.8rem; color: #b45309; margin-top: 8px;"><i class="bi bi-exclamation-triangle"></i> Byudjetingizning ko'p qismi sarflandi.</p>
     {% elif pct >= 100 %}
-    <p style="font-size: 0.8rem; color: #dc2626; margin-top: 8px;"><i class="bi bi-exclamation-triangle-fill"></i> Byudjet ortiq sarflandi.</p>
+    <p style="font-size: 0.8rem; color: var(--danger); margin-top: 8px;"><i class="bi bi-exclamation-triangle-fill"></i> Byudjet ortiq sarflandi.</p>
+    {% endif %}
+    {% else %}
+    <p style="font-size: 0.8rem; color: var(--text-muted); margin-top: 6px;"><a href="{% url 'expenses:settings' %}" style="color: var(--primary);">Byudjetni sozlamalarda kiriting</a></p>
     {% endif %}
 </div>
-{% endif %}
 
 {% if insights %}
-<div class="card card-compact" style="margin-bottom: 12px; background: #f0fdf4; border-color: #bbf7d0;">
-    <h2 style="font-weight: 600; margin-bottom: 8px; display: flex; align-items: center; gap: 6px;">
-        <i class="bi bi-lightbulb"></i> Moliyaviy tushunchalar
+<div class="card card-compact" style="margin-bottom: 16px; background: var(--primary-soft); border-color: #c4b5fd;">
+    <h2 style="font-weight: 600; margin-bottom: 8px; display: flex; align-items: center; gap: 6px; font-size: 0.95rem;">
+        <i class="bi bi-lightbulb" style="color: var(--primary);"></i> Moliyaviy tushunchalar
     </h2>
     <ul style="list-style: none; padding: 0; margin: 0;">
         {% for msg in insights %}
-        <li style="font-size: 0.8rem; color: #374151; margin-bottom: 4px;">• {{ msg }}</li>
+        <li style="font-size: 0.8rem; color: var(--text-main); margin-bottom: 4px;">• {{ msg }}</li>
         {% endfor %}
     </ul>
 </div>
 {% endif %}
 
-<div class="section-grid section-grid--two" style="margin-top: 12px; gap: 16px;">
-    <div class="card card-compact">
-        <h2 style="font-weight: 600; margin-bottom: 10px; display: flex; align-items: center; gap: 6px;">
-            <i class="bi bi-pie-chart"></i> Turkumlar bo'yicha
-        </h2>
-        {% if breakdown %}
-        <ul style="list-style: none; padding: 0; margin: 0;">
-            {% for item in breakdown %}
-            <li class="list-row list-row--stack-sm">
-                <div style="font-size: 0.9rem;">
-                    {{ item.category.emoji }} {{ item.category.name }}
+<h2 style="font-weight: 700; font-size: 1rem; margin-bottom: 10px; color: var(--text-main);">So'ngi chiqimlar</h2>
+<div class="card card-compact" style="margin-bottom: 16px;">
+    {% if recent %}
+    <ul style="list-style: none; padding: 0; margin: 0;">
+        {% for e in recent %}
+        <li class="list-row" style="border-bottom-color: var(--border-soft);">
+            <div style="display: flex; align-items: center; gap: 10px; flex: 1; min-width: 0;">
+                <span style="font-size: 1.25rem;">{{ e.category.emoji|default:"📌" }}</span>
+                <div>
+                    <div style="font-size: 0.95rem;">{{ e.category.name|default:"Boshqa" }}</div>
+                    {% if e.note %}<div style="font-size: 0.8rem; color: var(--text-muted);">{{ e.note|truncatechars:20 }}</div>{% endif %}
                 </div>
-                <div style="font-weight: 500; font-size: 0.9rem; white-space: nowrap;">
-                    {{ item.total|intcomma }} so'm
-                </div>
-            </li>
-            {% endfor %}
-        </ul>
-        {% else %}
-        <p style="color: var(--text-muted); font-size: 0.85rem; text-align: center; padding: 16px 8px;">
-            <i class="bi bi-inbox" style="font-size: 1.8rem; display: block; margin-bottom: 6px; color: #cbd5e1;"></i>
-            Bu oy hali xarajat yo'q
-        </p>
-        {% endif %}
-    </div>
-    <div class="card card-compact">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; gap: 8px;">
-            <h2 style="font-weight: 600; display: flex; align-items: center; gap: 6px; font-size: 0.95rem;">
-                <i class="bi bi-clock-history"></i> So'nggi xarajatlar
-            </h2>
-            <a href="{% url 'expenses:add' %}" class="btn-primary" style="padding-inline: 12px; font-size: 0.8rem;">
-                <i class="bi bi-plus-lg"></i> Qo'shish
-            </a>
-        </div>
-        {% if recent %}
-        <ul style="list-style: none; padding: 0; margin: 0;">
-            {% for e in recent %}
-            <li class="list-row list-row--stack-sm">
-                <div style="flex: 1; min-width: 0;">
-                    <div style="font-size: 0.9rem;">
-                        {{ e.category.emoji|default:"📌" }} {{ e.category.name|default:"Boshqa" }}
-                    </div>
-                    {% if e.note %}
-                    <div style="font-size: 0.8rem; color: var(--text-muted); margin-top: 2px;">
-                        {{ e.note|truncatechars:18 }}
-                    </div>
-                    {% endif %}
-                </div>
-                <div style="display: flex; align-items: center; gap: 8px; white-space: nowrap;">
-                    <span style="font-weight: 600; font-size: 0.9rem;">{{ e.amount|intcomma }}</span>
-                    <div style="display: flex; gap: 6px;">
-                        <a href="{% url 'expenses:edit' e.pk %}" style="font-size: 0.8rem; color: var(--text-muted); text-decoration: none;">
-                            <i class="bi bi-pencil"></i>
-                        </a>
-                        <form method="post" action="{% url 'expenses:delete' e.pk %}" style="display: inline;" onsubmit="return confirm('Ushbu xarajatni o\u2018chirishni xohlaysizmi?');">
-                            {% csrf_token %}
-                            <input type="hidden" name="next" value="{{ request.path }}">
-                            <button type="submit" style="background: none; border: none; color: var(--danger); cursor: pointer; font-size: 0.8rem;" title="O'chirish">
-                                <i class="bi bi-trash"></i>
-                            </button>
-                        </form>
-                    </div>
-                </div>
-            </li>
-            {% endfor %}
-        </ul>
-        <a href="{% url 'expenses:list' %}" style="display: inline-block; margin-top: 10px; font-size: 0.8rem; color: var(--primary); font-weight: 500; text-decoration: none;">
-            Barcha xarajatlar <i class="bi bi-arrow-right"></i>
-        </a>
-        {% else %}
-        <p style="color: var(--text-muted); font-size: 0.85rem; text-align: center; padding: 20px 8px;">
-            <i class="bi bi-receipt" style="font-size: 2rem; display: block; margin-bottom: 8px; color: #cbd5e1;"></i>
-            Hali xarajat qo'shilmagan<br>
-            <a href="{% url 'expenses:add' %}" class="btn-primary" style="margin-top: 10px;">Birinchi xarajatni qo'shing</a>
-        </p>
-        {% endif %}
-    </div>
+            </div>
+            <div style="display: flex; align-items: center; gap: 8px; white-space: nowrap;">
+                <span style="font-weight: 600; font-size: 0.95rem;">{{ e.amount|intcomma }}</span>
+                <a href="{% url 'expenses:edit' e.pk %}" style="color: var(--text-muted); text-decoration: none;"><i class="bi bi-pencil"></i></a>
+                <form method="post" action="{% url 'expenses:delete' e.pk %}" style="display: inline;" onsubmit="return confirm('Ushbu xarajatni o\u2018chirishni xohlaysizmi?');">{% csrf_token %}<input type="hidden" name="next" value="{{ request.path }}"><button type="submit" style="background: none; border: none; color: var(--danger); cursor: pointer;" title="O'chirish"><i class="bi bi-trash"></i></button></form>
+            </div>
+        </li>
+        {% endfor %}
+    </ul>
+    <a href="{% url 'expenses:list' %}" style="display: inline-block; margin-top: 12px; font-size: 0.85rem; color: var(--primary); font-weight: 500; text-decoration: none;">Barcha xarajatlar <i class="bi bi-arrow-right"></i></a>
+    {% else %}
+    <p style="color: var(--text-muted); font-size: 0.9rem; text-align: center; padding: 24px 8px;">
+        Hali xarajat yo'q.<br>
+        <a href="{% url 'expenses:add' %}" class="btn-primary" style="margin-top: 12px;">Birinchi xarajatni qo'shing</a>
+    </p>
+    {% endif %}
 </div>
+
+{% if breakdown %}
+<h2 style="font-weight: 700; font-size: 1rem; margin-bottom: 10px; color: var(--text-main);">Turkumlar bo'yicha</h2>
+<div class="card card-compact" style="margin-bottom: 24px;">
+    <ul style="list-style: none; padding: 0; margin: 0;">
+        {% for item in breakdown %}
+        <li class="list-row list-row--stack-sm">
+            <div style="font-size: 0.9rem;">{{ item.category.emoji }} {{ item.category.name }}</div>
+            <div style="font-weight: 500; font-size: 0.9rem; white-space: nowrap;">{{ item.total|intcomma }} so'm</div>
+        </li>
+        {% endfor %}
+    </ul>
+</div>
+{% endif %}
 {% endblock %}

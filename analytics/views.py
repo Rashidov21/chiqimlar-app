@@ -14,6 +14,11 @@ from .services import (
 )
 from expenses.services import get_monthly_totals, get_category_breakdown
 
+MONTH_NAMES = [
+    "Yanvar", "Fevral", "Mart", "Aprel", "May", "Iyun",
+    "Iyul", "Avgust", "Sentabr", "Oktabr", "Noyabr", "Dekabr",
+]
+
 
 @login_required
 def statistics_view(request):
@@ -42,6 +47,8 @@ def statistics_view(request):
 
     years = list(range(today.year - 2, today.year + 2))
     months = list(range(1, 13))
+    month_choices = list(zip(months, MONTH_NAMES))
+    selected_month_name = MONTH_NAMES[month - 1] if 1 <= month <= 12 else ""
 
     return render(
         request,
@@ -56,10 +63,12 @@ def statistics_view(request):
             "view_type": view_type,
             "selected_year": year,
             "selected_month": month,
+            "selected_month_name": selected_month_name,
             "daily_max": daily_max,
             "trend_max": trend_max,
             "years": years,
             "months": months,
+            "month_choices": month_choices,
         },
     )
 

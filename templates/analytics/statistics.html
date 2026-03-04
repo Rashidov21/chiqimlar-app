@@ -11,42 +11,38 @@
     </div>
 </div>
 
-<div class="card" style="margin-bottom: 16px;">
-    <p style="font-size: 0.85rem; font-weight: 500; color: #374151; margin-bottom: 8px;">📅 Oy tanlang</p>
-    <form method="get" action="{% url 'analytics:statistics' %}" style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
-        <select name="year" class="input-field" style="width: auto; min-width: 100px;">
-            {% for y in years %}
-            <option value="{{ y }}" {% if selected_year == y %}selected{% endif %}>{{ y }}</option>
-            {% endfor %}
-        </select>
-        <select name="month" class="input-field" style="width: auto; min-width: 120px;">
-            {% for m in months %}
-            <option value="{{ m }}" {% if selected_month == m %}selected{% endif %}>{{ m }} oy</option>
-            {% endfor %}
-        </select>
-        <button type="submit" class="btn-primary">
-            <i class="bi bi-funnel"></i> Ko'rsatish
-        </button>
-    </form>
+<div style="display: flex; gap: 0; margin-bottom: 16px; background: #eee; border-radius: 9999px; padding: 4px; max-width: 280px;">
+    <a href="{% url 'analytics:statistics' %}?view=month&year={{ selected_year }}&month={{ selected_month }}" class="stat-segment {% if view_type == 'month' %}stat-segment--active{% endif %}" style="flex: 1; text-align: center; padding: 8px 14px; border-radius: 9999px; font-size: 0.9rem; font-weight: 500; text-decoration: none; color: var(--text-muted); transition: all 0.2s;">Oylar</a>
+    <a href="{% url 'analytics:statistics' %}?view=day&year={{ selected_year }}&month={{ selected_month }}" class="stat-segment {% if view_type == 'day' %}stat-segment--active{% endif %}" style="flex: 1; text-align: center; padding: 8px 14px; border-radius: 9999px; font-size: 0.9rem; font-weight: 500; text-decoration: none; color: var(--text-muted); transition: all 0.2s;">Kunlar</a>
 </div>
 
-<div class="section-grid" style="margin-bottom: 12px; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));">
-    <div class="card card-compact">
-        <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 2px;">💰 Oylik byudjet</p>
-        <p style="font-size: 1.05rem; font-weight: 700;">{{ totals.budget|intcomma }} so'm</p>
+<div style="display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px;">
+    {% for num, name in month_choices %}
+    <a href="{% url 'analytics:statistics' %}?view={{ view_type }}&year={{ selected_year }}&month={{ num }}" style="display: inline-block; padding: 8px 14px; border-radius: 9999px; font-size: 0.85rem; font-weight: 500; text-decoration: none; background: #fff; color: var(--text-main); box-shadow: 0 4px 12px rgba(0,0,0,0.06); border: 1px solid var(--border-soft); {% if selected_month == num %}background: var(--primary); color: #fff; border-color: var(--primary);{% endif %}">{{ name }}</a>
+    {% endfor %}
+</div>
+
+<p style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 4px;">{{ selected_month_name }} - {{ selected_year }} uchun chiqimlar</p>
+<p style="font-size: 1.75rem; font-weight: 800; color: var(--text-main); margin-bottom: 16px;">{{ totals.total_spent|intcomma }}</p>
+<div class="card card-compact" style="margin-bottom: 16px;">
+    <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+        <span style="font-size: 0.85rem; color: var(--text-muted);">Ishlatildi</span>
+        <span style="font-weight: 600;">{{ totals.total_spent|intcomma }}</span>
     </div>
-    <div class="card card-compact">
-        <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 2px;">📊 Jami sarflangan</p>
-        <p style="font-size: 1.05rem; font-weight: 700; color: var(--primary);">{{ totals.total_spent|intcomma }} so'm</p>
+    <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+        <span style="font-size: 0.85rem; color: var(--text-muted);">Oylik limit</span>
+        <span style="font-weight: 600;">{{ totals.budget|intcomma }}</span>
     </div>
-    <div class="card card-compact">
-        <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 2px;">💵 Qolgan</p>
-        <p style="font-size: 1.05rem; font-weight: 700;">{{ totals.remaining|intcomma }} so'm</p>
+    {% if totals.budget and totals.budget > 0 %}
+    {% widthratio totals.total_spent totals.budget 100 as pct %}
+    <div style="height: 8px; border-radius: 9999px; background: #eee; overflow: hidden;">
+        <div style="height: 100%; border-radius: 9999px; width: min(100%, {{ pct }}%); background: linear-gradient(90deg, #f97316, #38bdf8, var(--primary));"></div>
     </div>
+    {% endif %}
 </div>
 
 {% if insights %}
-<div class="card card-compact" style="margin-bottom: 12px; background: #f0fdf4; border-color: #bbf7d0;">
+<div class="card card-compact" style="margin-bottom: 12px; background: var(--primary-soft); border-color: #c4b5fd;">
     <h2 style="font-weight: 600; margin-bottom: 8px; display: flex; align-items: center; gap: 6px;">
         <i class="bi bi-lightbulb"></i> Moliyaviy tushunchalar
     </h2>
@@ -86,7 +82,7 @@
         {% if daily %}
         <div style="height: 170px; display: flex; align-items: flex-end; gap: 2px;">
             {% for d in daily %}
-            <div class="stat-bar" role="button" tabindex="0" data-label="{{ d.date }}" data-value="{{ d.total|intcomma }}" style="flex: 1; min-width: 4px; background: #86efac; border-radius: 4px 4px 0 0; height: {% widthratio d.total daily_max 100 %}%; transition: background 0.2s; cursor: pointer;" title="{{ d.date }}: {{ d.total|intcomma }} so'm" onmouseover="this.style.background='#22c55e'" onmouseout="this.style.background='#86efac'"></div>
+            <div class="stat-bar" role="button" tabindex="0" data-label="{{ d.date }}" data-value="{{ d.total|intcomma }}" style="flex: 1; min-width: 4px; background: var(--primary); border-radius: 4px 4px 0 0; height: {% widthratio d.total daily_max 100 %}%; transition: background 0.2s; cursor: pointer;" title="{{ d.date }}: {{ d.total|intcomma }} so'm" onmouseover="this.style.background='#4c33e6'" onmouseout="this.style.background='var(--primary)'"></div>
             {% endfor %}
         </div>
         <p style="font-size: 0.75rem; color: #94a3b8; margin-top: 6px;">Kunlar (oy bo'yicha)</p>
@@ -106,7 +102,7 @@
     <div style="height: 170px; display: flex; align-items: flex-end; gap: 6px;">
         {% for t in trend %}
         <div style="flex: 1; display: flex; flex-direction: column; align-items: center; min-width: 0;">
-            <div class="stat-bar" role="button" tabindex="0" data-label="{{ t.label }}" data-value="{{ t.total|floatformat:0 }}" style="width: 100%; background: #22c55e; border-radius: 4px 4px 0 0; min-height: 6px; transition: background 0.2s; height: {% widthratio t.total trend_max 80 %}%; cursor: pointer;" onmouseover="this.style.background='#16a34a'" onmouseout="this.style.background='#22c55e'" title="{{ t.label }}: {{ t.total|floatformat:0 }} so'm"></div>
+            <div class="stat-bar" role="button" tabindex="0" data-label="{{ t.label }}" data-value="{{ t.total|floatformat:0 }}" style="width: 100%; background: var(--primary); border-radius: 4px 4px 0 0; min-height: 6px; transition: background 0.2s; height: {% widthratio t.total trend_max 80 %}%; cursor: pointer;" onmouseover="this.style.background='#4c33e6'" onmouseout="this.style.background='var(--primary)'" title="{{ t.label }}: {{ t.total|floatformat:0 }} so'm"></div>
             <span style="font-size: 0.7rem; color: #94a3b8; margin-top: 4px; text-align: center; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 100%;">{{ t.label }}</span>
         </div>
         {% endfor %}

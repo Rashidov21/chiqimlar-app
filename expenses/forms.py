@@ -15,12 +15,13 @@ class ExpenseForm(forms.ModelForm):
         if user:
             self.fields["category"].queryset = Category.objects.filter(user=user).order_by("order", "name")
         self.fields["category"].required = False
+        self.fields["category"].empty_label = "Chiqim turkumi"
         self.fields["date"].initial = timezone.now().date()
         self.fields["amount"].widget.attrs["class"] = "input-field"
-        self.fields["amount"].widget.attrs["placeholder"] = "Summa (so'm)"
+        self.fields["amount"].widget.attrs["placeholder"] = "Summasi"
         self.fields["amount"].widget.attrs["inputmode"] = "numeric"
         self.fields["note"].widget.attrs["class"] = "input-field"
-        self.fields["note"].widget.attrs["placeholder"] = "Izoh (ixtiyoriy, max 255 belgi)"
+        self.fields["note"].widget.attrs["placeholder"] = "Izoh (to'ldirish shart emas)"
         self.fields["note"].widget.attrs["maxlength"] = "255"
         self.fields["date"].widget.attrs["class"] = "input-field"
         self.fields["category"].widget.attrs["class"] = "input-field"

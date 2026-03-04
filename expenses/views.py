@@ -14,6 +14,12 @@ from .services import get_monthly_totals, get_category_breakdown
 from analytics.services import get_insights_for_user
 
 
+MONTH_NAMES = [
+    "", "Yanvar", "Fevral", "Mart", "Aprel", "May", "Iyun",
+    "Iyul", "Avgust", "Sentabr", "Oktabr", "Noyabr", "Dekabr",
+]
+
+
 @login_required
 def dashboard(request):
     """Bu Oy - asosiy dashboard."""
@@ -25,11 +31,13 @@ def dashboard(request):
         .order_by("-date", "-created_at")[:10]
     )
     insights = get_insights_for_user(request.user, limit=3)
+    month_display = f"{MONTH_NAMES[data['month']]} {data['year']}"
     return render(
         request,
         "expenses/dashboard.html",
         {
             "totals": data,
+            "month_display": month_display,
             "breakdown": breakdown,
             "recent": recent,
             "insights": insights,

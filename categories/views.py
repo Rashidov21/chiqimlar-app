@@ -7,6 +7,7 @@ from django.utils import timezone
 
 from .models import Category
 from .forms import CategoryForm
+from expenses.services import get_monthly_totals
 
 
 @login_required
@@ -22,7 +23,8 @@ def category_list(request):
         )
         .order_by("order", "name")
     )
-    return render(request, "categories/category_list.html", {"categories": categories})
+    totals = get_monthly_totals(request.user)
+    return render(request, "categories/category_list.html", {"categories": categories, "totals": totals})
 
 
 @login_required
