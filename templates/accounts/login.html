@@ -4,7 +4,7 @@
 
 {% block content %}
 <div id="login-root" style="min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px 16px;">
-    <div id="login-loading" style="display: none; text-align: center; color: #64748b;">
+    <div id="login-loading" style="display: none; text-align: center; color: var(--text-muted);">
         <p>Kirish...</p>
     </div>
     <div id="login-form-wrap" class="card" style="width: 100%; max-width: 400px;">
@@ -16,19 +16,19 @@
 
         <!-- Mini App: xato bo'lsa shu blok (kod so'ralmaydi) -->
         <div id="login-miniapp-error" style="display: none; text-align: center; padding: 8px 0;">
-            <p style="font-size: 0.9rem; color: #64748b; margin-bottom: 12px;">
+            <p style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 12px;">
                 Kirish amalga oshmadi. Botda <strong>«Chiqimlarni ochish»</strong> tugmasini bosing yoki ilovani yopib qayta oching.
             </p>
-            <p style="font-size: 0.8rem; color: #94a3b8;">Brauzerda veb-saytga kirish uchun botda <strong>/code</strong> yuboring.</p>
+            <p style="font-size: 0.8rem; color: var(--text-muted);">Brauzerda veb-saytga kirish uchun botda <strong>/code</strong> yuboring.</p>
         </div>
 
         <!-- Brauzer: kod formasi (Mini App da ko'rsatilmaydi) -->
         <div id="login-code-form-wrap">
-            <div style="background: #f0fdf4; border-radius: 12px; padding: 12px; margin-bottom: 16px; border: 1px solid #bbf7d0;">
-                <p style="font-size: 0.8rem; color: #166534; font-weight: 500; margin-bottom: 6px;">
+            <div style="background: var(--primary-soft); border-radius: 12px; padding: 12px; margin-bottom: 16px; border: 1px solid #c4b5fd;">
+                <p style="font-size: 0.8rem; color: #4338ca; font-weight: 500; margin-bottom: 6px;">
                     <i class="bi bi-1-circle-fill" style="margin-right: 6px;"></i> Telegram botga <strong>/start</strong> yuboring
                 </p>
-                <p style="font-size: 0.8rem; color: #166534;">
+                <p style="font-size: 0.8rem; color: #4338ca;">
                     <i class="bi bi-2-circle-fill" style="margin-right: 6px;"></i> Qisqa kodni quyida kiriting
                 </p>
             </div>
@@ -36,17 +36,17 @@
             <form method="post" action="{% url 'accounts:login' %}" style="display: flex; flex-direction: column; gap: 14px;">
                 {% csrf_token %}
                 <div>
-                    <label for="id_code" style="display: block; font-size: 0.85rem; font-weight: 500; color: #374151; margin-bottom: 4px;">🔑 Tasdiqlash kodi</label>
+                    <label for="id_code" class="input-label">🔑 Tasdiqlash kodi</label>
                     <input type="text" name="code" id="id_code" maxlength="6" placeholder="000000" autocomplete="one-time-code" inputmode="numeric" autofocus
                         class="input-field" style="text-align: center; font-size: 1.25rem; letter-spacing: 0.2em;">
-                    {% if form.code.errors %}<p style="margin-top: 4px; font-size: 0.8rem; color: #dc2626;">{{ form.code.errors.0 }}</p>{% endif %}
+                    {% if form.code.errors %}<p class="field-error">{{ form.code.errors.0 }}</p>{% endif %}
                 </div>
                 <button type="submit" class="btn-primary">
                     <i class="bi bi-box-arrow-in-right"></i> Kirish
                 </button>
             </form>
 
-            <p style="margin-top: 12px; text-align: center; font-size: 0.8rem; color: #64748b;">
+            <p style="margin-top: 12px; text-align: center; font-size: 0.8rem; color: var(--text-muted);">
                 Kod olmadingizmi? Telegramda <strong>/code</strong> yuboring.
             </p>
             <p style="margin-top: 12px; text-align: center;">
@@ -54,7 +54,7 @@
             </p>
         </div>
     </div>
-    <p style="margin-top: 20px; font-size: 0.75rem; color: #94a3b8;">Muallif: Abdurahmon Rashidov</p>
+    <p style="margin-top: 20px; font-size: 0.75rem; color: var(--text-muted);">Muallif: Abdurahmon Rashidov</p>
 </div>
 
 {% block extra_js %}

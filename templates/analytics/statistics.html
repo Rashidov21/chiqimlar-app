@@ -16,6 +16,13 @@
     <a href="{% url 'analytics:statistics' %}?view=day&year={{ selected_year }}&month={{ selected_month }}" class="stat-segment {% if view_type == 'day' %}stat-segment--active{% endif %}" style="flex: 1; text-align: center; padding: 8px 14px; border-radius: 9999px; font-size: 0.9rem; font-weight: 500; text-decoration: none; color: var(--text-muted); transition: all 0.2s;">Kunlar</a>
 </div>
 
+<p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 8px;">Yil</p>
+<div style="display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px;">
+    {% for y in years %}
+    <a href="{% url 'analytics:statistics' %}?view={{ view_type }}&year={{ y }}&month={{ selected_month }}" style="display: inline-block; padding: 8px 14px; border-radius: 9999px; font-size: 0.85rem; font-weight: 500; text-decoration: none; background: #fff; color: var(--text-main); box-shadow: 0 4px 12px rgba(0,0,0,0.06); border: 1px solid var(--border-soft); {% if selected_year == y %}background: var(--primary); color: #fff; border-color: var(--primary);{% endif %}">{{ y }}</a>
+    {% endfor %}
+</div>
+<p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 8px;">Oy</p>
 <div style="display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px;">
     {% for num, name in month_choices %}
     <a href="{% url 'analytics:statistics' %}?view={{ view_type }}&year={{ selected_year }}&month={{ num }}" style="display: inline-block; padding: 8px 14px; border-radius: 9999px; font-size: 0.85rem; font-weight: 500; text-decoration: none; background: #fff; color: var(--text-main); box-shadow: 0 4px 12px rgba(0,0,0,0.06); border: 1px solid var(--border-soft); {% if selected_month == num %}background: var(--primary); color: #fff; border-color: var(--primary);{% endif %}">{{ name }}</a>
@@ -48,13 +55,49 @@
     </h2>
     <ul style="list-style: none; padding: 0; margin: 0;">
         {% for msg in insights %}
-        <li style="font-size: 0.8rem; color: #374151; margin-bottom: 4px;">• {{ msg }}</li>
+        <li style="font-size: 0.8rem; color: var(--text-main); margin-bottom: 4px;">• {{ msg }}</li>
         {% endfor %}
     </ul>
 </div>
 {% endif %}
 
-<div class="section-grid section-grid--two" style="gap: 16px; margin-bottom: 12px;" class="stats-grid">
+{% if view_type == 'day' %}
+<div class="card card-compact" style="margin-bottom: 16px;">
+    <h2 style="font-weight: 600; margin-bottom: 8px; display: flex; align-items: center; gap: 6px;">
+        <i class="bi bi-graph-up"></i> Kunlik xarajat
+    </h2>
+    {% if daily %}
+    <div style="height: 200px; display: flex; align-items: flex-end; gap: 2px;">
+        {% for d in daily %}
+        <div class="stat-bar" role="button" tabindex="0" data-label="{{ d.date }}" data-value="{{ d.total|intcomma }}" style="flex: 1; min-width: 4px; background: var(--primary); border-radius: 4px 4px 0 0; height: {% widthratio d.total daily_max 100 %}%; transition: background 0.2s; cursor: pointer;" title="{{ d.date }}: {{ d.total|intcomma }} so'm" onmouseover="this.style.background='#4c33e6'" onmouseout="this.style.background='var(--primary)'"></div>
+        {% endfor %}
+    </div>
+    <p style="font-size: 0.75rem; color: var(--text-muted); margin-top: 6px;">Kunlar (oy bo'yicha) — ustunni bosing</p>
+    {% else %}
+    <p style="color: var(--text-muted); font-size: 0.85rem; text-align: center; padding: 32px 12px;">
+        <i class="bi bi-bar-chart" style="font-size: 1.8rem; color: #cbd5e1;"></i><br>Bu oy ma'lumot yo'q
+    </p>
+    {% endif %}
+</div>
+<div class="card card-compact" style="margin-bottom: 16px;">
+    <h2 style="font-weight: 600; margin-bottom: 8px; display: flex; align-items: center; gap: 6px;">
+        <i class="bi bi-pie-chart"></i> Turkumlar bo'yicha
+    </h2>
+    {% if breakdown %}
+    <ul style="list-style: none; padding: 0; margin: 0;">
+        {% for item in breakdown %}
+        <li class="list-row list-row--stack-sm">
+            <span style="font-size: 0.9rem;">{{ item.category.emoji }} {{ item.category.name }}</span>
+            <span style="font-weight: 500; font-size: 0.9rem;">{{ item.total|intcomma }} so'm</span>
+        </li>
+        {% endfor %}
+    </ul>
+    {% else %}
+    <p style="color: var(--text-muted); font-size: 0.85rem; text-align: center; padding: 16px 8px;">Ma'lumot yo'q</p>
+    {% endif %}
+</div>
+{% else %}
+<div class="section-grid section-grid--two" style="gap: 16px; margin-bottom: 12px;">
     <div class="card card-compact">
         <h2 style="font-weight: 600; margin-bottom: 8px; display: flex; align-items: center; gap: 6px;">
             <i class="bi bi-pie-chart"></i> Turkumlar bo'yicha (bu oy)
@@ -85,7 +128,7 @@
             <div class="stat-bar" role="button" tabindex="0" data-label="{{ d.date }}" data-value="{{ d.total|intcomma }}" style="flex: 1; min-width: 4px; background: var(--primary); border-radius: 4px 4px 0 0; height: {% widthratio d.total daily_max 100 %}%; transition: background 0.2s; cursor: pointer;" title="{{ d.date }}: {{ d.total|intcomma }} so'm" onmouseover="this.style.background='#4c33e6'" onmouseout="this.style.background='var(--primary)'"></div>
             {% endfor %}
         </div>
-        <p style="font-size: 0.75rem; color: #94a3b8; margin-top: 6px;">Kunlar (oy bo'yicha)</p>
+        <p style="font-size: 0.75rem; color: var(--text-muted); margin-top: 6px;">Kunlar (oy bo'yicha)</p>
         {% else %}
         <p style="color: var(--text-muted); font-size: 0.85rem; text-align: center; padding: 32px 12px;">
             <i class="bi bi-bar-chart" style="font-size: 1.8rem; color: #cbd5e1;"></i><br>Bu oy ma'lumot yo'q
@@ -93,6 +136,7 @@
         {% endif %}
     </div>
 </div>
+{% endif %}
 
 <div class="card card-compact">
     <h2 style="font-weight: 600; margin-bottom: 8px; display: flex; align-items: center; gap: 6px;">
@@ -103,7 +147,7 @@
         {% for t in trend %}
         <div style="flex: 1; display: flex; flex-direction: column; align-items: center; min-width: 0;">
             <div class="stat-bar" role="button" tabindex="0" data-label="{{ t.label }}" data-value="{{ t.total|floatformat:0 }}" style="width: 100%; background: var(--primary); border-radius: 4px 4px 0 0; min-height: 6px; transition: background 0.2s; height: {% widthratio t.total trend_max 80 %}%; cursor: pointer;" onmouseover="this.style.background='#4c33e6'" onmouseout="this.style.background='var(--primary)'" title="{{ t.label }}: {{ t.total|floatformat:0 }} so'm"></div>
-            <span style="font-size: 0.7rem; color: #94a3b8; margin-top: 4px; text-align: center; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 100%;">{{ t.label }}</span>
+            <span style="font-size: 0.7rem; color: var(--text-muted); margin-top: 4px; text-align: center; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 100%;">{{ t.label }}</span>
         </div>
         {% endfor %}
     </div>

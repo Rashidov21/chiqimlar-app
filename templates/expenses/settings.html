@@ -15,11 +15,11 @@
     <form method="post" action="{% url 'expenses:settings' %}" style="display: flex; flex-direction: column; gap: 16px;">
         {% csrf_token %}
         <div>
-            <label for="monthly_budget" style="display: block; font-size: 0.85rem; font-weight: 500; color: #374151; margin-bottom: 4px;">💰 Oylik byudjet (so'm)</label>
+            <label for="monthly_budget" class="input-label">💰 Oylik byudjet (so'm)</label>
             <input type="number" name="monthly_budget" id="monthly_budget" value="{{ user.monthly_budget }}" min="0" step="1000" class="input-field" placeholder="0">
         </div>
         <div>
-            <p style="font-size: 0.85rem; font-weight: 500; color: #374151; margin-bottom: 6px; display: flex; align-items: center; gap: 6px;">
+            <p class="input-label" style="margin-bottom: 6px; display: flex; align-items: center; gap: 6px;">
                 <i class="bi bi-bell"></i> Telegram bildirishnomalar
             </p>
             <div style="display: flex; flex-direction: column; gap: 4px;">
@@ -56,15 +56,15 @@
         <div style="display: flex; align-items: flex-start; gap: 12px;">
             <span style="font-size: 1.4rem;">🔑</span>
             <div>
-                <p style="font-weight: 500; color: #1e293b; margin-bottom: 2px;">Kirish kodini almashtirish</p>
-                <p style="font-size: 0.85rem; color: #64748b;">Telegram botda <strong>/code</strong> yuboring — yangi kod olasiz va veb-ilovada qayta kiring.</p>
+                <p style="font-weight: 500; color: var(--text-main); margin-bottom: 2px;">Kirish kodini almashtirish</p>
+                <p style="font-size: 0.85rem; color: var(--text-muted);">Telegram botda <strong>/code</strong> yuboring — yangi kod olasiz va veb-ilovada qayta kiring.</p>
             </div>
         </div>
 
         <div style="display: flex; align-items: flex-start; gap: 12px;">
             <span style="font-size: 1.4rem;">📁</span>
             <div>
-                <p style="font-weight: 500; color: #1e293b; margin-bottom: 2px;">Turkumlar</p>
+                <p style="font-weight: 500; color: var(--text-main); margin-bottom: 2px;">Turkumlar</p>
                 <a href="{% url 'categories:list' %}" style="color: var(--primary); font-weight: 500; font-size: 0.9rem; text-decoration: none;">Barcha turkumlarni boshqarish →</a>
             </div>
         </div>
@@ -72,7 +72,7 @@
         <div style="display: flex; align-items: flex-start; gap: 12px;">
             <span style="font-size: 1.4rem;">📥</span>
             <div>
-                <p style="font-weight: 500; color: #1e293b; margin-bottom: 4px;">Ma'lumotlarni eksport qilish</p>
+                <p style="font-weight: 500; color: var(--text-main); margin-bottom: 4px;">Ma'lumotlarni eksport qilish</p>
                 <a href="{% url 'expenses:export' %}" class="btn-secondary" style="padding: 8px 16px; font-size: 0.9rem;">
                     <i class="bi bi-download"></i> CSV yuklab olish
                 </a>

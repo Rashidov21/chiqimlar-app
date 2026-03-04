@@ -19,30 +19,30 @@
     {% if page_obj %}
     <ul style="list-style: none; padding: 0; margin: 0;">
         {% for e in page_obj %}
-        <li style="display: flex; justify-content: space-between; align-items: flex-start; padding: 16px 0; border-bottom: 1px solid #f1f5f9; gap: 16px;">
+        <li style="display: flex; justify-content: space-between; align-items: flex-start; padding: 16px 0; border-bottom: 1px solid var(--border-soft); gap: 16px;">
             <div style="flex: 1; min-width: 0;">
                 <span style="font-weight: 500;">{{ e.category.emoji|default:"📌" }} {{ e.category.name|default:"Boshqa" }}</span>
-                {% if e.note %}<p style="font-size: 0.875rem; color: #64748b; margin-top: 2px;">{{ e.note }}</p>{% endif %}
-                <p style="font-size: 0.75rem; color: #94a3b8; margin-top: 4px;">{{ e.date }}</p>
+                {% if e.note %}<p style="font-size: 0.875rem; color: var(--text-muted); margin-top: 2px;">{{ e.note }}</p>{% endif %}
+                <p style="font-size: 0.75rem; color: var(--text-muted); margin-top: 4px;">{{ e.date }}</p>
             </div>
             <div style="display: flex; align-items: center; gap: 12px;">
                 <span style="font-weight: 600;">{{ e.amount|intcomma }} so'm</span>
-                <a href="{% url 'expenses:edit' e.pk %}" style="color: #64748b; text-decoration: none;" title="Tahrir"><i class="bi bi-pencil"></i></a>
-                <form method="post" action="{% url 'expenses:delete' e.pk %}" style="display: inline;" onsubmit="return confirm('Ushbu xarajatni o\u2018chirishni xohlaysizmi?');">{% csrf_token %}<input type="hidden" name="next" value="{{ request.path }}"><button type="submit" style="background: none; border: none; color: #dc2626; cursor: pointer;" title="O'chirish"><i class="bi bi-trash"></i></button></form>
+                <a href="{% url 'expenses:edit' e.pk %}" style="color: var(--text-muted); text-decoration: none;" title="Tahrir"><i class="bi bi-pencil"></i></a>
+                <form method="post" action="{% url 'expenses:delete' e.pk %}" style="display: inline;" onsubmit="return confirm('Ushbu xarajatni o\u2018chirishni xohlaysizmi?');">{% csrf_token %}<input type="hidden" name="next" value="{{ request.path }}"><button type="submit" style="background: none; border: none; color: var(--danger); cursor: pointer;" title="O'chirish"><i class="bi bi-trash"></i></button></form>
             </div>
         </li>
         {% endfor %}
     </ul>
     {% if page_obj.has_other_pages %}
-    <div style="display: flex; justify-content: center; align-items: center; gap: 16px; margin-top: 24px; padding-top: 24px; border-top: 1px solid #f1f5f9;">
+    <div style="display: flex; justify-content: center; align-items: center; gap: 16px; margin-top: 24px; padding-top: 24px; border-top: 1px solid var(--border-soft);">
         {% if page_obj.has_previous %}<a href="?page={{ page_obj.previous_page_number }}" class="btn-secondary" style="padding: 8px 16px;">← Oldingi</a>{% endif %}
-        <span style="color: #64748b; font-size: 0.875rem;">{{ page_obj.number }} / {{ page_obj.paginator.num_pages }}</span>
+        <span style="color: var(--text-muted); font-size: 0.875rem;">{{ page_obj.number }} / {{ page_obj.paginator.num_pages }}</span>
         {% if page_obj.has_next %}<a href="?page={{ page_obj.next_page_number }}" class="btn-secondary" style="padding: 8px 16px;">Keyingi →</a>{% endif %}
     </div>
     {% endif %}
     {% else %}
-    <p style="text-align: center; color: #64748b; padding: 48px 24px;">
-        <i class="bi bi-inbox" style="font-size: 3rem; display: block; margin-bottom: 16px; color: #cbd5e1;"></i>
+    <p style="text-align: center; color: var(--text-muted); padding: 48px 24px;">
+        <i class="bi bi-inbox" style="font-size: 3rem; display: block; margin-bottom: 16px; color: var(--border-subtle);"></i>
         Xarajatlar yo'q.<br>
         <a href="{% url 'expenses:add' %}" class="btn-primary" style="margin-top: 16px;">Birinchi xarajatni qo'shing</a>
     </p>
