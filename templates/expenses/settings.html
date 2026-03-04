@@ -3,57 +3,74 @@
 {% block title %}Sozlamalar{% endblock %}
 
 {% block content %}
-<h1 style="font-size: 1.5rem; font-weight: 700; color: #1e293b; margin-bottom: 24px; display: flex; align-items: center; gap: 8px;">
-    <i class="bi bi-gear"></i> Sozlamalar
-</h1>
+<div class="page-header">
+    <i class="bi bi-gear" style="font-size: 1.3rem; color: var(--primary);"></i>
+    <div>
+        <h1 class="page-title">Sozlamalar</h1>
+        <p class="page-subtitle">Byudjet va Telegram bildirishnomalarini boshqarish</p>
+    </div>
+</div>
 
 <div class="card" style="max-width: 560px;">
-    <form method="post" action="{% url 'expenses:settings' %}">
+    <form method="post" action="{% url 'expenses:settings' %}" style="display: flex; flex-direction: column; gap: 16px;">
         {% csrf_token %}
-        <div style="margin-bottom: 24px;">
-            <label for="monthly_budget" style="display: block; font-size: 0.875rem; font-weight: 500; color: #374151; margin-bottom: 6px;">💰 Oylik byudjet (so'm)</label>
+        <div>
+            <label for="monthly_budget" style="display: block; font-size: 0.85rem; font-weight: 500; color: #374151; margin-bottom: 4px;">💰 Oylik byudjet (so'm)</label>
             <input type="number" name="monthly_budget" id="monthly_budget" value="{{ user.monthly_budget }}" min="0" step="1000" class="input-field" placeholder="0">
         </div>
-        <div style="margin-bottom: 24px;">
-            <p style="font-size: 0.875rem; font-weight: 500; color: #374151; margin-bottom: 12px; display: flex; align-items: center; gap: 8px;">
+        <div>
+            <p style="font-size: 0.85rem; font-weight: 500; color: #374151; margin-bottom: 6px; display: flex; align-items: center; gap: 6px;">
                 <i class="bi bi-bell"></i> Telegram bildirishnomalar
             </p>
-            <label style="display: flex; align-items: center; gap: 12px; padding: 8px 0; cursor: pointer;"><input type="checkbox" name="telegram_notifications" {% if user.telegram_notifications %}checked{% endif %} style="width: 18px; height: 18px; accent-color: #16a34a;"> Umumiy bildirishnomalar</label>
-            <label style="display: flex; align-items: center; gap: 12px; padding: 8px 0; cursor: pointer;"><input type="checkbox" name="daily_reminder" {% if user.daily_reminder %}checked{% endif %} style="width: 18px; height: 18px; accent-color: #16a34a;"> Kunlik eslatma (xarajat kiritish)</label>
-            <label style="display: flex; align-items: center; gap: 12px; padding: 8px 0; cursor: pointer;"><input type="checkbox" name="weekly_summary" {% if user.weekly_summary %}checked{% endif %} style="width: 18px; height: 18px; accent-color: #16a34a;"> Haftalik xulosa</label>
-            <label style="display: flex; align-items: center; gap: 12px; padding: 8px 0; cursor: pointer;"><input type="checkbox" name="limit_warning" {% if user.limit_warning %}checked{% endif %} style="width: 18px; height: 18px; accent-color: #16a34a;"> Byudjet ogohlantirishi</label>
+            <div style="display: flex; flex-direction: column; gap: 4px;">
+                <label style="display: flex; align-items: center; gap: 10px; cursor: pointer; font-size: 0.9rem;">
+                    <input type="checkbox" name="telegram_notifications" {% if user.telegram_notifications %}checked{% endif %} style="width: 18px; height: 18px; accent-color: var(--primary);">
+                    Umumiy bildirishnomalar
+                </label>
+                <label style="display: flex; align-items: center; gap: 10px; cursor: pointer; font-size: 0.9rem;">
+                    <input type="checkbox" name="daily_reminder" {% if user.daily_reminder %}checked{% endif %} style="width: 18px; height: 18px; accent-color: var(--primary);">
+                    Kunlik eslatma (xarajat kiritish)
+                </label>
+                <label style="display: flex; align-items: center; gap: 10px; cursor: pointer; font-size: 0.9rem;">
+                    <input type="checkbox" name="weekly_summary" {% if user.weekly_summary %}checked{% endif %} style="width: 18px; height: 18px; accent-color: var(--primary);">
+                    Haftalik xulosa
+                </label>
+                <label style="display: flex; align-items: center; gap: 10px; cursor: pointer; font-size: 0.9rem;">
+                    <input type="checkbox" name="limit_warning" {% if user.limit_warning %}checked{% endif %} style="width: 18px; height: 18px; accent-color: var(--primary);">
+                    Byudjet ogohlantirishi
+                </label>
+            </div>
         </div>
         <button type="submit" class="btn-primary">
             <i class="bi bi-check-lg"></i> Saqlash
         </button>
     </form>
 
-    <hr style="border: none; border-top: 1px solid #e2e8f0; margin: 32px 0;">
-    <div style="display: flex; align-items: flex-start; gap: 16px;">
-        <span style="font-size: 1.5rem;">🔑</span>
-        <div>
-            <p style="font-weight: 500; color: #1e293b; margin-bottom: 4px;">Kirish kodini almashtirish</p>
-            <p style="font-size: 0.875rem; color: #64748b;">Telegram botda <strong>/code</strong> yuboring — yangi kod olasiz va veb-ilovada qayta kiring.</p>
+    <div style="margin-top: 20px; display: flex; flex-direction: column; gap: 16px;">
+        <div style="display: flex; align-items: flex-start; gap: 12px;">
+            <span style="font-size: 1.4rem;">🔑</span>
+            <div>
+                <p style="font-weight: 500; color: #1e293b; margin-bottom: 2px;">Kirish kodini almashtirish</p>
+                <p style="font-size: 0.85rem; color: #64748b;">Telegram botda <strong>/code</strong> yuboring — yangi kod olasiz va veb-ilovada qayta kiring.</p>
+            </div>
         </div>
-    </div>
 
-    <hr style="border: none; border-top: 1px solid #e2e8f0; margin: 24px 0;">
-    <div style="display: flex; align-items: flex-start; gap: 16px;">
-        <span style="font-size: 1.5rem;">📁</span>
-        <div>
-            <p style="font-weight: 500; color: #1e293b; margin-bottom: 4px;">Turkumlar</p>
-            <a href="{% url 'categories:list' %}" style="color: #16a34a; font-weight: 500; text-decoration: none;">Barcha turkumlarni boshqarish →</a>
+        <div style="display: flex; align-items: flex-start; gap: 12px;">
+            <span style="font-size: 1.4rem;">📁</span>
+            <div>
+                <p style="font-weight: 500; color: #1e293b; margin-bottom: 2px;">Turkumlar</p>
+                <a href="{% url 'categories:list' %}" style="color: var(--primary); font-weight: 500; font-size: 0.9rem; text-decoration: none;">Barcha turkumlarni boshqarish →</a>
+            </div>
         </div>
-    </div>
 
-    <hr style="border: none; border-top: 1px solid #e2e8f0; margin: 24px 0;">
-    <div style="display: flex; align-items: flex-start; gap: 16px;">
-        <span style="font-size: 1.5rem;">📥</span>
-        <div>
-            <p style="font-weight: 500; color: #1e293b; margin-bottom: 8px;">Ma'lumotlarni eksport qilish</p>
-            <a href="{% url 'expenses:export' %}" class="btn-secondary" style="padding: 10px 20px;">
-                <i class="bi bi-download"></i> CSV yuklab olish
-            </a>
+        <div style="display: flex; align-items: flex-start; gap: 12px;">
+            <span style="font-size: 1.4rem;">📥</span>
+            <div>
+                <p style="font-weight: 500; color: #1e293b; margin-bottom: 4px;">Ma'lumotlarni eksport qilish</p>
+                <a href="{% url 'expenses:export' %}" class="btn-secondary" style="padding: 8px 16px; font-size: 0.9rem;">
+                    <i class="bi bi-download"></i> CSV yuklab olish
+                </a>
+            </div>
         </div>
     </div>
 </div>

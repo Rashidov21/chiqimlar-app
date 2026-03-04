@@ -2,33 +2,35 @@
 {% block title %}{{ title }}{% endblock %}
 
 {% block content %}
-<div style="display: flex; align-items: center; gap: 12px; margin-bottom: 24px;">
-    <a href="{% url 'expenses:dashboard' %}" style="color: #64748b; text-decoration: none; font-size: 1.25rem;"><i class="bi bi-arrow-left"></i></a>
-    <h1 style="font-size: 1.5rem; font-weight: 700; color: #1e293b;">{{ title }}</h1>
+<div class="page-header">
+    <a href="{% url 'expenses:dashboard' %}" style="color: var(--text-muted); text-decoration: none; font-size: 1.2rem;">
+        <i class="bi bi-arrow-left"></i>
+    </a>
+    <h1 class="page-title">{{ title }}</h1>
 </div>
 <div class="card" style="max-width: 480px;">
-    <form method="post" style="display: flex; flex-direction: column; gap: 20px;">
+    <form method="post" style="display: flex; flex-direction: column; gap: 16px;">
         {% csrf_token %}
         <div>
-            <label for="id_amount" style="display: block; font-size: 0.875rem; font-weight: 500; color: #374151; margin-bottom: 6px;">💵 Summa (so'm)</label>
+            <label for="id_amount" style="display: block; font-size: 0.85rem; font-weight: 500; color: #374151; margin-bottom: 4px;">💵 Summa (so'm)</label>
             {{ form.amount }}
-            {% if form.amount.errors %}<p style="margin-top: 6px; font-size: 0.875rem; color: #dc2626;">{{ form.amount.errors.0 }}</p>{% endif %}
+            {% if form.amount.errors %}<p style="margin-top: 4px; font-size: 0.8rem; color: var(--danger);">{{ form.amount.errors.0 }}</p>{% endif %}
         </div>
         <div>
-            <label for="id_category" style="display: block; font-size: 0.875rem; font-weight: 500; color: #374151; margin-bottom: 6px;">📁 Turkum</label>
+            <label for="id_category" style="display: block; font-size: 0.85rem; font-weight: 500; color: #374151; margin-bottom: 4px;">📁 Turkum</label>
             {{ form.category }}
         </div>
         <div>
-            <label for="id_note" style="display: block; font-size: 0.875rem; font-weight: 500; color: #374151; margin-bottom: 6px;">📝 Izoh <span style="color: #94a3b8; font-weight: 400;">(ixtiyoriy)</span></label>
+            <label for="id_note" style="display: block; font-size: 0.85rem; font-weight: 500; color: #374151; margin-bottom: 4px;">📝 Izoh <span style="color: #94a3b8; font-weight: 400;">(ixtiyoriy)</span></label>
             {{ form.note }}
         </div>
         <div>
-            <label for="id_date" style="display: block; font-size: 0.875rem; font-weight: 500; color: #374151; margin-bottom: 6px;">📅 Sana</label>
+            <label for="id_date" style="display: block; font-size: 0.85rem; font-weight: 500; color: #374151; margin-bottom: 4px;">📅 Sana</label>
             {{ form.date }}
-            {% if form.date.errors %}<p style="margin-top: 6px; font-size: 0.875rem; color: #dc2626;">{{ form.date.errors.0 }}</p>{% endif %}
+            {% if form.date.errors %}<p style="margin-top: 4px; font-size: 0.8rem; color: var(--danger);">{{ form.date.errors.0 }}</p>{% endif %}
         </div>
-        <div style="display: flex; gap: 12px; margin-top: 8px;">
-            <button type="submit" class="btn-primary" style="flex: 1;">
+        <div style="display: flex; flex-direction: column; gap: 8px; margin-top: 4px;">
+            <button type="submit" class="btn-primary">
                 <i class="bi bi-check-lg"></i> Saqlash
             </button>
             <a href="{% url 'expenses:dashboard' %}" class="btn-secondary">Bekor qilish</a>

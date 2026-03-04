@@ -40,15 +40,13 @@ def _web_app_keyboard():
 
 
 def handle_start(chat_id: int, first_name: str = ""):
-    """/start - Tasdiqlash kodi + Mini App tugmasi."""
+    """/start - Mini App tugmasi (avtologin). Kod faqat brauzer uchun."""
     vc = VerificationCode.generate(chat_id)
     minutes = getattr(settings, "VERIFICATION_CODE_EXPIRE_MINUTES", 10)
     text = (
         f"Salom, {first_name or 'do\'st'}! 👋\n\n"
-        f"Veb-ilovaga kirish uchun tasdiqlash kodingiz:\n\n"
-        f"🔑 <code>{vc.code}</code>\n\n"
-        f"Kod {minutes} daqiqa amal qiladi.\n\n"
-        f"Pastdagi tugmani bosing yoki veb-ilovada kodni kiriting."
+        f"Pastdagi <b>«Chiqimlarni ochish»</b> tugmasini bosing — ilova ochiladi va siz avtomatik kirasiz. Kod kiritish shart emas.\n\n"
+        f"Brauzerda veb-saytga kirish uchun tasdiqlash kodingiz: 🔑 <code>{vc.code}</code> ({minutes} daqiqa)."
     )
     _send_message(chat_id, text, reply_markup=_web_app_keyboard())
     return True
@@ -69,10 +67,10 @@ def handle_code(chat_id: int):
 def handle_help(chat_id: int):
     text = (
         "📌 Buyruqlar:\n"
-        "/start — Kirish kodi olish va veb-ilova linki\n"
-        "/code — Yangi kirish kodi olish\n"
+        "/start — «Chiqimlarni ochish» tugmasi (Mini App avtologin)\n"
+        "/code — Brauzerda kirish uchun tasdiqlash kodi\n"
         "/help — Yordam\n\n"
-        "Veb-ilovada xarajatlaringizni kiritishingiz, byudjet va statistikani ko'rishingiz mumkin."
+        "Ilovani ochish: pastdagi tugmani bosing — kod kiritish shart emas."
     )
     _send_message(chat_id, text)
     return True

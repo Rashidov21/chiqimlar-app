@@ -3,28 +3,85 @@
 {% block nav %}{% endblock %}
 
 {% block content %}
-<div style="min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 24px;">
-    <div class="card" style="width: 100%; max-width: 400px;">
-        <div style="text-align: center; margin-bottom: 24px;">
-            <div style="font-size: 40px; margin-bottom: 8px;">📝</div>
-            <h1 style="font-size: 1.25rem; font-weight: 700; color: #1e293b;">Ro'yxatdan o'tish</h1>
+<div id="register-root" style="min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px 16px;">
+    <div id="register-loading" style="display: none; text-align: center; color: #64748b;">
+        <p>Kirish...</p>
+    </div>
+    <div id="register-form-wrap" class="card" style="width: 100%; max-width: 400px;">
+        <div style="text-align: center; margin-bottom: 16px;">
+            <div style="font-size: 36px; margin-bottom: 6px;">📝</div>
+            <h1 class="page-title" style="font-size: 1.25rem;">Ro'yxatdan o'tish</h1>
         </div>
-        <form method="post" action="{% url 'accounts:register' %}" style="display: flex; flex-direction: column; gap: 16px;">
-            {% csrf_token %}
-            {% for field in form %}
-            <div>
-                <label for="{{ field.id_for_label }}" style="display: block; font-size: 0.875rem; font-weight: 500; color: #374151; margin-bottom: 6px;">{{ field.label }}</label>
-                {{ field }}
-                {% if field.errors %}<p style="margin-top: 6px; font-size: 0.875rem; color: #dc2626;">{{ field.errors.0 }}</p>{% endif %}
-            </div>
-            {% endfor %}
-            <button type="submit" class="btn-primary" style="width: 100%;">
-                <i class="bi bi-person-plus"></i> Hisob yaratish
-            </button>
-        </form>
-        <p style="margin-top: 20px; text-align: center;">
-            <a href="{% url 'accounts:login' %}" style="color: #16a34a; font-weight: 500; text-decoration: none;">← Kirish sahifasiga</a>
-        </p>
+
+        <!-- Mini App: xato bo'lsa (form ko'rsatilmaydi) -->
+        <div id="register-miniapp-error" style="display: none; text-align: center; padding: 8px 0;">
+            <p style="font-size: 0.9rem; color: #64748b;">
+                Ilovani Telegram orqali qayta oching. Botda <strong>«Chiqimlarni ochish»</strong> tugmasini bosing — hisob avtomatik yaratiladi.
+            </p>
+        </div>
+
+        <!-- Brauzer: ro'yxatdan o'tish formasi -->
+        <div id="register-form-inner">
+            <form method="post" action="{% url 'accounts:register' %}" style="display: flex; flex-direction: column; gap: 14px;">
+                {% csrf_token %}
+                {% for field in form %}
+                <div>
+                    <label for="{{ field.id_for_label }}" style="display: block; font-size: 0.85rem; font-weight: 500; color: #374151; margin-bottom: 4px;">{{ field.label }}</label>
+                    {{ field }}
+                    {% if field.errors %}<p style="margin-top: 4px; font-size: 0.8rem; color: #dc2626;">{{ field.errors.0 }}</p>{% endif %}
+                </div>
+                {% endfor %}
+                <button type="submit" class="btn-primary">
+                    <i class="bi bi-person-plus"></i> Hisob yaratish
+                </button>
+            </form>
+            <p style="margin-top: 16px; text-align: center;">
+                <a href="{% url 'accounts:login' %}" style="color: var(--primary); font-weight: 500; text-decoration: none; font-size: 0.85rem;">← Kirish sahifasiga</a>
+            </p>
+        </div>
     </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+(function() {
+    var tg = window.Telegram && window.Telegram.WebApp;
+    var initData = tg && tg.initData;
+    if (!initData) return;
+
+    var formWrap = document.getElementById('register-form-wrap');
+    var formInner = document.getElementById('register-form-inner');
+    var loading = document.getElementById('register-loading');
+    var miniappError = document.getElementById('register-miniapp-error');
+    if (!formWrap || !formInner) return;
+
+    formInner.style.display = 'none';
+    loading.style.display = 'block';
+
+    var formData = new FormData();
+    formData.append('init_data', initData);
+    formData.append('csrfmiddlewaretoken', '{{ csrf_token }}');
+
+    fetch('{% url "accounts:telegram_webapp_auth" %}', {
+        method: 'POST',
+        body: formData,
+        credentials: 'same-origin',
+        headers: { 'X-Requested-With': 'XMLHttpRequest' }
+    })
+    .then(function(r) { return r.json().then(function(data) { return { ok: data.ok, redirect: data.redirect }; }); })
+    .then(function(result) {
+        loading.style.display = 'none';
+        if (result.ok && result.redirect) {
+            window.location.href = result.redirect;
+        } else if (miniappError) {
+            miniappError.style.display = 'block';
+        }
+    })
+    .catch(function() {
+        loading.style.display = 'none';
+        if (miniappError) miniappError.style.display = 'block';
+    });
+})();
+</script>
 {% endblock %}
