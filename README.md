@@ -64,6 +64,22 @@ python manage.py createsuperuser  # ixtiyoriy, admin uchun
    `https://api.telegram.org/bot<TOKEN>/setWebhook?url=https://your-domain.com/telegram/webhook/`  
    Ixtiyoriy: `TELEGRAM_WEBHOOK_SECRET` header yoki query orqali tekshirish.
 
+### 4.1. Telegram Mini App (Web App)
+
+Bu loyiha Telegram Mini App sifatida ham ishlaydi. Sozlash:
+
+1. `.env` da:
+   - `TELEGRAM_WEBAPP_URL=https://your-domain.com` (root URL, foydalanuvchi uchun `/` ochiladi, login bo'lmasa `/accounts/login/` ga yo'naltiriladi)
+2. [@BotFather](https://t.me/BotFather) da:
+   - `/mybots` → botni tanlang → **Bot Settings** → **Menu Button** yoki **Web App** bo'limidan `TELEGRAM_WEBAPP_URL` ni Web App URL sifatida kiriting.
+3. Foydalanuvchi `/start` yuborganda bot:
+   - Kirish kodi yuboradi
+   - “💰 Chiqimlarni ochish” Web App tugmasini yuboradi (Telegram ichida veb-ilova ochiladi)
+4. Mini App ichida:
+   - Telegram WebApp SDK yordamida `initData` serverga yuboriladi
+   - Backend `initData` imzo va vaqtini tekshiradi, foydalanuvchini Telegram ID bo'yicha yaratadi/topadi va sessiyani ochadi
+   - Agar avtomatik login muvaffaqiyatli bo'lmasa, foydalanuvchi odatdagi kod kiritish formasi orqali kira oladi
+
 ### 5. Ishga tushirish
 
 ```bash

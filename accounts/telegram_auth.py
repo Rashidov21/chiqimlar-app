@@ -7,6 +7,7 @@ import json
 from urllib.parse import parse_qs, unquote
 
 from django.conf import settings
+from django.utils import timezone
 
 
 def validate_telegram_init_data(init_data: str) -> dict | None:
@@ -25,6 +26,19 @@ def validate_telegram_init_data(init_data: str) -> dict | None:
                 parsed[k] = unquote(v)
         if "hash" not in parsed:
             return None
+
+        # Vaqt cheklovi: auth_date juda eski bo'lmasligi kerak
+        max_age = int(getattr(settings, "TELEGRAM_INITDATA_MAX_AGE", 86400))  # 24 soat
+        auth_date_raw = parsed.get("auth_date") or parsed.get("auth_timestamp")
+        if auth_date_raw:
+            try:
+                auth_ts = int(auth_date_raw)
+                now_ts = int(timezone.now().timestamp())
+                if now_ts - auth_ts > max_age:
+                    return None
+            except (TypeError, ValueError):
+                return None
+
         received_hash = parsed.pop("hash")
         data_check_string = "\n".join(f"{k}={v}" for k, v in sorted(parsed.items()))
         secret_key = hmac.new(

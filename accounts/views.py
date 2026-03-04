@@ -10,7 +10,7 @@ from django.views.decorators.http import require_POST
 from django.contrib import messages
 from django.http import JsonResponse
 
-from .services import verify_code_and_login, get_or_create_user_by_telegram
+from .services import verify_code_and_login, get_or_create_user_by_telegram, check_rate_limit
 from .forms import LoginForm, RegisterForm
 from .telegram_auth import validate_telegram_init_data
 
@@ -79,6 +79,13 @@ def telegram_webapp_auth(request):
     telegram_id = user_data.get("id")
     if not telegram_id:
         return JsonResponse({"ok": False, "error": "no_user"}, status=400)
+
+    # Rate limit: bir foydalanuvchi uchun tez-tez auth bo'lishiga yo'l qo'ymaslik
+    if not check_rate_limit(f"tg_webapp_auth_{telegram_id}"):
+        return JsonResponse(
+            {"ok": False, "error": "rate_limited"},
+            status=429,
+        )
     user = get_or_create_user_by_telegram(
         telegram_id=telegram_id,
         first_name=user_data.get("first_name", ""),

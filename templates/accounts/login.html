@@ -36,6 +36,10 @@
             </button>
         </form>
 
+        <p id="login-error" style="display:none; margin-top: 8px; text-align: center; font-size: 0.875rem; color: #dc2626;">
+            Avtomatik kirish amalga oshmadi. Kodni kiriting yoki qayta urinib ko'ring.
+        </p>
+
         <p style="margin-top: 16px; text-align: center; font-size: 0.875rem; color: #64748b;">
             Kod olmadingizmi? Telegramda <strong>/code</strong> yuboring.
         </p>
@@ -56,6 +60,7 @@
     var root = document.getElementById('login-root');
     var loading = document.getElementById('login-loading');
     var formWrap = document.getElementById('login-form-wrap');
+    var errorEl = document.getElementById('login-error');
     if (!root || !loading || !formWrap) return;
 
     formWrap.style.display = 'none';
@@ -78,11 +83,17 @@
         } else {
             formWrap.style.display = 'block';
             loading.style.display = 'none';
+            if (errorEl) {
+                errorEl.style.display = 'block';
+            }
         }
     })
     .catch(function() {
         formWrap.style.display = 'block';
         loading.style.display = 'none';
+        if (errorEl) {
+            errorEl.style.display = 'block';
+        }
     });
 })();
 </script>

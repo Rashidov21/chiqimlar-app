@@ -28,6 +28,11 @@ def get_or_create_user_by_telegram(telegram_id: int, username: str = None, first
     """Telegram ID bo'yicha foydalanuvchini topadi yoki yaratadi."""
     user = User.objects.filter(telegram_id=telegram_id).first()
     if user:
+        # Mavjud foydalanuvchining ismini yangilash (agar o'zgargan bo'lsa)
+        new_first_name = (first_name or "").strip()
+        if new_first_name and user.first_name != new_first_name:
+            user.first_name = new_first_name
+            user.save(update_fields=["first_name"])
         return user
     username_base = f"tg_{telegram_id}"
     username = username_base
