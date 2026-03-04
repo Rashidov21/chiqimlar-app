@@ -107,11 +107,37 @@
             background: #f9fafb;
         }
 
+        .btn-sm {
+            padding: 8px 14px;
+            font-size: 0.875rem;
+        }
+        .btn-lg {
+            padding: 14px 24px;
+            font-size: 1rem;
+        }
+        .btn-danger-sm {
+            padding: 8px 14px;
+            font-size: 0.875rem;
+            border-radius: 9999px;
+            border: 1px solid #fecaca;
+            color: var(--danger);
+            background: #fff;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            transition: background 0.15s, color 0.15s;
+        }
+        .btn-danger-sm:hover {
+            background: #fef2f2;
+        }
+
         @media (max-width: 480px) {
             .btn-primary,
             .btn-secondary {
                 width: 100%;
             }
+            .btn-sm { width: auto; }
         }
 
         /* Kartalar va sahifa layout */
@@ -253,7 +279,7 @@
         }
 
         main {
-            padding-bottom: calc(80px + 24px + env(safe-area-inset-bottom, 0px));
+            padding-bottom: calc(100px + 28px + env(safe-area-inset-bottom, 0px));
         }
         @media (min-width: 768px) {
             main { padding-bottom: 24px; }
@@ -311,7 +337,7 @@
                 <a href="{% url 'expenses:dashboard' %}" class="nav-link {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
                     <i class="bi bi-speedometer2"></i> Bu Oy
                 </a>
-                <a href="{% url 'expenses:add' %}" class="btn-primary text-sm py-2 px-4">
+                <a href="{% url 'expenses:add' %}" class="btn-primary btn-sm">
                     <i class="bi bi-plus-lg"></i> Qo'shish
                 </a>
                 <a href="{% url 'analytics:statistics' %}" class="nav-link {% if request.resolver_match.url_name == 'statistics' %}active{% endif %}">

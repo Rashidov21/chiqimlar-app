@@ -5,7 +5,7 @@
 {% block content %}
 <div class="page-header" style="justify-content: space-between; flex-wrap: wrap; gap: 12px;">
     <h1 class="page-title" style="margin-bottom: 0;">Barcha turkumlar</h1>
-    <a href="{% url 'categories:create' %}" class="btn-primary" style="padding: 10px 14px; min-width: 44px;" title="Yangi turkum">
+    <a href="{% url 'categories:create' %}" class="btn-primary btn-sm" style="min-width: 44px;" title="Yangi turkum">
         <i class="bi bi-plus-lg"></i>
     </a>
 </div>
@@ -45,12 +45,12 @@
                 </div>
             </div>
             <div style="display: flex; gap: 8px; flex-wrap: wrap; align-items: center;">
-                <a href="{% url 'categories:edit' cat.pk %}" class="btn-secondary" style="padding: 8px 12px; font-size: 0.8rem;">
+                <a href="{% url 'categories:edit' cat.pk %}" class="btn-secondary btn-sm">
                     <i class="bi bi-pencil"></i> Tahrir
                 </a>
                 <form method="post" action="{% url 'categories:delete' cat.pk %}" style="display: inline;" onsubmit="return confirm('«{{ cat.name }}» turkumini o\u2018chirishni xohlaysizmi? Ushbu turkumdagi xarajatlar «Boshqa» ga o\u2018tadi.');">
                     {% csrf_token %}
-                    <button type="submit" style="border-radius: 9999px; border: 1px solid #fecaca; color: var(--danger); padding: 8px 14px; font-size: 0.8rem; background: white; cursor: pointer; display: inline-flex; align-items: center; gap: 6px;" title="O'chirish">
+                    <button type="submit" class="btn-danger-sm" title="O'chirish">
                         <i class="bi bi-trash"></i> O'chirish
                     </button>
                 </form>
@@ -62,7 +62,7 @@
     <p style="text-align: center; color: var(--text-muted); padding: 32px 16px;">
         <i class="bi bi-folder-x" style="font-size: 2.4rem; display: block; margin-bottom: 10px; color: #cbd5e1;"></i>
         Turkumlar yo'q.<br>
-        <a href="{% url 'categories:create' %}" class="btn-primary" style="margin-top: 12px;">Birinchi turkum qo'shing</a>
+        <a href="{% url 'categories:create' %}" class="btn-primary" style="margin-top: 12px; display: inline-block;">Birinchi turkum qo'shing</a>
     </p>
     {% endif %}
 </div>
