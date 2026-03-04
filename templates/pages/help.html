@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% block title %}Yordam{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <i class="bi bi-question-circle" style="font-size: 1.3rem; color: var(--primary);"></i>
+    <div>
+        <h1 class="page-title">Yordam</h1>
+        <p class="page-subtitle">Chiqimlar ilovasidan qanday foydalanish</p>
+    </div>
+</div>
+
+<div class="card" style="max-width: 720px;">
+    <div style="font-size: 0.95rem; line-height: 1.6;">
+        <p style="margin-bottom: 12px;"><strong>Kirish</strong></p>
+        <p style="margin-bottom: 16px;">Telegram botda <strong>/start</strong> yuboring. Pastdagi «Chiqimlarni ochish» tugmasini bosing — ilova ochiladi va siz avtomatik kirasiz. Brauzerda veb-saytga kirish uchun botda <strong>/code</strong> yuborib, 6 xonali kodni kirish sahifasida kiriting.</p>
+
+        <p style="margin-bottom: 12px;"><strong>Bu Oy (dashboard)</strong></p>
+        <p style="margin-bottom: 16px;">Oylik byudjet, jami sarflangan summa va qolgan mablag‘, byudjet progressi, turkumlar bo‘yicha taqsimot va so‘nggi xarajatlar ro‘yxati. Byudjetni sozlamalarda kiriting.</p>
+
+        <p style="margin-bottom: 12px;"><strong>Xarajat qo‘shish</strong></p>
+        <p style="margin-bottom: 16px;">«Qo‘shish» tugmasini bosing, summa va turkumni tanlang. Izoh va sana ixtiyoriy (sana default — bugun). Saqlashdan keyin xarajat ro‘yxatga qo‘shiladi.</p>
+
+        <p style="margin-bottom: 12px;"><strong>Turkumlar</strong></p>
+        <p style="margin-bottom: 16px;">Xarajatlar turkumlar (kategoriyalar) bo‘yicha guruhlanadi. «Turkumlar» bo‘limida yangi turkum qo‘shishingiz, nom va emoji o‘zgartirishingiz mumkin.</p>
+
+        <p style="margin-bottom: 12px;"><strong>Statistika</strong></p>
+        <p style="margin-bottom: 16px;">Oylar bo‘yicha byudjet va xarajatlar, kunlik va oylik grafiklar, moliyaviy tushunchalar. Oy tanlang va «Ko‘rsatish»ni bosing.</p>
+
+        <p style="margin-bottom: 12px;"><strong>Sozlamalar</strong></p>
+        <p style="margin-bottom: 16px;">Oylik byudjet, Telegram bildirishnomalar (kunlik eslatma, haftalik xulosa, byudjet ogohlantirishi), turkumlar boshqaruvi, CSV eksport. Kirish kodini almashtirish uchun botda <strong>/code</strong> yuboring.</p>
+
+        <p style="margin-bottom: 0; color: var(--text-muted); font-size: 0.9rem;">Qo‘shimcha: Telegram botda <strong>/help</strong> yuborishingiz mumkin.</p>
+    </div>
+</div>
+{% endblock %}
