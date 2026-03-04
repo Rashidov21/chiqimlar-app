@@ -104,6 +104,30 @@ docker-compose exec web python manage.py migrate
 python manage.py test
 ```
 
+## Eslatmalar (Telegram)
+
+Kunlik eslatma va haftalik xulosa **cron** orqali ishga tushadi. VPS da crontab oching (`crontab -e`) va qo‘shing:
+
+```bash
+# Har kuni 18:00 da kunlik eslatma (xarajat kiritishni eslatadi)
+0 18 * * * cd /path/to/chiqimlar-app && .venv/bin/python manage.py send_daily_reminders
+
+# Har hafta dushanba 09:00 da haftalik xulosa (oxirgi 7 kun)
+0 9 * * 1 cd /path/to/chiqimlar-app && .venv/bin/python manage.py send_weekly_summaries
+```
+
+`/path/to/chiqimlar-app` o‘rniga loyiha papkasining to‘liq yo‘lini yozing (masalan `/var/www/chiqimlar-app`). Byudjet ogohlantirishi xarajat qo‘shilganda yoki tahrirlanganda avtomatik yuboriladi (byudjetning 90% dan ortiq sarflangan bo‘lsa, 24 soat ichida ko‘pi bilan 1 marta).
+
+**Tekshirish (VPS da):**
+
+```bash
+# Qo‘lda ishga tushirib Telegram’da xabar kelishini tekshiring
+python manage.py send_daily_reminders
+python manage.py send_weekly_summaries
+```
+
+Foydalanuvchida `telegram_id` bo‘lishi va Sozlamalarda bildirishnomalar yoqilgan bo‘lishi kerak.
+
 ## Loyiha tuzilishi
 
 - `config/` — Django sozlamalari, URL

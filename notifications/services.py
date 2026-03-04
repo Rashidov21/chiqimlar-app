@@ -42,3 +42,31 @@ def send_limit_warning(user, spent, budget, percent):
         return
     text = f"⚠️ Diqqat! Byudjetingizning {percent:.0f}% ini sarfladingiz ({int(spent):,} / {int(budget):,} so'm)."
     send_telegram_message(user.telegram_id, text)
+
+
+def maybe_send_limit_warning_after_expense(user):
+    """
+    Xarajat saqlangandan keyin chaqiriladi. Agar joriy oy byudjetning >= 90% sarflangan
+    bo'lsa va limit_warning yoqilgan bo'lsa, Telegram'da ogohlantirish yuboradi.
+    Har bir user uchun 24 soat ichida ko'pi bilan 1 marta yuboriladi (cache).
+    """
+    from django.core.cache import cache
+    from expenses.services import get_monthly_totals
+
+    if not user.telegram_notifications or not user.limit_warning or not user.telegram_id:
+        return
+    totals = get_monthly_totals(user)
+    budget = totals["budget"] or 0
+    if budget <= 0:
+        return
+    spent = totals["total_spent"]
+    percent = float(spent / budget * 100)
+    if percent < 90:
+        return
+    from django.utils import timezone
+    now = timezone.now()
+    cache_key = f"limit_warn_{user.pk}_{now.year}_{now.month}"
+    if cache.get(cache_key):
+        return
+    send_limit_warning(user, spent, budget, percent)
+    cache.set(cache_key, 1, timeout=86400)  # 24 soat

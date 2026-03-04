@@ -12,6 +12,7 @@ from .models import Expense
 from .forms import ExpenseForm
 from .services import get_monthly_totals, get_category_breakdown
 from analytics.services import get_insights_for_user
+from notifications.services import maybe_send_limit_warning_after_expense
 
 
 MONTH_NAMES = [
@@ -51,6 +52,7 @@ def expense_add(request):
     form = ExpenseForm(request.POST or None, user=request.user)
     if form.is_valid():
         form.save()
+        maybe_send_limit_warning_after_expense(request.user)
         messages.success(request, "Xarajat qo'shildi.")
         if request.GET.get("next"):
             return redirect(request.GET["next"])
@@ -65,6 +67,7 @@ def expense_edit(request, pk):
     form = ExpenseForm(request.POST or None, instance=expense, user=request.user)
     if form.is_valid():
         form.save()
+        maybe_send_limit_warning_after_expense(request.user)
         messages.success(request, "Xarajat yangilandi.")
         return redirect("expenses:dashboard")
     return render(request, "expenses/expense_form.html", {"form": form, "expense": expense, "title": "Xarajatni tahrirlash"})
