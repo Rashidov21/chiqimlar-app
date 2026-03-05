@@ -4,6 +4,7 @@ Tahlil - Moliyaviy tushunchalar va statistikalar.
 from decimal import Decimal
 from django.db.models import Sum, Q
 from django.utils import timezone
+from django.db.models.functions import TruncDate
 from collections import defaultdict
 
 
@@ -32,11 +33,8 @@ def get_insights_for_user(user, year=None, month=None, limit=5):
     if year == today.year and month == today.month:
         this_end = min(today, this_end)
 
-    this_total = (
-        user.expenses.filter(date__gte=this_start, date__lte=this_end)
-        .aggregate(s=Sum("amount"))["s"]
-        or Decimal("0")
-    )
+    qs_this_period = user.expenses.filter(date__gte=this_start, date__lte=this_end)
+    this_total = qs_this_period.aggregate(s=Sum("amount"))["s"] or Decimal("0")
     prev_total = (
         user.expenses.filter(date__gte=prev_start, date__lte=prev_end)
         .aggregate(s=Sum("amount"))["s"]
@@ -58,18 +56,58 @@ def get_insights_for_user(user, year=None, month=None, limit=5):
         elif change_pct < -15:
             insights.append(f"📉 O'tgan oyga nisbatan xarajatlar {abs(change_pct):.0f}% kamaydi. Ajoyib!")
 
+    # Kunlik o'rtacha xarajat
+    days_count = max((this_end - this_start).days + 1, 1)
+    if this_total > 0 and days_count > 0:
+        avg_daily = this_total / days_count
+        insights.append(
+            f"📆 Kuniga o'rtacha {avg_daily.quantize(Decimal('1')):,.0f} so'm sarflayapsiz."
+        )
+
     # Turkum bo'yicha eng ko'p sarflangan
     from categories.models import Category
     cat_totals = []
     for cat in Category.objects.filter(user=user):
-        s = cat.expenses.filter(date__gte=this_start, date__lte=this_end).aggregate(s=Sum("amount"))["s"] or Decimal("0")
+        s = (
+            cat.expenses.filter(date__gte=this_start, date__lte=this_end)
+            .aggregate(s=Sum("amount"))["s"]
+            or Decimal("0")
+        )
         if s > 0:
             cat_totals.append((cat, s))
     cat_totals.sort(key=lambda x: x[1], reverse=True)
     if cat_totals and this_total > 0:
         top_cat, top_sum = cat_totals[0]
         pct = (top_sum / this_total) * 100
-        insights.append(f"🍔 {top_cat.emoji} {top_cat.name} — bu oy xarajatlaringizning {pct:.0f}% ini tashkil qiladi.")
+        insights.append(
+            f"🍔 {top_cat.emoji} {top_cat.name} — bu oy xarajatlaringizning {pct:.0f}% ini tashkil qiladi."
+        )
+
+    # Kichik-cheklar (mayda xarajatlar) bo'yicha ogohlantirish
+    small_qs = qs_this_period.filter(amount__lte=Decimal("50000"))
+    small_count = small_qs.count()
+    if small_count >= 5:
+        small_total = small_qs.aggregate(s=Sum("amount"))["s"] or Decimal("0")
+        if small_total > 0:
+            insights.append(
+                f"🧾 {small_count} ta kichik-cheklar (≤ 50 000 so'm) jami {int(small_total):,} so'm. Ularni rejalashtirsangiz tejash mumkin."
+            )
+
+    # Eng "qimmat" kun
+    daily_qs = (
+        qs_this_period.annotate(day=TruncDate("date"))
+        .values("day")
+        .annotate(total=Sum("amount"))
+        .order_by("-total")
+    )
+    if daily_qs:
+        top_day = daily_qs[0]
+        if top_day["total"] and this_total > 0 and top_day["total"] >= this_total * Decimal(
+            "0.25"
+        ):
+            insights.append(
+                f"🔥 {top_day['day']} kuni juda ko'p xarajat bo'lgan — {int(top_day['total']):,} so'm."
+            )
 
     return insights[:limit]
 

@@ -48,6 +48,25 @@
     {% endif %}
 </div>
 
+<div class="card card-compact" style="margin-bottom: 16px;">
+    <div style="display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap;">
+        <div style="flex: 1; min-width: 0;">
+            <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 2px;">Kunlik o'rtacha</p>
+            <p style="font-size: 1rem; font-weight: 600;">{{ avg_daily|floatformat:0|intcomma }} so'm</p>
+        </div>
+        <div style="flex: 1; min-width: 0; text-align: right;">
+            <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 2px;">O'tgan oyga nisbatan</p>
+            {% if prev_change_pct is not None %}
+            <p style="font-size: 1rem; font-weight: 600; color: {% if prev_change_pct > 0 %}#b91c1c{% else %}#15803d{% endif %};">
+                {% if prev_change_pct > 0 %}+{% endif %}{{ prev_change_pct|floatformat:0 }}%
+            </p>
+            {% else %}
+            <p style="font-size: 1rem; font-weight: 500; color: var(--text-muted);">Ma'lumot yo'q</p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
 {% if insights %}
 <div class="card card-compact" style="margin-bottom: 12px; background: var(--primary-soft); border-color: #c4b5fd;">
     <h2 style="font-weight: 600; margin-bottom: 8px; display: flex; align-items: center; gap: 6px;">

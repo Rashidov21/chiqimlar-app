@@ -8,12 +8,16 @@ from django.contrib import messages
 from django.core.paginator import Paginator
 from django.utils import timezone
 from datetime import datetime
+from decimal import Decimal
 
 from .models import Expense
 from .forms import ExpenseForm
 from .services import get_monthly_totals, get_category_breakdown
 from analytics.services import get_insights_for_user
-from notifications.services import maybe_send_limit_warning_after_expense
+from notifications.services import (
+    maybe_send_limit_warning_after_expense,
+    maybe_send_expense_confirmation_after_expense,
+)
 
 
 MONTH_NAMES = [
@@ -41,6 +45,9 @@ def dashboard(request):
         .order_by("-date", "-created_at")[:10]
     )
     insights = get_insights_for_user(request.user, limit=3)
+    days_count = max((data["month_end"] - data["month_start"]).days + 1, 1)
+    avg_daily = data["total_spent"] / days_count if data["total_spent"] > 0 else Decimal("0")
+    top_categories = breakdown[:3]
     month_display = f"{MONTH_NAMES[data['month']]} {data['year']}"
     return render(
         request,
@@ -53,6 +60,8 @@ def dashboard(request):
             "breakdown": breakdown,
             "recent": recent,
             "insights": insights,
+            "avg_daily": avg_daily,
+            "top_categories": top_categories,
         },
     )
 
@@ -62,8 +71,9 @@ def dashboard(request):
 def expense_add(request):
     form = ExpenseForm(request.POST or None, user=request.user)
     if form.is_valid():
-        form.save()
+        expense = form.save()
         maybe_send_limit_warning_after_expense(request.user)
+        maybe_send_expense_confirmation_after_expense(request.user, expense)
         messages.success(request, "Xarajat qo'shildi.")
         if request.GET.get("next"):
             return redirect(request.GET["next"])
@@ -77,8 +87,9 @@ def expense_edit(request, pk):
     expense = get_object_or_404(Expense, pk=pk, user=request.user)
     form = ExpenseForm(request.POST or None, instance=expense, user=request.user)
     if form.is_valid():
-        form.save()
+        expense = form.save()
         maybe_send_limit_warning_after_expense(request.user)
+        maybe_send_expense_confirmation_after_expense(request.user, expense)
         messages.success(request, "Xarajat yangilandi.")
         return redirect("expenses:dashboard")
     return render(request, "expenses/expense_form.html", {"form": form, "expense": expense, "title": "Xarajatni tahrirlash"})

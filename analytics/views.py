@@ -42,6 +42,24 @@ def statistics_view(request):
     category_chart = get_category_totals_for_period(request.user, month_start, month_end)
     trend = get_monthly_trend(request.user, 6)
 
+    # Qo'shimcha agregatlar: kunlik o'rtacha va o'tgan oyga nisbatan o'zgarish
+    this_total = totals["total_spent"]
+    month_days = max((month_end - month_start).days + 1, 1)
+    avg_daily = float(this_total / month_days) if this_total > 0 else 0.0
+
+    prev_change_pct = None
+    if True:
+        if month == 1:
+            prev_year = year - 1
+            prev_month = 12
+        else:
+            prev_year = year
+            prev_month = month - 1
+        prev_totals = get_monthly_totals(request.user, year=prev_year, month=prev_month)
+        prev_total = prev_totals["total_spent"]
+        if prev_total > 0:
+            prev_change_pct = float((this_total - prev_total) / prev_total * 100)
+
     daily_max = max((d["total"] for d in daily), default=1)
     trend_max = max((t["total"] for t in trend), default=1)
 
@@ -69,6 +87,8 @@ def statistics_view(request):
             "years": years,
             "months": months,
             "month_choices": month_choices,
+            "avg_daily": avg_daily,
+            "prev_change_pct": prev_change_pct,
         },
     )
 

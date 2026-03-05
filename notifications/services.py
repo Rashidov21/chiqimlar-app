@@ -2,6 +2,7 @@
 Bildirishnomalar - Telegram orqali xabar yuborish.
 """
 from django.conf import settings
+from decimal import Decimal
 
 
 def send_telegram_message(telegram_id: int, text: str) -> bool:
@@ -70,3 +71,30 @@ def maybe_send_limit_warning_after_expense(user):
         return
     send_limit_warning(user, spent, budget, percent)
     cache.set(cache_key, 1, timeout=86400)  # 24 soat
+
+
+def maybe_send_expense_confirmation_after_expense(user, expense):
+    """
+    Har bir yangi / tahrir qilingan xarajatdan so'ng qisqa tasdiqlovchi xabar.
+    """
+    if not getattr(user, "telegram_notifications", False) or not getattr(user, "telegram_id", None):
+        return
+
+    from expenses.services import get_monthly_totals
+
+    totals = get_monthly_totals(user)
+    total_spent = totals["total_spent"] or Decimal("0")
+    budget = totals["budget"] or Decimal("0")
+
+    category_label = getattr(expense.category, "name", "") or "Turkum tanlanmagan"
+    amount = int(expense.amount)
+
+    lines = [
+        f"✅ {amount:,} so'm '{category_label}' uchun yozib qo'yildi.",
+        f"Bu oy jami: {int(total_spent):,} so'm.",
+    ]
+    if budget > 0:
+        remaining = budget - total_spent
+        lines.append(f"Oylik limit: {int(budget):,} so'm, qolgan: {int(remaining):,} so'm.")
+
+    send_telegram_message(user.telegram_id, "\n".join(lines))

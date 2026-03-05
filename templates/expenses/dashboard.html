@@ -38,6 +38,19 @@
     {% endif %}
 </div>
 
+<div class="card card-compact" style="margin-bottom: 16px;">
+    <div style="display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap;">
+        <div style="flex: 1; min-width: 0;">
+            <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 2px;">Qolgan byudjet</p>
+            <p style="font-size: 1rem; font-weight: 600;">{{ totals.remaining|intcomma }}</p>
+        </div>
+        <div style="flex: 1; min-width: 0; text-align: right;">
+            <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 2px;">Kunlik o'rtacha</p>
+            <p style="font-size: 1rem; font-weight: 600;">{{ avg_daily|floatformat:0|intcomma }}</p>
+        </div>
+    </div>
+</div>
+
 {% if insights %}
 <div class="card card-compact" style="margin-bottom: 16px; background: var(--primary-soft); border-color: #c4b5fd;">
     <h2 style="font-weight: 600; margin-bottom: 8px; display: flex; align-items: center; gap: 6px; font-size: 0.95rem;">
@@ -46,6 +59,22 @@
     <ul style="list-style: none; padding: 0; margin: 0;">
         {% for msg in insights %}
         <li style="font-size: 0.8rem; color: var(--text-main); margin-bottom: 4px;">• {{ msg }}</li>
+        {% endfor %}
+    </ul>
+</div>
+{% endif %}
+
+{% if top_categories %}
+<div class="card card-compact" style="margin-bottom: 16px;">
+    <h2 style="font-weight: 600; margin-bottom: 8px; font-size: 0.95rem; display: flex; align-items: center; gap: 6px;">
+        <i class="bi bi-star"></i> Eng ko'p sarflangan 3 turkum
+    </h2>
+    <ul style="list-style: none; padding: 0; margin: 0;">
+        {% for item in top_categories %}
+        <li class="list-row list-row--stack-sm">
+            <span style="font-size: 0.9rem;">{{ item.category.emoji }} {{ item.category.name }}</span>
+            <span style="font-weight: 500; font-size: 0.9rem;">{{ item.total|intcomma }} so'm</span>
+        </li>
         {% endfor %}
     </ul>
 </div>
