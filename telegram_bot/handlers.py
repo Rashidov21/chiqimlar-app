@@ -5,8 +5,6 @@ import logging
 import requests
 from django.conf import settings
 
-from accounts.models import VerificationCode
-
 logger = logging.getLogger(__name__)
 WEBAPP_URL = getattr(settings, "TELEGRAM_WEBAPP_URL", "").rstrip("/")
 
@@ -40,27 +38,13 @@ def _web_app_keyboard():
 
 
 def handle_start(chat_id: int, first_name: str = ""):
-    """/start - Mini App tugmasi (avtologin). Kod faqat brauzer uchun."""
-    vc = VerificationCode.generate(chat_id)
-    minutes = getattr(settings, "VERIFICATION_CODE_EXPIRE_MINUTES", 10)
+    """/start - Mini App tugmasi (avtologin)."""
     text = (
         f"Salom, {first_name or 'do\'st'}! 👋\n\n"
-        f"Pastdagi <b>«Chiqimlarni ochish»</b> tugmasini bosing — ilova ochiladi va siz avtomatik kirasiz. Kod kiritish shart emas.\n\n"
-        f"Brauzerda veb-saytga kirish uchun tasdiqlash kodingiz: 🔑 <code>{vc.code}</code> ({minutes} daqiqa)."
+        f"Pastdagi <b>«Chiqimlarni ochish»</b> tugmasini bosing — ilova ochiladi va siz avtomatik kirasiz. "
+        f"Ro'yxatdan o'tish ham, kod kiritish ham shart emas. Faqat Telegram profilingiz asosida kirasiz."
     )
     _send_message(chat_id, text, reply_markup=_web_app_keyboard())
-    return True
-
-
-def handle_code(chat_id: int):
-    """Yangi tasdiqlash kodi."""
-    vc = VerificationCode.generate(chat_id)
-    text = (
-        f"Yangi tasdiqlash kodingiz:\n\n"
-        f"🔑 {vc.code}\n\n"
-        f"Veb-ilovada kirish oynasiga bu kodni kiriting."
-    )
-    _send_message(chat_id, text)
     return True
 
 
@@ -68,9 +52,8 @@ def handle_help(chat_id: int):
     text = (
         "📌 Buyruqlar:\n"
         "/start — «Chiqimlarni ochish» tugmasi (Mini App avtologin)\n"
-        "/code — Brauzerda kirish uchun tasdiqlash kodi\n"
         "/help — Yordam\n\n"
-        "Ilovani ochish: pastdagi tugmani bosing — kod kiritish shart emas."
+        "Ilovani ochish: pastdagi tugmani bosing — kod yoki alohida ro'yxatdan o'tish talab qilinmaydi."
     )
     _send_message(chat_id, text)
     return True
@@ -87,7 +70,5 @@ def process_update(update_dict: dict) -> None:
     first_name = user.get("first_name", "")
     if text == "/start":
         handle_start(chat_id, first_name)
-    elif text == "/code":
-        handle_code(chat_id)
     elif text == "/help":
         handle_help(chat_id)

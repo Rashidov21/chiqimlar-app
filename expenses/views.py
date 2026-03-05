@@ -7,6 +7,7 @@ from django.views.decorators.http import require_http_methods
 from django.contrib import messages
 from django.core.paginator import Paginator
 from django.utils import timezone
+from datetime import datetime
 
 from .models import Expense
 from .forms import ExpenseForm
@@ -24,8 +25,16 @@ MONTH_NAMES = [
 @login_required
 def dashboard(request):
     """Bu Oy - asosiy dashboard."""
-    data = get_monthly_totals(request.user)
-    breakdown = get_category_breakdown(request.user)
+    today = timezone.now().date()
+    date_str = request.GET.get("date") or ""
+    selected_date = today
+    if date_str:
+        try:
+            selected_date = datetime.fromisoformat(date_str).date()
+        except ValueError:
+            selected_date = today
+    data = get_monthly_totals(request.user, year=selected_date.year, month=selected_date.month)
+    breakdown = get_category_breakdown(request.user, year=selected_date.year, month=selected_date.month)
     recent = (
         Expense.objects.filter(user=request.user)
         .select_related("category")
@@ -39,6 +48,8 @@ def dashboard(request):
         {
             "totals": data,
             "month_display": month_display,
+            "selected_date_display": f"{selected_date.day} {MONTH_NAMES[selected_date.month].lower()} {selected_date.year}",
+            "selected_date_iso": selected_date.isoformat(),
             "breakdown": breakdown,
             "recent": recent,
             "insights": insights,

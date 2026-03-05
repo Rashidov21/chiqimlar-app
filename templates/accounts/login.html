@@ -19,38 +19,22 @@
             <p style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 12px;">
                 Kirish amalga oshmadi. Botda <strong>«Chiqimlarni ochish»</strong> tugmasini bosing yoki ilovani yopib qayta oching.
             </p>
-            <p style="font-size: 0.8rem; color: var(--text-muted);">Brauzerda veb-saytga kirish uchun botda <strong>/code</strong> yuboring.</p>
+            <p style="font-size: 0.8rem; color: var(--text-muted);">Brauzerda foydalanish uchun ham botda <strong>/start</strong> yuboring va pastdagi tugma orqali ilovani oching.</p>
         </div>
 
-        <!-- Brauzer: kod formasi (Mini App da ko'rsatilmaydi) -->
+        <!-- Brauzer: ma'lumot (Mini App da ko'rsatilmaydi) -->
         <div id="login-code-form-wrap">
             <div style="background: var(--primary-soft); border-radius: 12px; padding: 12px; margin-bottom: 16px; border: 1px solid #c4b5fd;">
                 <p style="font-size: 0.8rem; color: #4338ca; font-weight: 500; margin-bottom: 6px;">
                     <i class="bi bi-1-circle-fill" style="margin-right: 6px;"></i> Telegram botga <strong>/start</strong> yuboring
                 </p>
                 <p style="font-size: 0.8rem; color: #4338ca;">
-                    <i class="bi bi-2-circle-fill" style="margin-right: 6px;"></i> Qisqa kodni quyida kiriting
+                    <i class="bi bi-2-circle-fill" style="margin-right: 6px;"></i> Pastdagi <strong>«Chiqimlarni ochish»</strong> tugmasini bosing — Mini App ochiladi va siz avtomatik kirasiz.
                 </p>
             </div>
-
-            <form method="post" action="{% url 'accounts:login' %}" style="display: flex; flex-direction: column; gap: 14px;">
-                {% csrf_token %}
-                <div>
-                    <label for="id_code" class="input-label">🔑 Tasdiqlash kodi</label>
-                    <input type="text" name="code" id="id_code" maxlength="6" placeholder="000000" autocomplete="one-time-code" inputmode="numeric" autofocus
-                        class="input-field" style="text-align: center; font-size: 1.25rem; letter-spacing: 0.2em;">
-                    {% if form.code.errors %}<p class="field-error">{{ form.code.errors.0 }}</p>{% endif %}
-                </div>
-                <button type="submit" class="btn-primary btn-lg" style="width: 100%;">
-                    <i class="bi bi-box-arrow-in-right"></i> Kirish
-                </button>
-            </form>
-
-            <p style="margin-top: 12px; text-align: center; font-size: 0.8rem; color: var(--text-muted);">
-                Kod olmadingizmi? Telegramda <strong>/code</strong> yuboring.
-            </p>
-            <p style="margin-top: 12px; text-align: center;">
-                <a href="{% url 'accounts:register' %}" style="color: var(--primary); font-weight: 500; text-decoration: none; font-size: 0.85rem;">Ro'yxatdan o'tish →</a>
+            <p style="margin-top: 12px; text-align: center; font-size: 0.85rem; color: var(--text-muted);">
+                Agar Telegram bot bilan hali tanish bo'lmasangiz, <strong>@botingiz_nomi</strong> ga o'ting va /start yuboring.
+                Ro'yxatdan o'tish ham, kod kiritish ham shart emas — hammasi Telegram orqali amalga oshadi.
             </p>
         </div>
     </div>

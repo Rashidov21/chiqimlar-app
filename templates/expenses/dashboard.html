@@ -3,7 +3,13 @@
 {% block title %}Bu Oy{% endblock %}
 
 {% block content %}
-<p style="text-align: center; font-size: 0.95rem; color: var(--text-muted); margin-bottom: 4px;">{{ month_display }}</p>
+<input type="date" id="dashboard-date-input" value="{{ selected_date_iso }}" style="position: absolute; opacity: 0; pointer-events: none; height: 0; width: 0;" aria-hidden="true">
+<p style="text-align: center; font-size: 0.95rem; color: var(--text-muted); margin-bottom: 4px;">
+    <button type="button" id="dashboard-date-button" style="border: none; background: none; color: inherit; font: inherit; padding: 4px 10px; border-radius: 9999px; display: inline-flex; align-items: center; gap: 6px;">
+        <i class="bi bi-calendar-event" style="font-size: 1rem;"></i>
+        <span>{{ selected_date_display }}</span>
+    </button>
+</p>
 <p style="text-align: center; font-size: 2rem; font-weight: 800; color: var(--text-main); margin-bottom: 20px; letter-spacing: -0.02em;">{{ totals.total_spent|intcomma }}</p>
 
 <div class="card card-compact" style="margin-bottom: 20px;">
@@ -88,4 +94,27 @@
     </ul>
 </div>
 {% endif %}
+{% endblock %}
+
+{% block extra_js %}
+<script>
+(function() {
+    var btn = document.getElementById('dashboard-date-button');
+    var input = document.getElementById('dashboard-date-input');
+    if (!btn || !input) return;
+    btn.addEventListener('click', function() {
+        if (input.showPicker) {
+            input.showPicker();
+        } else {
+            input.click();
+        }
+    });
+    input.addEventListener('change', function() {
+        if (!this.value) return;
+        var url = new URL(window.location.href);
+        url.searchParams.set('date', this.value);
+        window.location.href = url.toString();
+    });
+})();
+</script>
 {% endblock %}

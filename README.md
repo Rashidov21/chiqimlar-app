@@ -136,7 +136,7 @@ Foydalanuvchida `telegram_id` bo‘lishi va Sozlamalarda bildirishnomalar yoqilg
 - `expenses/` — xarajatlar, dashboard, sozlamalar
 - `analytics/` — statistika, tushunchalar
 - `notifications/` — Telegram xabarlar
-- `telegram_bot/` — webhook, /start, /code
+- `telegram_bot/` — webhook, /start (Mini App avtologin)
 - `templates/` — HTML (base, login, dashboard, statistika, …)
 
 Litsenziya: MIT (yoki loyiha qoidalariga qarab).

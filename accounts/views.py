@@ -1,5 +1,5 @@
 """
-Hisoblar - Login, ro'yxatdan o'tish, chiqish, Telegram Mini App auth.
+Hisoblar - Login, ro'yxatdan o'tish (Telegram orqali), chiqish, Telegram Mini App auth.
 """
 from django.shortcuts import render, redirect
 from django.contrib.auth import logout, login
@@ -7,42 +7,34 @@ from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_http_methods
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
-from django.contrib import messages
 from django.http import JsonResponse
 
-from .services import verify_code_and_login, get_or_create_user_by_telegram, check_rate_limit
-from .forms import LoginForm, RegisterForm
+from .services import get_or_create_user_by_telegram, check_rate_limit
 from .telegram_auth import validate_telegram_init_data
 
 
-@require_http_methods(["GET", "POST", "HEAD"])
+@require_http_methods(["GET", "HEAD"])
 def login_view(request):
+    """
+    Login sahifasi endi faqat ma'lumot beruvchi ekran:
+    - Telegram Mini App orqali kelganda initData bilan avtologin ishlaydi.
+    - Brauzer foydalanuvchisi uchun esa botga /start yuborib, «Chiqimlarni ochish» tugmasidan
+      foydalanish bo'yicha ko'rsatmalar chiqadi.
+    """
     if request.user.is_authenticated:
         return redirect("expenses:dashboard")
-    form = LoginForm(request.POST or None)
-    if form.is_valid():
-        user, msg = verify_code_and_login(form.cleaned_data["code"], request)
-        if user:
-            messages.success(request, msg)
-            return redirect("expenses:dashboard")
-        messages.error(request, msg)
-    return render(request, "accounts/login.html", {"form": form})
+    return render(request, "accounts/login.html")
 
 
-@require_http_methods(["GET", "POST", "HEAD"])
+@require_http_methods(["GET", "HEAD"])
 def register_view(request):
+    """
+    Ro'yxatdan o'tish sahifasi: endi alohida forma yo'q.
+    Foydalanuvchi botga /start yuborib, Mini App orqali avtomatik yaratiladi.
+    """
     if request.user.is_authenticated:
         return redirect("expenses:dashboard")
-    form = RegisterForm(request.POST or None)
-    if form.is_valid():
-        user = form.save(commit=False)
-        user.set_password(form.cleaned_data["password1"])
-        user.save()
-        from django.contrib.auth import login
-        login(request, user, backend="django.contrib.auth.backends.ModelBackend")
-        messages.success(request, "Hisobingiz yaratildi. Endi Telegram orqali kod olishingiz mumkin.")
-        return redirect("expenses:dashboard")
-    return render(request, "accounts/register.html", {"form": form})
+    return render(request, "accounts/register.html")
 
 
 @require_http_methods(["POST"])
