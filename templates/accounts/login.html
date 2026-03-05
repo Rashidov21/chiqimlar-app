@@ -61,7 +61,6 @@
 
     var formData = new FormData();
     formData.append('init_data', initData);
-    formData.append('csrfmiddlewaretoken', '{{ csrf_token }}');
 
     fetch('{% url "accounts:telegram_webapp_auth" %}', {
         method: 'POST',
@@ -69,13 +68,27 @@
         credentials: 'same-origin',
         headers: { 'X-Requested-With': 'XMLHttpRequest' }
     })
-    .then(function(r) { return r.json().then(function(data) { return { ok: data.ok, redirect: data.redirect, status: r.status }; }); })
+    .then(function(r) {
+        return r.json().then(function(data) {
+            return { ok: data.ok, redirect: data.redirect, status: r.status, error: data.error };
+        });
+    })
     .then(function(result) {
         if (result.ok && result.redirect) {
             window.location.href = result.redirect;
         } else {
             loading.style.display = 'none';
-            if (miniappError) miniappError.style.display = 'block';
+            if (miniappError) {
+                miniappError.style.display = 'block';
+                var textEl = miniappError.querySelector('p');
+                if (textEl) {
+                    if (result.error === 'invalid_init_data') {
+                        textEl.innerText = "Sessiya muddati tugagan. Botda /start yuboring va «Chiqimlarni ochish» tugmasini qayta bosing.";
+                    } else if (result.error === 'rate_limited') {
+                        textEl.innerText = "Juda ko'p urinish. Bir necha soniyadan so'ng qayta urinib ko'ring.";
+                    }
+                }
+            }
         }
     })
     .catch(function() {

@@ -2,6 +2,7 @@
 Hisoblar - Login, ro'yxatdan o'tish (Telegram orqali), chiqish, Telegram Mini App auth.
 """
 from django.shortcuts import render, redirect
+from django.contrib import messages
 from django.contrib.auth import logout, login
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_http_methods
