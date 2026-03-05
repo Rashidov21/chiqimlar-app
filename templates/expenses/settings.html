@@ -16,7 +16,8 @@
         {% csrf_token %}
         <div>
             <label for="monthly_budget" class="input-label">💰 Oylik byudjet (so'm)</label>
-            <input type="number" name="monthly_budget" id="monthly_budget" value="{{ user.monthly_budget }}" min="0" step="1000" class="input-field" placeholder="0">
+            <input type="number" name="monthly_budget" id="monthly_budget" value="{{ user.monthly_budget }}" min="0" step="1000" class="input-field" placeholder="0" inputmode="numeric">
+            <p style="margin-top: 4px; font-size: 0.8rem; color: var(--text-muted);">Masalan: 2000000</p>
         </div>
         <div>
             <p class="input-label" style="margin-bottom: 6px; display: flex; align-items: center; gap: 6px;">

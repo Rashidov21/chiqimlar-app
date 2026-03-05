@@ -18,8 +18,11 @@ class ExpenseForm(forms.ModelForm):
         self.fields["category"].empty_label = "Chiqim turkumi"
         self.fields["date"].initial = timezone.now().date()
         self.fields["amount"].widget.attrs["class"] = "input-field"
-        self.fields["amount"].widget.attrs["placeholder"] = "Summasi"
+        self.fields["amount"].widget.attrs["placeholder"] = "Summasi (so'm)"
         self.fields["amount"].widget.attrs["inputmode"] = "numeric"
+        self.fields["amount"].widget.attrs["min"] = "0"
+        self.fields["amount"].widget.attrs["step"] = "1000"
+        self.fields["amount"].widget.attrs["autofocus"] = "autofocus"
         self.fields["note"].widget.attrs["class"] = "input-field"
         self.fields["note"].widget.attrs["placeholder"] = "Izoh (to'ldirish shart emas)"
         self.fields["note"].widget.attrs["maxlength"] = "255"

@@ -13,7 +13,8 @@ class CategoryForm(forms.ModelForm):
         self.fields["name"].widget.attrs["class"] = "input-field"
         self.fields["name"].widget.attrs["placeholder"] = "Turkum nomi"
         self.fields["emoji"].widget.attrs["class"] = "input-field"
-        self.fields["emoji"].widget.attrs["placeholder"] = "📁"
+        self.fields["emoji"].widget.attrs["placeholder"] = "😊 (masalan, 🍔)"
+        self.fields["emoji"].widget.attrs["maxlength"] = "3"
         self.fields["order"].widget.attrs["class"] = "input-field"
 
     def save(self, commit=True):
