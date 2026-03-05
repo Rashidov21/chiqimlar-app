@@ -47,15 +47,6 @@
     var tg = window.Telegram && window.Telegram.WebApp;
     var initData = tg && tg.initData;
 
-    // Debug: initData holatini ekranga chiqarish
-    var debugEl = document.createElement('div');
-    debugEl.style.fontSize = '10px';
-    debugEl.style.color = 'red';
-    debugEl.style.wordBreak = 'break-all';
-    debugEl.style.margin = '8px';
-    debugEl.innerText = 'tg=' + (!!tg) + ' | initData length=' + (initData ? initData.length : 0);
-    document.body.appendChild(debugEl);
-
     var root = document.getElementById('login-root');
     var loading = document.getElementById('login-loading');
     var formWrap = document.getElementById('login-form-wrap');
@@ -63,55 +54,60 @@
     var miniappError = document.getElementById('login-miniapp-error');
     if (!root || !loading || !formWrap) return;
 
-    // Agar initData yo'q bo'lsa, foydalanuvchi oddiy brauzerda yoki noto'g'ri ochgan bo'lishi mumkin.
-    // Bu holda pastdagi /start bo'yicha ko'rsatmalarni qoldiramiz.
-    if (!initData) {
-        return;
-    }
+    // Telegram Mini App: initData bor bo'lsa — avtomatik login
+    if (initData) {
+        if (codeFormWrap) codeFormWrap.style.display = 'none';
+        formWrap.style.display = 'block';
+        loading.style.display = 'block';
 
-    // Debug: avtologin boshlanishini ko'rsatish
-    alert('Telegram initData topildi, avtologin boshlanmoqda');
+        var formData = new FormData();
+        formData.append('init_data', initData);
 
-    codeFormWrap.style.display = 'none';
-    formWrap.style.display = 'block';
-    loading.style.display = 'block';
-
-    var formData = new FormData();
-    formData.append('init_data', initData);
-
-    fetch('{% url "accounts:telegram_webapp_auth" %}', {
-        method: 'POST',
-        body: formData,
-        credentials: 'same-origin',
-        headers: { 'X-Requested-With': 'XMLHttpRequest' }
-    })
-    .then(function(r) {
-        return r.json().then(function(data) {
-            return { ok: data.ok, redirect: data.redirect, status: r.status, error: data.error };
-        });
-    })
-    .then(function(result) {
-        if (result.ok && result.redirect) {
-            window.location.href = result.redirect;
-        } else {
-            loading.style.display = 'none';
-            if (miniappError) {
-                miniappError.style.display = 'block';
-                var textEl = miniappError.querySelector('p');
-                if (textEl) {
-                    if (result.error === 'invalid_init_data') {
-                        textEl.innerText = "Sessiya muddati tugagan. Botda /start yuboring va «Chiqimlarni ochish» tugmasini qayta bosing.";
-                    } else if (result.error === 'rate_limited') {
-                        textEl.innerText = "Juda ko'p urinish. Bir necha soniyadan so'ng qayta urinib ko'ring.";
+        fetch('{% url "accounts:telegram_webapp_auth" %}', {
+            method: 'POST',
+            body: formData,
+            credentials: 'same-origin',
+            headers: { 'X-Requested-With': 'XMLHttpRequest' }
+        })
+        .then(function(r) {
+            return r.json().then(function(data) {
+                return {
+                    ok: data.ok,
+                    redirect: data.redirect,
+                    status: r.status,
+                    error: data.error
+                };
+            });
+        })
+        .then(function(result) {
+            if (result.ok && result.redirect) {
+                // Muvaffaqiyatli login — dashboard'ga o'tamiz
+                window.location.href = result.redirect;
+            } else {
+                // Auth xatosi — foydalanuvchiga aniq xabar ko'rsatamiz
+                loading.style.display = 'none';
+                if (miniappError) {
+                    miniappError.style.display = 'block';
+                    var textEl = miniappError.querySelector('p');
+                    if (textEl) {
+                        if (result.error === 'invalid_init_data') {
+                            textEl.innerText = "Sessiya muddati tugagan. Botda /start yuboring va «Chiqimlarni ochish» tugmasini qayta bosing.";
+                        } else if (result.error === 'rate_limited') {
+                            textEl.innerText = "Juda ko'p urinish. Bir necha soniyadan so'ng qayta urinib ko'ring.";
+                        }
                     }
                 }
             }
-        }
-    })
-    .catch(function() {
-        loading.style.display = 'none';
-        if (miniappError) miniappError.style.display = 'block';
-    });
+        })
+        .catch(function() {
+            loading.style.display = 'none';
+            if (miniappError) miniappError.style.display = 'block';
+        });
+
+        return; // Mini App holati shu branchda tugaydi
+    }
+
+    // Oddiy brauzer: initData yo'q — foydalanuvchi faqat /start bo'yicha instruktsiyani ko'radi
 })();
 </script>
 {% endblock %}
