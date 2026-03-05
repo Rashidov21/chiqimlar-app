@@ -118,7 +118,7 @@ CSRF_COOKIE_SAMESITE = "Lax"
 # Telegram
 TELEGRAM_BOT_TOKEN = env("TELEGRAM_BOT_TOKEN", default="")
 TELEGRAM_WEBHOOK_SECRET = env("TELEGRAM_WEBHOOK_SECRET", default="")
-TELEGRAM_WEBAPP_URL = env("TELEGRAM_WEBAPP_URL", default="http://localhost:8000")
+TELEGRAM_WEBAPP_URL = env("TELEGRAM_WEBAPP_URL", default="https://budget.pyblog.uz/")
 
 # Rate limiting (verification code)
 VERIFICATION_CODE_RATE_LIMIT = 5  # so'rovlar per daqiqa
