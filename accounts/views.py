@@ -61,6 +61,7 @@ def telegram_webapp_auth(request):
     Telegram Mini App: initData orqali avtomatik login.
     POST: init_data=<Telegram.WebApp.initData>
     """
+    print("TG_AUTH_REQUEST", flush=True)
     init_data = request.POST.get("init_data", "").strip()
     if not init_data and request.body:
         try:
