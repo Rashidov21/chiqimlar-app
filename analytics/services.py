@@ -113,19 +113,27 @@ def get_insights_for_user(user, year=None, month=None, limit=5):
 
 
 def get_daily_totals(user, year, month):
-    """Oy kunlari bo'yicha jami (grafik uchun)."""
+    """Oy kunlari bo'yicha jami (grafik uchun) — har bir kalendar kuni alohida."""
     from calendar import monthrange
+
     start = timezone.datetime(year, month, 1).date()
     _, last_day = monthrange(year, month)
     end = timezone.datetime(year, month, last_day).date()
-    from django.db.models.functions import TruncDate
+
     qs = (
         user.expenses.filter(date__gte=start, date__lte=end)
         .values("date")
         .annotate(total=Sum("amount"))
         .order_by("date")
     )
-    return list(qs)
+    by_date = {item["date"]: item["total"] for item in qs}
+
+    result = []
+    d = start
+    while d <= end:
+        result.append({"date": d, "total": by_date.get(d, Decimal("0"))})
+        d += timezone.timedelta(days=1)
+    return result
 
 
 def get_category_totals_for_period(user, start_date, end_date):
