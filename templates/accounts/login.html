@@ -39,6 +39,7 @@
         </div>
     </div>
     <p style="margin-top: 20px; font-size: 0.75rem; color: var(--text-muted);">Muallif: Abdurahmon Rashidov</p>
+    <p id="login-debug" style="margin-top: 8px; font-size: 0.7rem; color: #999;"></p>
 </div>
 
 {% block extra_js %}
@@ -46,6 +47,11 @@
 (function() {
     var tg = window.Telegram && window.Telegram.WebApp;
     var initData = tg && tg.initData;
+
+    var debugEl = document.getElementById('login-debug');
+    if (debugEl) {
+        debugEl.innerText = 'Debug: Telegram=' + (tg ? 'ha' : 'yo\'q') + ', initData length=' + (initData ? initData.length : 0);
+    }
 
     var root = document.getElementById('login-root');
     var loading = document.getElementById('login-loading');
