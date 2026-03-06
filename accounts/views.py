@@ -1,6 +1,7 @@
 """
 Hisoblar - Login, ro'yxatdan o'tish (Telegram orqali), chiqish, Telegram Mini App auth.
 """
+import logging
 from django.shortcuts import render, redirect
 from django.contrib import messages
 from django.contrib.auth import logout, login
@@ -12,6 +13,8 @@ from django.http import JsonResponse
 
 from .services import get_or_create_user_by_telegram, check_rate_limit
 from .telegram_auth import validate_telegram_init_data
+
+logger = logging.getLogger(__name__)
 
 
 @require_http_methods(["GET", "HEAD"])
@@ -68,13 +71,16 @@ def telegram_webapp_auth(request):
             pass
     user_data = validate_telegram_init_data(init_data)
     if not user_data:
+        logger.warning("tg_webapp_auth: invalid_init_data (validate_telegram_init_data returned None)")
         return JsonResponse({"ok": False, "error": "invalid_init_data"}, status=400)
     telegram_id = user_data.get("id")
     if not telegram_id:
+        logger.warning("tg_webapp_auth: no_user (user_data without id)")
         return JsonResponse({"ok": False, "error": "no_user"}, status=400)
 
     # Rate limit: bir foydalanuvchi uchun tez-tez auth bo'lishiga yo'l qo'ymaslik
     if not check_rate_limit(f"tg_webapp_auth_{telegram_id}"):
+        logger.warning("tg_webapp_auth: rate_limited telegram_id=%s", telegram_id)
         return JsonResponse(
             {"ok": False, "error": "rate_limited"},
             status=429,
@@ -84,4 +90,5 @@ def telegram_webapp_auth(request):
         first_name=user_data.get("first_name", ""),
     )
     login(request, user, backend="django.contrib.auth.backends.ModelBackend")
+    logger.info("tg_webapp_auth: ok telegram_id=%s user_id=%s", telegram_id, user.pk)
     return JsonResponse({"ok": True, "redirect": "/"})
