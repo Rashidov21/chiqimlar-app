@@ -106,12 +106,14 @@ LOGIN_URL = "accounts:login"
 LOGIN_REDIRECT_URL = "expenses:dashboard"
 LOGOUT_REDIRECT_URL = "accounts:login"
 
-# Session
+# Session (Telegram WebView da cookie saqlanishi uchun SameSite=None, Secure)
 SESSION_ENGINE = "django.contrib.sessions.backends.db"
 SESSION_COOKIE_AGE = 60 * 60 * 24 * 14  # 2 hafta
 SESSION_SAVE_EVERY_REQUEST = True
 SESSION_COOKIE_HTTPONLY = True
-SESSION_COOKIE_SAMESITE = "Lax"
+SESSION_COOKIE_SAMESITE = "None"
+# HTTPS da (production) Secure=True; lokal HTTP da DEBUG=True bo'lsa Secure o'chiq
+SESSION_COOKIE_SECURE = not DEBUG
 CSRF_COOKIE_HTTPONLY = False
 CSRF_COOKIE_SAMESITE = "Lax"
 
@@ -119,6 +121,8 @@ CSRF_COOKIE_SAMESITE = "Lax"
 TELEGRAM_BOT_TOKEN = env("TELEGRAM_BOT_TOKEN", default="")
 TELEGRAM_WEBHOOK_SECRET = env("TELEGRAM_WEBHOOK_SECRET", default="")
 TELEGRAM_WEBAPP_URL = env("TELEGRAM_WEBAPP_URL", default="https://budget.pyblog.uz/")
+# initData qabul qilinadigan maksimal yoshi (soniya). 7 kun = 604800
+TELEGRAM_INITDATA_MAX_AGE = int(env("TELEGRAM_INITDATA_MAX_AGE", default="604800"))
 
 # Rate limiting (verification code)
 VERIFICATION_CODE_RATE_LIMIT = 5  # so'rovlar per daqiqa
