@@ -36,7 +36,7 @@
             </div>
             <div style="display: flex; align-items: center; gap: 12px;">
                 <span style="font-weight: 600;">{{ e.amount|intcomma }} so'm</span>
-                <a href="{% url 'expenses:edit' e.pk %}" style="color: var(--text-muted); text-decoration: none;" title="Tahrir"><i class="bi bi-pencil"></i></a>
+                <a href="{% url 'expenses:edit' e.pk %}?next={{ request.get_full_path|urlencode }}" style="color: var(--text-muted); text-decoration: none;" title="Tahrir"><i class="bi bi-pencil"></i></a>
                 <form method="post" action="{% url 'expenses:delete' e.pk %}" style="display: inline;" onsubmit="return confirm('Ushbu xarajatni o\u2018chirishni xohlaysizmi?');">{% csrf_token %}<input type="hidden" name="next" value="{{ request.get_full_path }}"><button type="submit" style="background: none; border: none; color: var(--danger); cursor: pointer;" title="O'chirish"><i class="bi bi-trash"></i></button></form>
             </div>
         </li>

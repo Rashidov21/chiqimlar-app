@@ -95,6 +95,9 @@ def expense_edit(request, pk):
         maybe_send_limit_warning_after_expense(request.user)
         maybe_send_expense_confirmation_after_expense(request.user, expense)
         messages.success(request, "Xarajat yangilandi.")
+        next_url = request.POST.get("next") or request.GET.get("next")
+        if next_url and next_url.startswith("/") and not next_url.startswith("//"):
+            return redirect(next_url)
         return redirect("expenses:dashboard")
     return render(request, "expenses/expense_form.html", {"form": form, "expense": expense, "title": "Xarajatni tahrirlash"})
 

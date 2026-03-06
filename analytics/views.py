@@ -24,9 +24,16 @@ MONTH_NAMES = [
 def statistics_view(request):
     """Umumiy statistika - oy tanlash, kunlik/oylik, grafiklar."""
     today = timezone.now().date()
-    year = int(request.GET.get("year", today.year))
-    month = int(request.GET.get("month", today.month))
+    try:
+        year = int(request.GET.get("year", today.year))
+        month = int(request.GET.get("month", today.month))
+    except (ValueError, TypeError):
+        year, month = today.year, today.month
+    if not (1 <= month <= 12):
+        month = today.month
     view_type = request.GET.get("view", "month")
+    if view_type not in ("month", "day"):
+        view_type = "month"
 
     totals = get_monthly_totals(request.user, year=year, month=month)
     breakdown = get_category_breakdown(request.user, year=year, month=month)
@@ -96,8 +103,14 @@ def statistics_view(request):
 @login_required
 def chart_data_daily(request):
     """Kunlik grafik ma'lumotlari (API)."""
-    year = int(request.GET.get("year", timezone.now().year))
-    month = int(request.GET.get("month", timezone.now().month))
+    today = timezone.now()
+    try:
+        year = int(request.GET.get("year", today.year))
+        month = int(request.GET.get("month", today.month))
+    except (ValueError, TypeError):
+        year, month = today.year, today.month
+    if not (1 <= month <= 12):
+        month = today.month
     raw = get_daily_totals(request.user, year, month)
     data = [
         {"date": d["date"].isoformat(), "total": float(d["total"])}
@@ -113,8 +126,13 @@ def chart_data_categories(request):
     from calendar import monthrange
 
     today = timezone.now().date()
-    year = int(request.GET.get("year", today.year))
-    month = int(request.GET.get("month", today.month))
+    try:
+        year = int(request.GET.get("year", today.year))
+        month = int(request.GET.get("month", today.month))
+    except (ValueError, TypeError):
+        year, month = today.year, today.month
+    if not (1 <= month <= 12):
+        month = today.month
     start = date(year, month, 1)
     _, last_day = monthrange(year, month)
     # Joriy oy bo'lsa bugungacha, o'tgan oylar uchun oy oxirigacha
