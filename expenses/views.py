@@ -39,12 +39,16 @@ def dashboard(request):
             selected_date = today
     data = get_monthly_totals(request.user, year=selected_date.year, month=selected_date.month)
     breakdown = get_category_breakdown(request.user, year=selected_date.year, month=selected_date.month)
+    month_start = data["month_start"]
+    month_end = data["month_end"]
     recent = (
-        Expense.objects.filter(user=request.user)
+        Expense.objects.filter(user=request.user, date__gte=month_start, date__lte=month_end)
         .select_related("category")
         .order_by("-date", "-created_at")[:10]
     )
-    insights = get_insights_for_user(request.user, limit=3)
+    insights = get_insights_for_user(
+        request.user, year=selected_date.year, month=selected_date.month, limit=3
+    )
     days_count = max((data["month_end"] - data["month_start"]).days + 1, 1)
     avg_daily = data["total_spent"] / days_count if data["total_spent"] > 0 else Decimal("0")
     top_categories = breakdown[:3]
@@ -106,12 +110,61 @@ def expense_delete(request, pk):
 
 @login_required
 def expense_list(request):
-    """Barcha xarajatlar (pagination)."""
+    """Barcha xarajatlar (pagination, ixtiyoriy oy/yil filtri)."""
+    today = timezone.now().date()
     qs = Expense.objects.filter(user=request.user).select_related("category").order_by("-date", "-created_at")
+
+    year_str = request.GET.get("year")
+    month_str = request.GET.get("month")
+    if year_str and month_str:
+        try:
+            year = int(year_str)
+            month = int(month_str)
+            if 1 <= month <= 12:
+                from calendar import monthrange
+                _, last_day = monthrange(year, month)
+                from datetime import date
+                start = date(year, month, 1)
+                end = date(year, month, last_day)
+                qs = qs.filter(date__gte=start, date__lte=end)
+        except (ValueError, TypeError):
+            year = None
+            month = None
+    else:
+        year = None
+        month = None
+
     paginator = Paginator(qs, 20)
     page = request.GET.get("page", 1)
     page_obj = paginator.get_page(page)
-    return render(request, "expenses/expense_list.html", {"page_obj": page_obj})
+
+    # Oxirgi 12 oy + "Barchasi" (filtr uchun)
+    period_choices = []
+    for i in range(12):
+        m = today.month - i
+        y = today.year
+        while m <= 0:
+            m += 12
+            y -= 1
+        period_choices.append((y, m, f"{MONTH_NAMES[m]} {y}"))
+
+    # Pagination linklari uchun GET parametrlar (page dan tashqari)
+    get_copy = request.GET.copy()
+    if "page" in get_copy:
+        get_copy.pop("page")
+    base_query = get_copy.urlencode()
+
+    return render(
+        request,
+        "expenses/expense_list.html",
+        {
+            "page_obj": page_obj,
+            "period_choices": period_choices,
+            "selected_year": year,
+            "selected_month": month,
+            "base_query": base_query,
+        },
+    )
 
 
 @login_required

@@ -15,6 +15,15 @@
         <i class="bi bi-plus-lg"></i> Qo'shish
     </a>
 </div>
+
+<p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 8px;">Filtr (oy)</p>
+<div style="display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px;">
+    <a href="{% url 'expenses:list' %}" style="display: inline-block; padding: 8px 14px; border-radius: 9999px; font-size: 0.85rem; font-weight: 500; text-decoration: none; background: #fff; color: var(--text-main); box-shadow: 0 4px 12px rgba(0,0,0,0.06); border: 1px solid var(--border-soft); {% if not selected_year and not selected_month %}background: var(--primary); color: #fff; border-color: var(--primary);{% endif %}">Barchasi</a>
+    {% for y, m, label in period_choices %}
+    <a href="{% url 'expenses:list' %}?year={{ y }}&month={{ m }}" style="display: inline-block; padding: 8px 14px; border-radius: 9999px; font-size: 0.85rem; font-weight: 500; text-decoration: none; background: #fff; color: var(--text-main); box-shadow: 0 4px 12px rgba(0,0,0,0.06); border: 1px solid var(--border-soft); {% if selected_year == y and selected_month == m %}background: var(--primary); color: #fff; border-color: var(--primary);{% endif %}">{{ label }}</a>
+    {% endfor %}
+</div>
+
 <div class="card">
     {% if page_obj %}
     <ul style="list-style: none; padding: 0; margin: 0;">
@@ -28,16 +37,16 @@
             <div style="display: flex; align-items: center; gap: 12px;">
                 <span style="font-weight: 600;">{{ e.amount|intcomma }} so'm</span>
                 <a href="{% url 'expenses:edit' e.pk %}" style="color: var(--text-muted); text-decoration: none;" title="Tahrir"><i class="bi bi-pencil"></i></a>
-                <form method="post" action="{% url 'expenses:delete' e.pk %}" style="display: inline;" onsubmit="return confirm('Ushbu xarajatni o\u2018chirishni xohlaysizmi?');">{% csrf_token %}<input type="hidden" name="next" value="{{ request.path }}"><button type="submit" style="background: none; border: none; color: var(--danger); cursor: pointer;" title="O'chirish"><i class="bi bi-trash"></i></button></form>
+                <form method="post" action="{% url 'expenses:delete' e.pk %}" style="display: inline;" onsubmit="return confirm('Ushbu xarajatni o\u2018chirishni xohlaysizmi?');">{% csrf_token %}<input type="hidden" name="next" value="{{ request.get_full_path }}"><button type="submit" style="background: none; border: none; color: var(--danger); cursor: pointer;" title="O'chirish"><i class="bi bi-trash"></i></button></form>
             </div>
         </li>
         {% endfor %}
     </ul>
     {% if page_obj.has_other_pages %}
     <div style="display: flex; justify-content: center; align-items: center; gap: 16px; margin-top: 24px; padding-top: 24px; border-top: 1px solid var(--border-soft);">
-        {% if page_obj.has_previous %}<a href="?page={{ page_obj.previous_page_number }}" class="btn-secondary btn-sm">← Oldingi</a>{% endif %}
+        {% if page_obj.has_previous %}<a href="?{{ base_query }}{% if base_query %}&{% endif %}page={{ page_obj.previous_page_number }}" class="btn-secondary btn-sm">← Oldingi</a>{% endif %}
         <span style="color: var(--text-muted); font-size: 0.875rem;">{{ page_obj.number }} / {{ page_obj.paginator.num_pages }}</span>
-        {% if page_obj.has_next %}<a href="?page={{ page_obj.next_page_number }}" class="btn-secondary btn-sm">Keyingi →</a>{% endif %}
+        {% if page_obj.has_next %}<a href="?{{ base_query }}{% if base_query %}&{% endif %}page={{ page_obj.next_page_number }}" class="btn-secondary btn-sm">Keyingi →</a>{% endif %}
     </div>
     {% endif %}
     {% else %}

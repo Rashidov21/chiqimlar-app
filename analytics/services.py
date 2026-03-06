@@ -151,6 +151,12 @@ def get_category_totals_for_period(user, start_date, end_date):
     return result
 
 
+MONTH_NAMES_SHORT = [
+    "Yan", "Fev", "Mar", "Apr", "May", "Iyn",
+    "Iyl", "Avg", "Sen", "Okt", "Noy", "Dek",
+]
+
+
 def get_monthly_trend(user, months=6):
     """Oxirgi N oy uchun oylik jami (trend grafik)."""
     from datetime import date
@@ -168,5 +174,6 @@ def get_monthly_trend(user, months=6):
         end = date(y, m, ld)
         end = min(end, today)
         s = user.expenses.filter(date__gte=start, date__lte=end).aggregate(s=Sum("amount"))["s"] or Decimal("0")
-        result.append({"year": y, "month": m, "total": float(s), "label": f"{y}-{m:02d}"})
+        label = f"{MONTH_NAMES_SHORT[m - 1]} {y}" if 1 <= m <= 12 else f"{y}-{m:02d}"
+        result.append({"year": y, "month": m, "total": float(s), "label": label})
     return result

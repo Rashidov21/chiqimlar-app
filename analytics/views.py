@@ -98,19 +98,29 @@ def chart_data_daily(request):
     """Kunlik grafik ma'lumotlari (API)."""
     year = int(request.GET.get("year", timezone.now().year))
     month = int(request.GET.get("month", timezone.now().month))
-    data = get_daily_totals(request.user, year, month)
+    raw = get_daily_totals(request.user, year, month)
+    data = [
+        {"date": d["date"].isoformat(), "total": float(d["total"])}
+        for d in raw
+    ]
     return JsonResponse({"data": data})
 
 
 @login_required
 def chart_data_categories(request):
     """Kategoriya grafik ma'lumotlari."""
+    from datetime import date
+    from calendar import monthrange
+
     today = timezone.now().date()
     year = int(request.GET.get("year", today.year))
     month = int(request.GET.get("month", today.month))
-    from calendar import monthrange
-    start = today.replace(year=year, month=month, day=1)
-    _, ld = monthrange(year, month)
-    end = today.replace(year=year, month=month, day=min(ld, today.day))
+    start = date(year, month, 1)
+    _, last_day = monthrange(year, month)
+    # Joriy oy bo'lsa bugungacha, o'tgan oylar uchun oy oxirigacha
+    if year == today.year and month == today.month:
+        end = today
+    else:
+        end = date(year, month, last_day)
     data = get_category_totals_for_period(request.user, start, end)
     return JsonResponse({"data": data})
