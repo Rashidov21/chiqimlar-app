@@ -76,7 +76,6 @@ def statistics_view(request):
     trend_max = max((t["total"] for t in trend), default=0)
     if trend_max <= 0:
         trend_max = 1
-    daily_nonzero_count = sum(1 for d in daily if d["total"] > 0)
 
     years = list(range(today.year - 2, today.year + 2))
     months = list(range(1, 13))
@@ -104,7 +103,6 @@ def statistics_view(request):
             "month_choices": month_choices,
             "avg_daily": avg_daily,
             "prev_change_pct": prev_change_pct,
-            "daily_nonzero_count": daily_nonzero_count,
         },
     )
 
