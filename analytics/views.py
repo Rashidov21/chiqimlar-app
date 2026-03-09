@@ -5,6 +5,7 @@ from django.shortcuts import render
 from django.contrib.auth.decorators import login_required
 from django.utils import timezone
 from django.http import JsonResponse
+from django.db.models import Sum
 
 from .services import (
     get_insights_for_user,
@@ -13,6 +14,7 @@ from .services import (
     get_monthly_trend,
 )
 from expenses.services import get_monthly_totals, get_category_breakdown
+from expenses.models import Expense
 
 MONTH_NAMES = [
     "Yanvar", "Fevral", "Mart", "Aprel", "May", "Iyun",
@@ -82,6 +84,29 @@ def statistics_view(request):
     month_choices = list(zip(months, MONTH_NAMES))
     selected_month_name = MONTH_NAMES[month - 1] if 1 <= month <= 12 else ""
 
+    # Kunlar view uchun qo'shimcha filtrlar
+    selected_day = None
+    day_choices = []
+    day_total = None
+    day_breakdown = []
+    selected_day_label = ""
+    if view_type == "day":
+        try:
+            selected_day = int(request.GET.get("day", today.day if (year == today.year and month == today.month) else 1))
+        except (ValueError, TypeError):
+            selected_day = today.day if (year == today.year and month == today.month) else 1
+        selected_day = min(max(selected_day, 1), month_end.day)
+        day_choices = list(range(1, month_end.day + 1))
+        selected_date = month_start.replace(day=selected_day)
+        selected_day_label = f"{selected_day} {selected_month_name.lower()} {year}"
+        day_qs = Expense.objects.filter(user=request.user, date=selected_date)
+        day_total = day_qs.aggregate(s=Sum("amount"))["s"] or 0
+        day_breakdown = (
+            day_qs.values("category__emoji", "category__name")
+            .annotate(total=Sum("amount"))
+            .order_by("-total")
+        )
+
     return render(
         request,
         "analytics/statistics.html",
@@ -103,6 +128,11 @@ def statistics_view(request):
             "month_choices": month_choices,
             "avg_daily": avg_daily,
             "prev_change_pct": prev_change_pct,
+            "selected_day": selected_day,
+            "day_choices": day_choices,
+            "day_total": day_total,
+            "day_breakdown": day_breakdown,
+            "selected_day_label": selected_day_label,
         },
     )
 
