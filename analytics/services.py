@@ -4,7 +4,6 @@ Tahlil - Moliyaviy tushunchalar va statistikalar.
 from decimal import Decimal
 from django.db.models import Sum, Q
 from django.utils import timezone
-from django.db.models.functions import TruncDate
 from collections import defaultdict
 
 
@@ -95,18 +94,17 @@ def get_insights_for_user(user, year=None, month=None, limit=5):
 
     # Eng "qimmat" kun
     daily_qs = (
-        qs_this_period.annotate(day=TruncDate("date"))
-        .values("day")
+        qs_this_period.values("date")
         .annotate(total=Sum("amount"))
-        .order_by("-total")
+        .order_by("-total", "date")
     )
-    if daily_qs:
-        top_day = daily_qs[0]
+    top_day = daily_qs.first()
+    if top_day:
         if top_day["total"] and this_total > 0 and top_day["total"] >= this_total * Decimal(
             "0.25"
         ):
             insights.append(
-                f"🔥 {top_day['day']} kuni juda ko'p xarajat bo'lgan — {int(top_day['total']):,} so'm."
+                f"🔥 {top_day['date']} kuni juda ko'p xarajat bo'lgan — {int(top_day['total']):,} so'm."
             )
 
     return insights[:limit]
