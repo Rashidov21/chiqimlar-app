@@ -48,7 +48,7 @@
                 <a href="{% url 'categories:edit' cat.pk %}" class="btn-secondary btn-sm">
                     <i class="bi bi-pencil"></i> Tahrir
                 </a>
-                <form method="post" action="{% url 'categories:delete' cat.pk %}" style="display: inline;" onsubmit="return confirm('«{{ cat.name }}» turkumini o\u2018chirishni xohlaysizmi? Ushbu turkumdagi xarajatlar «Boshqa» ga o\u2018tadi.');">
+                <form method="post" action="{% url 'categories:delete' cat.pk %}" style="display: inline;" onsubmit="return confirm('«{{ cat.name }}» turkumini o\u2018chirishni xohlaysizmi? Ushbu turkumdagi xarajatlarda turkum bo‘sh holatga o‘tadi.');">
                     {% csrf_token %}
                     <button type="submit" class="btn-danger-sm" title="O'chirish">
                         <i class="bi bi-trash"></i> O'chirish

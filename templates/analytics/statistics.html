@@ -7,7 +7,9 @@
     <i class="bi bi-bar-chart" style="font-size: 1.3rem; color: var(--primary);"></i>
     <div>
         <h1 class="page-title">Umumiy statistika</h1>
-        <p class="page-subtitle">Oylar bo'yicha byudjet va xarajatlar tahlili</p>
+        <p class="page-subtitle">
+            {% if view_type == 'day' %}Kunlar kesimida xarajatlar{% else %}Oylar bo'yicha byudjet va xarajatlar tahlili{% endif %}
+        </p>
     </div>
 </div>
 
@@ -85,16 +87,25 @@
     <h2 style="font-weight: 600; margin-bottom: 8px; display: flex; align-items: center; gap: 6px;">
         <i class="bi bi-graph-up"></i> Kunlik xarajat
     </h2>
-    {% if daily %}
+    {% if daily and daily_nonzero_count > 0 %}
     <div style="height: 200px; display: flex; align-items: flex-end; gap: 2px;">
         {% for d in daily %}
-        <div class="stat-bar" role="button" tabindex="0" data-label="{{ d.date }}" data-value="{{ d.total|intcomma }}" style="flex: 1; min-width: 4px; background: var(--primary); border-radius: 4px 4px 0 0; height: {% widthratio d.total daily_max 100 %}%; transition: background 0.2s; cursor: pointer;" title="{{ d.date }}: {{ d.total|intcomma }} so'm" onmouseover="this.style.background='#4c33e6'" onmouseout="this.style.background='var(--primary)'"></div>
+        <div class="stat-bar" role="button" tabindex="0" data-label="{{ d.date|date:'d-m-Y' }}" data-value="{{ d.total|intcomma }}" style="flex: 1; min-width: 4px; background: var(--primary); border-radius: 4px 4px 0 0; height: {% widthratio d.total daily_max 100 %}%; min-height: {% if d.total > 0 %}8px{% else %}2px{% endif %}; opacity: {% if d.total > 0 %}1{% else %}.35{% endif %}; transition: background 0.2s; cursor: pointer;" title="{{ d.date }}: {{ d.total|intcomma }} so'm" onmouseover="this.style.background='#4c33e6'" onmouseout="this.style.background='var(--primary)'"></div>
         {% endfor %}
     </div>
-    <p style="font-size: 0.75rem; color: var(--text-muted); margin-top: 6px;">Kunlar (oy bo'yicha) — ustunni bosing</p>
+    <p style="font-size: 0.75rem; color: var(--text-muted); margin-top: 6px;">Kunlar (oy bo'yicha) — ustunni bosing. Xarajat bo'lmagan kunlar xira ko'rinadi.</p>
+    <div style="display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px;">
+        {% for d in daily %}
+        {% if d.total > 0 %}
+        <span style="font-size: 0.75rem; padding: 4px 8px; border-radius: 9999px; background: var(--primary-soft); color: var(--text-main);">
+            {{ d.date|date:"d" }}-kun: {{ d.total|intcomma }}
+        </span>
+        {% endif %}
+        {% endfor %}
+    </div>
     {% else %}
     <p style="color: var(--text-muted); font-size: 0.85rem; text-align: center; padding: 32px 12px;">
-        <i class="bi bi-bar-chart" style="font-size: 1.8rem; color: #cbd5e1;"></i><br>Bu oy ma'lumot yo'q
+        <i class="bi bi-bar-chart" style="font-size: 1.8rem; color: #cbd5e1;"></i><br>Bu oy kunlik xarajatlar hali yo'q
     </p>
     {% endif %}
 </div>

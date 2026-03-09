@@ -7,6 +7,7 @@ from django.views.decorators.http import require_http_methods
 from django.contrib import messages
 from django.core.paginator import Paginator
 from django.utils import timezone
+from django.utils.http import url_has_allowed_host_and_scheme
 from datetime import datetime
 from decimal import Decimal
 
@@ -24,6 +25,18 @@ MONTH_NAMES = [
     "", "Yanvar", "Fevral", "Mart", "Aprel", "May", "Iyun",
     "Iyul", "Avgust", "Sentabr", "Oktabr", "Noyabr", "Dekabr",
 ]
+
+
+def _safe_next_url(request, fallback="expenses:dashboard"):
+    """Faqat shu host ichidagi next URL ni qabul qiladi."""
+    next_url = request.POST.get("next") or request.GET.get("next")
+    if next_url and url_has_allowed_host_and_scheme(
+        url=next_url,
+        allowed_hosts={request.get_host()},
+        require_https=request.is_secure(),
+    ):
+        return next_url
+    return fallback
 
 
 @login_required
@@ -79,9 +92,7 @@ def expense_add(request):
         maybe_send_limit_warning_after_expense(request.user)
         maybe_send_expense_confirmation_after_expense(request.user, expense)
         messages.success(request, "Xarajat qo'shildi.")
-        if request.GET.get("next"):
-            return redirect(request.GET["next"])
-        return redirect("expenses:dashboard")
+        return redirect(_safe_next_url(request))
     return render(request, "expenses/expense_form.html", {"form": form, "title": "Xarajat qo'shish"})
 
 
@@ -95,10 +106,7 @@ def expense_edit(request, pk):
         maybe_send_limit_warning_after_expense(request.user)
         maybe_send_expense_confirmation_after_expense(request.user, expense)
         messages.success(request, "Xarajat yangilandi.")
-        next_url = request.POST.get("next") or request.GET.get("next")
-        if next_url and next_url.startswith("/") and not next_url.startswith("//"):
-            return redirect(next_url)
-        return redirect("expenses:dashboard")
+        return redirect(_safe_next_url(request))
     return render(request, "expenses/expense_form.html", {"form": form, "expense": expense, "title": "Xarajatni tahrirlash"})
 
 
@@ -108,7 +116,7 @@ def expense_delete(request, pk):
     expense = get_object_or_404(Expense, pk=pk, user=request.user)
     expense.delete()
     messages.success(request, "Xarajat o'chirildi.")
-    return redirect(request.POST.get("next", "expenses:dashboard"))
+    return redirect(_safe_next_url(request))
 
 
 @login_required
@@ -123,13 +131,16 @@ def expense_list(request):
         try:
             year = int(year_str)
             month = int(month_str)
-            if 1 <= month <= 12:
+            if 1 <= month <= 12 and 2000 <= year <= 2100:
                 from calendar import monthrange
                 _, last_day = monthrange(year, month)
                 from datetime import date
                 start = date(year, month, 1)
                 end = date(year, month, last_day)
                 qs = qs.filter(date__gte=start, date__lte=end)
+            else:
+                year = None
+                month = None
         except (ValueError, TypeError):
             year = None
             month = None

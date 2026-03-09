@@ -18,6 +18,8 @@ MONTH_NAMES = [
     "Yanvar", "Fevral", "Mart", "Aprel", "May", "Iyun",
     "Iyul", "Avgust", "Sentabr", "Oktabr", "Noyabr", "Dekabr",
 ]
+MIN_YEAR = 2000
+MAX_YEAR = 2100
 
 
 @login_required
@@ -31,6 +33,8 @@ def statistics_view(request):
         year, month = today.year, today.month
     if not (1 <= month <= 12):
         month = today.month
+    if not (MIN_YEAR <= year <= MAX_YEAR):
+        year = today.year
     view_type = request.GET.get("view", "month")
     if view_type not in ("month", "day"):
         view_type = "month"
@@ -55,20 +59,24 @@ def statistics_view(request):
     avg_daily = float(this_total / month_days) if this_total > 0 else 0.0
 
     prev_change_pct = None
-    if True:
-        if month == 1:
-            prev_year = year - 1
-            prev_month = 12
-        else:
-            prev_year = year
-            prev_month = month - 1
-        prev_totals = get_monthly_totals(request.user, year=prev_year, month=prev_month)
-        prev_total = prev_totals["total_spent"]
-        if prev_total > 0:
-            prev_change_pct = float((this_total - prev_total) / prev_total * 100)
+    if month == 1:
+        prev_year = year - 1
+        prev_month = 12
+    else:
+        prev_year = year
+        prev_month = month - 1
+    prev_totals = get_monthly_totals(request.user, year=prev_year, month=prev_month)
+    prev_total = prev_totals["total_spent"]
+    if prev_total > 0:
+        prev_change_pct = float((this_total - prev_total) / prev_total * 100)
 
-    daily_max = max((d["total"] for d in daily), default=1)
-    trend_max = max((t["total"] for t in trend), default=1)
+    daily_max = max((d["total"] for d in daily), default=0)
+    if daily_max <= 0:
+        daily_max = 1
+    trend_max = max((t["total"] for t in trend), default=0)
+    if trend_max <= 0:
+        trend_max = 1
+    daily_nonzero_count = sum(1 for d in daily if d["total"] > 0)
 
     years = list(range(today.year - 2, today.year + 2))
     months = list(range(1, 13))
@@ -96,6 +104,7 @@ def statistics_view(request):
             "month_choices": month_choices,
             "avg_daily": avg_daily,
             "prev_change_pct": prev_change_pct,
+            "daily_nonzero_count": daily_nonzero_count,
         },
     )
 
@@ -111,6 +120,8 @@ def chart_data_daily(request):
         year, month = today.year, today.month
     if not (1 <= month <= 12):
         month = today.month
+    if not (MIN_YEAR <= year <= MAX_YEAR):
+        year = today.year
     raw = get_daily_totals(request.user, year, month)
     data = [
         {"date": d["date"].isoformat(), "total": float(d["total"])}
@@ -133,6 +144,8 @@ def chart_data_categories(request):
         year, month = today.year, today.month
     if not (1 <= month <= 12):
         month = today.month
+    if not (MIN_YEAR <= year <= MAX_YEAR):
+        year = today.year
     start = date(year, month, 1)
     _, last_day = monthrange(year, month)
     # Joriy oy bo'lsa bugungacha, o'tgan oylar uchun oy oxirigacha

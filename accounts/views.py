@@ -2,6 +2,7 @@
 Hisoblar - Login, ro'yxatdan o'tish (Telegram orqali), chiqish, Telegram Mini App auth.
 """
 import logging
+from urllib.parse import urlparse
 from django.shortcuts import render, redirect
 from django.contrib import messages
 from django.contrib.auth import logout, login
@@ -10,11 +11,32 @@ from django.views.decorators.http import require_http_methods
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
 from django.http import JsonResponse
+from django.conf import settings
 
 from .services import get_or_create_user_by_telegram, check_rate_limit
 from .telegram_auth import validate_telegram_init_data
 
 logger = logging.getLogger(__name__)
+
+
+def _is_allowed_auth_origin(request) -> bool:
+    """
+    CSRF exempt endpoint uchun qo'shimcha himoya:
+    Origin/Referer bo'lsa, host biznikiga mos bo'lishi kerak.
+    """
+    origin = request.headers.get("Origin")
+    referer = request.headers.get("Referer")
+    source = origin or referer
+    if not source:
+        return True
+    try:
+        parsed = urlparse(source)
+        source_hostname = parsed.hostname
+    except Exception:
+        return False
+    request_host = request.get_host().split(":")[0]
+    allowed_hosts = set(getattr(settings, "ALLOWED_HOSTS", []))
+    return source_hostname == request_host or source_hostname in allowed_hosts
 
 
 @require_http_methods(["GET", "HEAD"])
@@ -61,7 +83,10 @@ def telegram_webapp_auth(request):
     Telegram Mini App: initData orqali avtomatik login.
     POST: init_data=<Telegram.WebApp.initData>
     """
-    print("TG_AUTH_REQUEST", flush=True)
+    if not _is_allowed_auth_origin(request):
+        logger.warning("tg_webapp_auth: forbidden_origin")
+        return JsonResponse({"ok": False, "error": "forbidden_origin"}, status=403)
+
     init_data = request.POST.get("init_data", "").strip()
     if not init_data and request.body:
         try:

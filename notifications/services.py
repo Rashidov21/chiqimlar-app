@@ -1,8 +1,11 @@
 """
 Bildirishnomalar - Telegram orqali xabar yuborish.
 """
+import logging
 from django.conf import settings
 from decimal import Decimal
+
+logger = logging.getLogger(__name__)
 
 
 def send_telegram_message(telegram_id: int, text: str) -> bool:
@@ -13,8 +16,20 @@ def send_telegram_message(telegram_id: int, text: str) -> bool:
     try:
         import requests
         url = f"https://api.telegram.org/bot{token}/sendMessage"
-        requests.post(url, json={"chat_id": telegram_id, "text": text, "parse_mode": "HTML"}, timeout=10)
-        return True
+        resp = requests.post(
+            url,
+            json={"chat_id": telegram_id, "text": text, "parse_mode": "HTML"},
+            timeout=10,
+        )
+        if resp.status_code != 200:
+            logger.warning("telegram send failed status=%s body=%s", resp.status_code, resp.text[:300])
+            return False
+        try:
+            payload = resp.json()
+        except Exception:
+            logger.warning("telegram send failed: invalid json response")
+            return False
+        return bool(payload.get("ok"))
     except Exception:
         return False
 
