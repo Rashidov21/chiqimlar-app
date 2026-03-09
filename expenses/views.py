@@ -8,8 +8,11 @@ from django.contrib import messages
 from django.core.paginator import Paginator
 from django.utils import timezone
 from django.utils.http import url_has_allowed_host_and_scheme
+from django.conf import settings
 from datetime import datetime
 from decimal import Decimal
+from tempfile import NamedTemporaryFile
+import os
 
 from .models import Expense
 from .forms import ExpenseForm
@@ -18,6 +21,7 @@ from analytics.services import get_insights_for_user
 from notifications.services import (
     maybe_send_limit_warning_after_expense,
     maybe_send_expense_confirmation_after_expense,
+    send_telegram_document,
 )
 
 
@@ -200,6 +204,58 @@ def export_view(request):
     for e in qs:
         writer.writerow([e.date, e.category.name if e.category else "", e.amount, e.note or ""])
     return response
+
+
+@login_required
+@require_http_methods(["POST"])
+def export_excel_to_telegram(request):
+    """
+    Excel faylni yaratib, Telegram bot orqali foydalanuvchiga yuboradi.
+    Temp fayl yuborilgach darhol o'chiriladi.
+    """
+    user = request.user
+    if not user.telegram_id:
+        messages.error(request, "Telegram hisob topilmadi. Botda /start yuborib qayta urinib ko'ring.")
+        return redirect("expenses:settings")
+
+    tmp_file_path = ""
+    try:
+        from openpyxl import Workbook
+
+        wb = Workbook(write_only=True)
+        ws = wb.create_sheet(title="Chiqimlar")
+        ws.append(["Sana", "Turkum", "Summa", "Izoh"])
+
+        qs = (
+            Expense.objects.filter(user=user)
+            .select_related("category")
+            .order_by("-date", "-created_at")
+        )
+        for e in qs.iterator(chunk_size=500):
+            ws.append([str(e.date), e.category.name if e.category else "", int(e.amount), e.note or ""])
+
+        with NamedTemporaryFile(prefix=f"chiqimlar_{user.pk}_", suffix=".xlsx", delete=False) as tmp:
+            tmp_file_path = tmp.name
+        wb.save(tmp_file_path)
+
+        caption = f"📥 {timezone.now().date()} holatiga xarajatlar Excel fayli."
+        ok = send_telegram_document(user.telegram_id, tmp_file_path, caption=caption)
+        if ok:
+            messages.success(request, "Excel fayl Telegram bot orqali yuborildi.")
+        else:
+            messages.error(request, "Excel yuborilmadi. Botga /start yuborib qayta urinib ko'ring.")
+    except Exception:
+        if settings.DEBUG:
+            raise
+        messages.error(request, "Excel eksportda xatolik yuz berdi. Keyinroq qayta urinib ko'ring.")
+    finally:
+        if tmp_file_path and os.path.exists(tmp_file_path):
+            try:
+                os.remove(tmp_file_path)
+            except OSError:
+                pass
+
+    return redirect("expenses:settings")
 
 
 @login_required

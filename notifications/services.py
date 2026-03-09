@@ -2,6 +2,7 @@
 Bildirishnomalar - Telegram orqali xabar yuborish.
 """
 import logging
+import os
 from django.conf import settings
 from decimal import Decimal
 
@@ -28,6 +29,38 @@ def send_telegram_message(telegram_id: int, text: str) -> bool:
             payload = resp.json()
         except Exception:
             logger.warning("telegram send failed: invalid json response")
+            return False
+        return bool(payload.get("ok"))
+    except Exception:
+        return False
+
+
+def send_telegram_document(telegram_id: int, file_path: str, caption: str = "") -> bool:
+    """Foydalanuvchiga Telegram orqali hujjat yuboradi."""
+    token = getattr(settings, "TELEGRAM_BOT_TOKEN", None)
+    if not token or not telegram_id or not file_path:
+        return False
+    try:
+        import requests
+
+        url = f"https://api.telegram.org/bot{token}/sendDocument"
+        data = {"chat_id": telegram_id}
+        if caption:
+            data["caption"] = caption
+        with open(file_path, "rb") as f:
+            files = {"document": (os.path.basename(file_path), f)}
+            resp = requests.post(url, data=data, files=files, timeout=30)
+        if resp.status_code != 200:
+            logger.warning(
+                "telegram sendDocument failed status=%s body=%s",
+                resp.status_code,
+                resp.text[:300],
+            )
+            return False
+        try:
+            payload = resp.json()
+        except Exception:
+            logger.warning("telegram sendDocument failed: invalid json response")
             return False
         return bool(payload.get("ok"))
     except Exception:

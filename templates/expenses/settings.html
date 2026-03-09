@@ -77,11 +77,27 @@
             <span style="font-size: 1.4rem;">📥</span>
             <div>
                 <p style="font-weight: 500; color: var(--text-main); margin-bottom: 4px;">Ma'lumotlarni eksport qilish</p>
-                <a href="{% url 'expenses:export' %}" class="btn-secondary btn-sm">
-                    <i class="bi bi-download"></i> CSV yuklab olish
-                </a>
+                <p style="font-size: 0.82rem; color: var(--text-muted); margin-bottom: 8px;">
+                    Tugmani bossangiz Excel fayl bot orqali yuboriladi.
+                </p>
+                <form method="post" action="{% url 'expenses:export_excel_to_telegram' %}">
+                    {% csrf_token %}
+                    <button type="submit" class="btn-secondary btn-sm" id="excel-export-btn">
+                        <i class="bi bi-file-earmark-excel"></i> Excelni botga yuborish
+                    </button>
+                </form>
             </div>
         </div>
     </div>
 </div>
+<script>
+(function(){
+    var exportBtn = document.getElementById('excel-export-btn');
+    if (!exportBtn) return;
+    exportBtn.addEventListener('click', function() {
+        exportBtn.disabled = true;
+        exportBtn.innerHTML = '<i class="bi bi-hourglass-split"></i> Yuborilmoqda...';
+    });
+})();
+</script>
 {% endblock %}

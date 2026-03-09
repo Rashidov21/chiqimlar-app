@@ -11,4 +11,5 @@ urlpatterns = [
     path("expenses/<int:pk>/delete/", views.expense_delete, name="delete"),
     path("settings/", views.settings_view, name="settings"),
     path("export/", views.export_view, name="export"),
+    path("export/excel-to-telegram/", views.export_excel_to_telegram, name="export_excel_to_telegram"),
 ]
