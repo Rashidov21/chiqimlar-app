@@ -79,7 +79,7 @@ def statistics_view(request):
     if trend_max <= 0:
         trend_max = 1
 
-    years = list(range(today.year - 2, today.year + 2))
+    years = list(range(max(MIN_YEAR, year - 2), min(MAX_YEAR, year + 2) + 1))
     months = list(range(1, 13))
     month_choices = list(zip(months, MONTH_NAMES))
     selected_month_name = MONTH_NAMES[month - 1] if 1 <= month <= 12 else ""
@@ -107,6 +107,16 @@ def statistics_view(request):
             .order_by("-total")
         )
 
+    # Oy bo'yicha oldingi/keyingi navigatsiya
+    if month == 1:
+        prev_month_year, prev_month = year - 1, 12
+    else:
+        prev_month_year, prev_month = year, month - 1
+    if month == 12:
+        next_month_year, next_month = year + 1, 1
+    else:
+        next_month_year, next_month = year, month + 1
+
     return render(
         request,
         "analytics/statistics.html",
@@ -133,6 +143,10 @@ def statistics_view(request):
             "day_total": day_total,
             "day_breakdown": day_breakdown,
             "selected_day_label": selected_day_label,
+            "prev_month_year": prev_month_year,
+            "prev_month": prev_month,
+            "next_month_year": next_month_year,
+            "next_month": next_month,
         },
     )
 
