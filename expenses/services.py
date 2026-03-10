@@ -208,6 +208,7 @@ def get_dashboard_context(user: User, selected_date: date_type | None = None) ->
     taken_total = sum(d.amount for d in open_debts if d.kind == Debt.Kind.TAKEN)
     given_total = sum(d.amount for d in open_debts if d.kind == Debt.Kind.GIVEN)
     net_debt = taken_total - given_total
+    net_debt_abs = abs(net_debt)
 
     recent = (
         Expense.objects.filter(user=user, date__gte=month_start, date__lte=month_end)
@@ -227,6 +228,7 @@ def get_dashboard_context(user: User, selected_date: date_type | None = None) ->
         "daily_summary": daily_summary,
         "upcoming_recurring": upcoming_recurring,
         "net_debt": net_debt,
+        "net_debt_abs": net_debt_abs,
         "taken_debt_total": taken_total,
         "given_debt_total": given_total,
     }

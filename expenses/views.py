@@ -19,6 +19,7 @@ from django.utils.http import url_has_allowed_host_and_scheme
 from django.views.decorators.http import require_http_methods
 
 from accounts.models import FinanceProfile
+from categories.services import create_default_categories
 from core.permissions import get_user_object_or_404
 from core.rate_limit import rate_limit_action
 from .models import Expense, SavingGoal, RecurringExpense, Debt
@@ -74,6 +75,7 @@ def dashboard(request):
             request,
             "Dashboard ma'lumotlarini yuklashda xatolik. Sahifani yangilab ko'ring.",
         )
+        net_debt = 0
         context = {
             "totals": {"total_spent": 0, "budget": 0, "remaining": 0, "month_start": today, "month_end": today, "year": today.year, "month": today.month},
             "month_display": f"{MONTH_NAMES[today.month]} {today.year}",
@@ -85,7 +87,8 @@ def dashboard(request):
             "top_categories": [],
             "daily_summary": None,
             "upcoming_recurring": [],
-            "net_debt": 0,
+            "net_debt": net_debt,
+            "net_debt_abs": abs(net_debt),
             "taken_debt_total": 0,
             "given_debt_total": 0,
         }
@@ -131,6 +134,7 @@ def onboarding_view(request):
         profile.primary_goal = primary_goal
         profile.onboarding_completed = True
         profile.save(update_fields=["primary_goal", "onboarding_completed"])
+        create_default_categories(user)
 
         messages.success(request, "Asosiy moliyaviy sozlamalar saqlandi.")
         return redirect("expenses:dashboard")
@@ -302,6 +306,7 @@ def debt_list(request):
     taken_total = sum(d.amount for d in open_debts if d.kind == Debt.Kind.TAKEN)
     given_total = sum(d.amount for d in open_debts if d.kind == Debt.Kind.GIVEN)
     net_debt = taken_total - given_total
+    net_debt_abs = abs(net_debt)
     return render(
         request,
         "expenses/debt_list.html",
@@ -311,6 +316,7 @@ def debt_list(request):
             "taken_debt_total": taken_total,
             "given_debt_total": given_total,
             "net_debt": net_debt,
+            "net_debt_abs": net_debt_abs,
         },
     )
 

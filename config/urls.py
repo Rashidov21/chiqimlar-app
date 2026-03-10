@@ -16,6 +16,7 @@ urlpatterns = [
     path("", include("analytics.urls")),
     path("", include("notifications.urls")),
     path("telegram/", include("telegram_bot.urls")),
+    path("api/v1/", include("api.urls")),
 ]
 
 handler404 = "config.views.custom_404"

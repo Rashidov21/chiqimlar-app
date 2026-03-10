@@ -31,6 +31,8 @@ INSTALLED_APPS = [
     "analytics",
     "notifications",
     "telegram_bot",
+    "rest_framework",
+    "api",
 ]
 
 MIDDLEWARE = [
@@ -161,6 +163,18 @@ LOGGING = {
         "analytics": {"handlers": ["console"], "level": "INFO"},
         "django.request": {"handlers": ["console"], "level": "ERROR"},
     },
+}
+
+# REST API (DRF) — session auth, faqat autentifikatsiya qilingan foydalanuvchi
+REST_FRAMEWORK = {
+    "DEFAULT_AUTHENTICATION_CLASSES": [
+        "rest_framework.authentication.SessionAuthentication",
+    ],
+    "DEFAULT_PERMISSION_CLASSES": [
+        "rest_framework.permissions.IsAuthenticated",
+    ],
+    "DEFAULT_PAGINATION_CLASS": "rest_framework.pagination.PageNumberPagination",
+    "PAGE_SIZE": 20,
 }
 
 # Optional: Sentry (production xatolarni kuzatish). sentry-sdk o'rnatilgan bo'lsa ishlaydi.
