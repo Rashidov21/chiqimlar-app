@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+<div style="display: flex; align-items: center; gap: 12px; margin-bottom: 24px;">
+    <a href="{% url 'expenses:debt_list' %}" style="color: var(--text-muted); text-decoration: none; font-size: 1.25rem;">
+        <i class="bi bi-arrow-left"></i>
+    </a>
+    <h1 class="page-title" style="font-size: 1.4rem; margin-bottom: 0;">{{ title }}</h1>
+</div>
+<div class="card" style="max-width: 480px;">
+    <form method="post" style="display: flex; flex-direction: column; gap: 16px;">
+        {% csrf_token %}
+        <div>
+            <label for="{{ form.kind.id_for_label }}" class="input-label">Yo'nalish</label>
+            {{ form.kind }}
+            {% if form.kind.errors %}<p class="field-error">{{ form.kind.errors.0 }}</p>{% endif %}
+        </div>
+        <div>
+            <label for="{{ form.counterparty.id_for_label }}" class="input-label">Kim bilan</label>
+            {{ form.counterparty }}
+            {% if form.counterparty.errors %}<p class="field-error">{{ form.counterparty.errors.0 }}</p>{% endif %}
+        </div>
+        <div>
+            <label for="{{ form.amount.id_for_label }}" class="input-label">Summasi (so'm)</label>
+            {{ form.amount }}
+            {% if form.amount.errors %}<p class="field-error">{{ form.amount.errors.0 }}</p>{% endif %}
+        </div>
+        <div>
+            <label for="{{ form.date.id_for_label }}" class="input-label">Sana</label>
+            {{ form.date }}
+            {% if form.date.errors %}<p class="field-error">{{ form.date.errors.0 }}</p>{% endif %}
+        </div>
+        <div>
+            <label for="{{ form.due_date.id_for_label }}" class="input-label">Qaytarish muddati (ixtiyoriy)</label>
+            {{ form.due_date }}
+            {% if form.due_date.errors %}<p class="field-error">{{ form.due_date.errors.0 }}</p>{% endif %}
+        </div>
+        <div>
+            <label for="{{ form.note.id_for_label }}" class="input-label">Izoh (ixtiyoriy)</label>
+            {{ form.note }}
+            {% if form.note.errors %}<p class="field-error">{{ form.note.errors.0 }}</p>{% endif %}
+        </div>
+        <div>
+            <label style="display: flex; align-items: center; gap: 10px; cursor: pointer; font-size: 0.9rem;">
+                {{ form.is_closed }}
+                <span>Qarz yopilgan</span>
+            </label>
+        </div>
+        <div class="form-actions-sticky">
+            <div style="display: flex; flex-direction: column; gap: 8px;">
+                <button type="submit" class="btn-primary btn-lg" id="debt-submit-btn">
+                    <i class="bi bi-check-lg"></i> <span class="btn-text">Saqlash</span>
+                </button>
+                <a href="{% url 'expenses:debt_list' %}" class="btn-secondary btn-sm">Bekor qilish</a>
+            </div>
+        </div>
+    </form>
+</div>
+<script>
+(function(){ var f=document.querySelector('.card form'); var b=document.getElementById('debt-submit-btn');
+if(f&&b){ f.addEventListener('submit',function(){ b.disabled=true; var t=b.querySelector('.btn-text'); if(t)t.textContent='Saqlanmoqda…'; if(window.haptic)window.haptic(); }); } })();
+</script>
+{% endblock %}
+

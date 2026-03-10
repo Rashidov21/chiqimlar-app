@@ -12,6 +12,40 @@
 </p>
 <p style="text-align: center; font-size: 2rem; font-weight: 800; color: var(--text-main); margin-bottom: 20px; letter-spacing: -0.02em;">{{ totals.total_spent|intcomma }}</p>
 
+{% if daily_summary %}
+<div class="card card-compact" style="margin-bottom: 16px; background: #f8f8fc;">
+    <div style="display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap;">
+        <div style="flex: 1; min-width: 0;">
+            <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 2px;">Bugungi sarf</p>
+            <p style="font-size: 1.05rem; font-weight: 600;">{{ daily_summary.spent_today|intcomma }}</p>
+        </div>
+        {% if daily_summary.budget and daily_summary.budget > 0 and daily_summary.recommended_daily > 0 %}
+        <div style="flex: 1; min-width: 0; text-align: right;">
+            <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 2px;">Bugungi tavsiya etilgan limit</p>
+            <p style="font-size: 1.05rem; font-weight: 600;">{{ daily_summary.recommended_daily|floatformat:0|intcomma }}</p>
+        </div>
+        {% endif %}
+    </div>
+    {% if daily_summary.budget and daily_summary.budget > 0 and daily_summary.recommended_daily > 0 %}
+        {% if daily_summary.is_over_for_today %}
+        <p style="font-size: 0.8rem; color: var(--danger); margin-top: 8px;">
+            <i class="bi bi-exclamation-triangle-fill"></i>
+            Bugun tavsiya etilgan limitdan biroz oshdingiz. Ertaga ehtiyotkorroq sarflashga harakat qiling.
+        </p>
+        {% else %}
+        <p style="font-size: 0.8rem; color: var(--text-muted); margin-top: 8px;">
+            <i class="bi bi-check-circle"></i>
+            Bugun hali {{ daily_summary.remaining_for_today|floatformat:0|intcomma }} so'mgacha rejada sarflash mumkin.
+        </p>
+        {% endif %}
+    {% else %}
+    <p style="font-size: 0.8rem; color: var(--text-muted); margin-top: 8px;">
+        Kunlik limitni ko'rish uchun <a href="{% url 'expenses:settings' %}" style="color: var(--primary);">oylik byudjet</a>ni kiriting.
+    </p>
+    {% endif %}
+</div>
+{% endif %}
+
 <div class="card card-compact" style="margin-bottom: 20px;">
     <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 10px;">
         <div>
@@ -61,6 +95,69 @@
         <li style="font-size: 0.8rem; color: var(--text-main); margin-bottom: 4px;">• {{ msg }}</li>
         {% endfor %}
     </ul>
+</div>
+{% endif %}
+
+{% if achievements %}
+<div class="card card-compact" style="margin-bottom: 16px;">
+    <h2 style="font-weight: 600; margin-bottom: 8px; font-size: 0.95rem; display: flex; align-items: center; gap: 6px;">
+        <i class="bi bi-trophy"></i> Yutuqlar
+    </h2>
+    <ul style="list-style: none; padding: 0; margin: 0;">
+        {% for ua in achievements %}
+        <li style="font-size: 0.85rem; margin-bottom: 4px;">
+            <strong>{{ ua.achievement.name }}</strong><br>
+            <span style="color: var(--text-muted); font-size: 0.8rem;">{{ ua.achievement.description }}</span>
+        </li>
+        {% endfor %}
+    </ul>
+</div>
+{% endif %}
+
+{% if upcoming_recurring %}
+<div class="card card-compact" style="margin-bottom: 16px;">
+    <h2 style="font-weight: 600; margin-bottom: 8px; font-size: 0.95rem; display: flex; align-items: center; gap: 6px;">
+        <i class="bi bi-calendar-event"></i> Yaqin qayta takrorlanuvchi to'lovlar
+    </h2>
+    <ul style="list-style: none; padding: 0; margin: 0;">
+        {% for r in upcoming_recurring %}
+        <li class="list-row list-row--stack-sm">
+            <div>
+                <div style="font-size: 0.9rem; font-weight: 500;">{{ r.name }}</div>
+                <div style="font-size: 0.8rem; color: var(--text-muted);">
+                    {{ r.next_payment_date }} · {{ r.amount|intcomma }} so'm
+                </div>
+            </div>
+            <a href="{% url 'expenses:recurring_list' %}" style="font-size: 0.8rem; color: var(--primary); text-decoration: none;">
+                Batafsil →
+            </a>
+        </li>
+        {% endfor %}
+    </ul>
+</div>
+{% endif %}
+
+{% if net_debt is not None %}
+<div class="card card-compact" style="margin-bottom: 16px;">
+    <h2 style="font-weight: 600; margin-bottom: 8px; font-size: 0.95rem; display: flex; align-items: center; gap: 6px;">
+        <i class="bi bi-people"></i> Qarz holati
+    </h2>
+    <p style="font-size: 0.9rem; margin-bottom: 4px;">
+        Olingan ochiq qarzlar: <strong>{{ taken_debt_total|intcomma }}</strong> so'm ·
+        Bergan ochiq qarzlar: <strong>{{ given_debt_total|intcomma }}</strong> so'm
+    </p>
+    <p style="font-size: 0.85rem; margin-bottom: 6px;">
+        {% if net_debt > 0 %}
+        <span style="color: var(--danger);">Siz boshqalarga nisbatan {{ net_debt|intcomma }} so'm qarzdasiz.</span>
+        {% elif net_debt < 0 %}
+        <span style="color: #16a34a;">Boshqalar sizga nisbatan {{ net_debt|abs|intcomma }} so'm qarzdor.</span>
+        {% else %}
+        <span style="color: var(--text-muted);">Sof qarz pozitsiyangiz 0 so'm.</span>
+        {% endif %}
+    </p>
+    <a href="{% url 'expenses:debt_list' %}" style="font-size: 0.85rem; color: var(--primary); font-weight: 500; text-decoration: none;">
+        Barcha qarzlarni ko'rish →
+    </a>
 </div>
 {% endif %}
 

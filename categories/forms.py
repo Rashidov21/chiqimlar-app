@@ -1,5 +1,6 @@
 from django import forms
-from .models import Category
+from django.utils import timezone
+from .models import Category, CategoryBudget
 
 
 class CategoryForm(forms.ModelForm):
@@ -20,6 +21,37 @@ class CategoryForm(forms.ModelForm):
     def save(self, commit=True):
         obj = super().save(commit=False)
         if self.user:
+            obj.user = self.user
+        if commit:
+            obj.save()
+        return obj
+
+
+class CategoryBudgetForm(forms.ModelForm):
+    class Meta:
+        model = CategoryBudget
+        fields = ("category", "year", "month", "amount")
+
+    def __init__(self, *args, user=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.user = user
+        today = timezone.now().date()
+        if user:
+            self.fields["category"].queryset = Category.objects.filter(user=user).order_by("order", "name")
+        self.fields["category"].widget.attrs.setdefault("class", "input-field")
+        self.fields["year"].widget.attrs.setdefault("class", "input-field")
+        self.fields["month"].widget.attrs.setdefault("class", "input-field")
+        self.fields["amount"].widget.attrs.setdefault("class", "input-field")
+        self.fields["amount"].widget.attrs.setdefault("placeholder", "Turkum uchun oylik limit (so'm)")
+        self.fields["amount"].widget.attrs.setdefault("inputmode", "numeric")
+
+        if not self.instance.pk:
+            self.fields["year"].initial = today.year
+            self.fields["month"].initial = today.month
+
+    def save(self, commit=True):
+        obj = super().save(commit=False)
+        if self.user and not obj.pk:
             obj.user = self.user
         if commit:
             obj.save()

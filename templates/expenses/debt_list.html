@@ -1,0 +1,115 @@
+{% extends "base.html" %}
+{% load humanize %}
+{% block title %}Qarzlar{% endblock %}
+
+{% block content %}
+<div class="page-header" style="justify-content: space-between; flex-wrap: wrap; gap: 12px;">
+    <div>
+        <h1 class="page-title" style="margin-bottom: 2px;">Qarz va qarzdorliklar</h1>
+        <p class="page-subtitle">Siz olgan va bergan qarzlarni kuzating</p>
+    </div>
+    <a href="{% url 'expenses:debt_create' %}" class="btn-primary btn-sm" style="min-width: 44px;" title="Yangi qarz">
+        <i class="bi bi-plus-lg"></i>
+    </a>
+</div>
+
+<div class="card card-compact" style="margin-bottom: 20px;">
+    <div style="display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap;">
+        <div>
+            <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 2px;">Olingan qarzlar (ochiq)</p>
+            <p style="font-size: 1rem; font-weight: 600;">{{ taken_debt_total|intcomma }} so'm</p>
+        </div>
+        <div style="text-align: right;">
+            <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 2px;">Bergan qarzlar (ochiq)</p>
+            <p style="font-size: 1rem; font-weight: 600;">{{ given_debt_total|intcomma }} so'm</p>
+        </div>
+    </div>
+    <div style="margin-top: 8px; font-size: 0.85rem;">
+        {% if net_debt > 0 %}
+            <span style="color: var(--danger);">
+                Siz boshqalarga nisbatan {{ net_debt|intcomma }} so'm qarzdasiz.
+            </span>
+        {% elif net_debt < 0 %}
+            <span style="color: #16a34a;">
+                Boshqalar sizga nisbatan {{ net_debt|abs|intcomma }} so'm qarzdor.
+            </span>
+        {% else %}
+            <span style="color: var(--text-muted);">
+                Sof qarz pozitsiyangiz hozircha 0 so'm.
+            </span>
+        {% endif %}
+    </div>
+</div>
+
+{% if open_debts %}
+<div class="card" style="margin-bottom: 20px;">
+    <h2 style="font-weight: 600; font-size: 0.95rem; margin-bottom: 8px;">Faol qarzlar</h2>
+    <ul style="list-style: none; padding: 0; margin: 0;">
+        {% for d in open_debts %}
+        <li class="list-row list-row--stack-sm" style="padding: 12px 0; border-bottom-color: var(--border-soft);">
+            <div style="flex: 1; min-width: 0;">
+                <div style="font-size: 0.9rem; font-weight: 600;">
+                    {% if d.kind == 'taken' %}Olingan{% else %}Berilgan{% endif %} — {{ d.counterparty }}
+                </div>
+                <div style="font-size: 0.8rem; color: var(--text-muted); margin-top: 2px;">
+                    {{ d.amount|intcomma }} so'm · {{ d.date }}
+                    {% if d.due_date %} · Qaytarish muddati: {{ d.due_date }}{% endif %}
+                </div>
+                {% if d.note %}
+                <div style="font-size: 0.8rem; color: var(--text-muted); margin-top: 2px;">
+                    {{ d.note }}
+                </div>
+                {% endif %}
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 6px; align-items: flex-end;">
+                <a href="{% url 'expenses:debt_edit' d.pk %}" class="btn-secondary btn-sm">
+                    <i class="bi bi-pencil"></i> Tahrir
+                </a>
+                <form method="post" action="{% url 'expenses:debt_delete' d.pk %}" onsubmit="return confirm('Ushbu qarz yozuvini o\u2018chirishni xohlaysizmi?');">
+                    {% csrf_token %}
+                    <button type="submit" class="btn-danger-sm">
+                        <i class="bi bi-trash"></i> O'chirish
+                    </button>
+                </form>
+            </div>
+        </li>
+        {% endfor %}
+    </ul>
+</div>
+{% endif %}
+
+{% if closed_debts %}
+<div class="card card-compact" style="margin-bottom: 24px;">
+    <h2 style="font-weight: 600; font-size: 0.9rem; margin-bottom: 8px;">Yopilgan qarzlar</h2>
+    <ul style="list-style: none; padding: 0; margin: 0;">
+        {% for d in closed_debts %}
+        <li class="list-row list-row--stack-sm" style="padding: 10px 0; border-bottom-color: var(--border-soft);">
+            <div>
+                <div style="font-size: 0.9rem; font-weight: 500;">
+                    {% if d.kind == 'taken' %}Olingan{% else %}Berilgan{% endif %} — {{ d.counterparty }}
+                </div>
+                <div style="font-size: 0.8rem; color: var(--text-muted);">
+                    {{ d.amount|intcomma }} so'm · {{ d.date }}
+                </div>
+            </div>
+            <a href="{% url 'expenses:debt_edit' d.pk %}" class="btn-secondary btn-sm">
+                <i class="bi bi-pencil"></i>
+            </a>
+        </li>
+        {% endfor %}
+    </ul>
+</div>
+{% endif %}
+
+{% if not open_debts and not closed_debts %}
+<div class="card" style="margin-top: 8px; margin-bottom: 24px; text-align: center;">
+    <div style="font-size: 2.4rem; margin-bottom: 8px;">🤝</div>
+    <p style="font-weight: 600; margin-bottom: 4px;">Hozircha qarz yozuvlari yo'q</p>
+    <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 12px;">
+        Olingan yoki bergan qarzlaringizni bu yerda saqlang va esdan chiqarmang.
+    </p>
+    <a href="{% url 'expenses:debt_create' %}" class="btn-primary btn-lg">Qarz qo'shish</a>
+</div>
+{% endif %}
+{% endblock %}
+

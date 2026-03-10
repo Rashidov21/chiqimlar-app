@@ -1,10 +1,12 @@
 """
-Tahlil - Moliyaviy tushunchalar va statistikalar.
+Tahlil - Moliyaviy tushunchalar, statistikalar va yutuqlar.
 """
 from decimal import Decimal
 from django.db.models import Sum, Q
 from django.utils import timezone
 from collections import defaultdict
+
+from .models import Achievement, UserAchievement
 
 
 def get_insights_for_user(user, year=None, month=None, limit=5):
@@ -108,6 +110,91 @@ def get_insights_for_user(user, year=None, month=None, limit=5):
             )
 
     return insights[:limit]
+
+
+ACHIEVEMENT_CHECK_CACHE_KEY = "achievement_check_done:"
+ACHIEVEMENT_CHECK_CACHE_TTL = 600  # 10 min - tekshiruv har 10 min da max 1 marta
+
+
+def _grant_new_achievements(user):
+    """Yangi yutuqlarni tekshiradi va kerak bo'lsa yozadi (faqat DB)."""
+    from django.core.cache import cache
+    from expenses.services import get_monthly_totals
+
+    today = timezone.now().date()
+    unlocked_codes = set(
+        UserAchievement.objects.filter(user=user).values_list("achievement__code", flat=True)
+    )
+
+    def _ensure_achievement(code, name, description):
+        ach, _ = Achievement.objects.get_or_create(
+            code=code,
+            defaults={"name": name, "description": description},
+        )
+        return ach
+
+    if "first_expense" not in unlocked_codes and user.expenses.exists():
+        ach = _ensure_achievement(
+            "first_expense",
+            "Birinchi xarajat yozildi",
+            "Ilovada birinchi marta xarajat kiritdingiz.",
+        )
+        UserAchievement.objects.get_or_create(user=user, achievement=ach)
+        unlocked_codes.add("first_expense")
+
+    if "seven_day_streak" not in unlocked_codes:
+        dates = set(
+            user.expenses.filter(
+                date__gte=today - timezone.timedelta(days=6),
+                date__lte=today,
+            ).values_list("date", flat=True)
+        )
+        streak_ok = all(
+            (today - timezone.timedelta(days=i)) in dates for i in range(7)
+        )
+        if streak_ok:
+            ach = _ensure_achievement(
+                "seven_day_streak",
+                "7 kun ketma-ket",
+                "Ketma-ket 7 kun davomida xarajatlaringizni yozib bordingiz.",
+            )
+            UserAchievement.objects.get_or_create(user=user, achievement=ach)
+            unlocked_codes.add("seven_day_streak")
+
+    if "month_without_overspend" not in unlocked_codes:
+        totals = get_monthly_totals(user)
+        budget = totals["budget"] or Decimal("0")
+        total_spent = totals["total_spent"] or Decimal("0")
+        if budget > 0 and total_spent <= budget:
+            ach = _ensure_achievement(
+                "month_without_overspend",
+                "Byudjet ichida oy",
+                "Joriy oy byudjetdan oshmadingiz.",
+            )
+            UserAchievement.objects.get_or_create(user=user, achievement=ach)
+            unlocked_codes.add("month_without_overspend")
+
+
+def get_user_achievements(user, limit=5):
+    """
+    Foydalanuvchi yutuqlari ro'yxati. Yangi yutuq tekshiruvi cache orqali
+    har 10 min da ko'pi bilan bir marta ishlaydi.
+    """
+    from django.core.cache import cache
+
+    cache_key = f"{ACHIEVEMENT_CHECK_CACHE_KEY}{user.pk}"
+    if not cache.get(cache_key):
+        try:
+            _grant_new_achievements(user)
+        except Exception:
+            pass
+        cache.set(cache_key, 1, timeout=ACHIEVEMENT_CHECK_CACHE_TTL)
+
+    return list(
+        UserAchievement.objects.filter(user=user)
+        .select_related("achievement")
+        .order_by("-obtained_at")[:limit]
+    )
 
 
 def get_daily_totals(user, year, month):

@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+{% load humanize %}
+{% block title %}Turkum byudjetlari{% endblock %}
+
+{% block content %}
+<div class="page-header" style="justify-content: space-between; flex-wrap: wrap; gap: 12px;">
+    <div>
+        <h1 class="page-title" style="margin-bottom: 2px;">Turkum byudjetlari</h1>
+        <p class="page-subtitle">Har bir turkum uchun oyga byudjet belgilang</p>
+    </div>
+    <a href="{% url 'categories:budget_create' %}" class="btn-primary btn-sm" style="min-width: 44px;" title="Yangi byudjet">
+        <i class="bi bi-plus-lg"></i>
+    </a>
+</div>
+
+<div class="card" style="margin-bottom: 24px;">
+    {% if items %}
+    <ul style="list-style: none; padding: 0; margin: 0;">
+        {% for item in items %}
+        <li class="list-row list-row--stack-sm" style="padding: 12px 0; border-bottom-color: var(--border-soft);">
+            <div style="flex: 1; min-width: 0;">
+                <div style="font-size: 0.95rem; font-weight: 600; color: var(--text-main);">
+                    {{ item.category.emoji }} {{ item.category.name }}
+                </div>
+                <div style="font-size: 0.8rem; color: var(--text-muted); margin-top: 2px;">
+                    Bu oy sarflangan: {{ item.spent|intcomma }} so'm
+                </div>
+                {% if item.budget %}
+                <div style="font-size: 0.8rem; color: var(--text-muted); margin-top: 2px;">
+                    Byudjet: {{ item.budget|intcomma }} so'm
+                </div>
+                {% else %}
+                <div style="font-size: 0.8rem; color: var(--text-muted); margin-top: 2px;">
+                    Byudjet belgilanmagan
+                </div>
+                {% endif %}
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 6px; align-items: flex-end;">
+                {% if item.budget_obj %}
+                    <a href="{% url 'categories:budget_edit' item.budget_obj.pk %}" class="btn-secondary btn-sm">
+                        <i class="bi bi-pencil"></i> Tahrirlash
+                    </a>
+                {% else %}
+                    <a href="{% url 'categories:budget_create' %}?category={{ item.category.id }}" class="btn-secondary btn-sm">
+                        <i class="bi bi-plus-lg"></i> Byudjet qo'shish
+                    </a>
+                {% endif %}
+            </div>
+        </li>
+        {% endfor %}
+    </ul>
+    {% else %}
+    <p style="text-align: center; color: var(--text-muted); padding: 32px 16px;">
+        Hozircha bu oy uchun turkum bo'yicha statistikalar topilmadi.
+    </p>
+    {% endif %}
+</div>
+{% endblock %}
+

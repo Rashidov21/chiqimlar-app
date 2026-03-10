@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+<div style="display: flex; align-items: center; gap: 12px; margin-bottom: 24px;">
+    <a href="{% url 'expenses:saving_goal_list' %}" style="color: var(--text-muted); text-decoration: none; font-size: 1.25rem;">
+        <i class="bi bi-arrow-left"></i>
+    </a>
+    <h1 class="page-title" style="font-size: 1.4rem; margin-bottom: 0;">{{ title }}</h1>
+{% if goal %}
+{% endif %}
+</div>
+<div class="card" style="max-width: 480px;">
+    <form method="post" style="display: flex; flex-direction: column; gap: 16px;">
+        {% csrf_token %}
+        <div>
+            <label for="{{ form.name.id_for_label }}" class="input-label">🎯 Maqsad nomi</label>
+            {{ form.name }}
+            {% if form.name.errors %}<p class="field-error">{{ form.name.errors.0 }}</p>{% endif %}
+        </div>
+        <div>
+            <label for="{{ form.target_amount.id_for_label }}" class="input-label">🎯 Maqsad summa (so'm)</label>
+            {{ form.target_amount }}
+            {% if form.target_amount.errors %}<p class="field-error">{{ form.target_amount.errors.0 }}</p>{% endif %}
+        </div>
+        <div>
+            <label for="{{ form.current_amount.id_for_label }}" class="input-label">💰 Hozircha jamg'arilgan (ixtiyoriy)</label>
+            {{ form.current_amount }}
+            {% if form.current_amount.errors %}<p class="field-error">{{ form.current_amount.errors.0 }}</p>{% endif %}
+        </div>
+        <div>
+            <label for="{{ form.start_date.id_for_label }}" class="input-label">📅 Boshlanish sanasi</label>
+            {{ form.start_date }}
+            {% if form.start_date.errors %}<p class="field-error">{{ form.start_date.errors.0 }}</p>{% endif %}
+        </div>
+        <div>
+            <label for="{{ form.target_date.id_for_label }}" class="input-label">📅 Rejalashtirilgan tugash sanasi (ixtiyoriy)</label>
+            {{ form.target_date }}
+            {% if form.target_date.errors %}<p class="field-error">{{ form.target_date.errors.0 }}</p>{% endif %}
+        </div>
+        <div>
+            <label style="display: flex; align-items: center; gap: 10px; cursor: pointer; font-size: 0.9rem;">
+                {{ form.is_active }}
+                <span>Faol maqsad</span>
+            </label>
+        </div>
+        <div class="form-actions-sticky">
+            <div style="display: flex; flex-direction: column; gap: 8px;">
+                <button type="submit" class="btn-primary btn-lg" id="saving-goal-submit-btn">
+                    <i class="bi bi-check-lg"></i> <span class="btn-text">Saqlash</span>
+                </button>
+                <a href="{% url 'expenses:saving_goal_list' %}" class="btn-secondary btn-sm">Bekor qilish</a>
+            </div>
+        </div>
+    </form>
+</div>
+<script>
+(function(){ var f=document.querySelector('.card form'); var b=document.getElementById('saving-goal-submit-btn');
+if(f&&b){ f.addEventListener('submit',function(){ b.disabled=true; var t=b.querySelector('.btn-text'); if(t)t.textContent='Saqlanmoqda…'; if(window.haptic)window.haptic(); }); } })();
+</script>
+{% endblock %}
+

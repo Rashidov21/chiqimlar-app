@@ -24,6 +24,7 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     "django.contrib.humanize",
     # Local apps
+    "core",
     "accounts",
     "categories",
     "expenses",
@@ -136,23 +137,44 @@ if CELERY_BROKER_URL:
     CELERY_TASK_SERIALIZER = "json"
     CELERY_TIMEZONE = TIME_ZONE
 
-# Logging: accounts (Telegram auth) loglari journalctl da ko'rinsin
+# Logging: production-da strukturalangan loglar
 LOGGING = {
     "version": 1,
     "disable_existing_loggers": False,
+    "formatters": {
+        "verbose": {
+            "format": "{asctime} [{levelname}] {name}: {message}",
+            "style": "{",
+        },
+    },
     "handlers": {
         "console": {
             "class": "logging.StreamHandler",
+            "formatter": "verbose",
         },
     },
     "loggers": {
-        "accounts": {
-            "handlers": ["console"],
-            "level": "INFO",
-        },
-        "django.request": {
-            "handlers": ["console"],
-            "level": "ERROR",
-        },
+        "accounts": {"handlers": ["console"], "level": "INFO"},
+        "expenses": {"handlers": ["console"], "level": "INFO"},
+        "core": {"handlers": ["console"], "level": "INFO"},
+        "notifications": {"handlers": ["console"], "level": "INFO"},
+        "analytics": {"handlers": ["console"], "level": "INFO"},
+        "django.request": {"handlers": ["console"], "level": "ERROR"},
     },
 }
+
+# Optional: Sentry (production xatolarni kuzatish). sentry-sdk o'rnatilgan bo'lsa ishlaydi.
+SENTRY_DSN = env("SENTRY_DSN", default=None)
+if SENTRY_DSN:
+    try:
+        import sentry_sdk
+        from sentry_sdk.integrations.django import DjangoIntegration
+        sentry_sdk.init(
+            dsn=SENTRY_DSN,
+            integrations=[DjangoIntegration()],
+            traces_sample_rate=0.1,
+            send_default_pii=False,
+            environment=env("SENTRY_ENVIRONMENT", default="production"),
+        )
+    except ImportError:
+        pass

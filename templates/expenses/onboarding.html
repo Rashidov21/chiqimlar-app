@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+{% block title %}Boshlang'ich sozlamalar{% endblock %}
+{% block nav %}{% endblock %}
+
+{% block content %}
+<div style="min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px 16px;">
+    <div class="card" style="width: 100%; max-width: 420px;">
+        <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
+            <span style="font-size: 2rem;">👋</span>
+            <div>
+                <h1 class="page-title" style="font-size: 1.2rem; margin-bottom: 2px;">Keling, boshlang'ich sozlamalarni belgilaymiz</h1>
+                <p class="page-subtitle" style="font-size: 0.85rem;">
+                    Bu faqat bir necha soniya oladi va ilovani siz uchun qulayroq qiladi.
+                </p>
+            </div>
+        </div>
+
+        <form method="post" action="{% url 'expenses:onboarding' %}" style="display: flex; flex-direction: column; gap: 16px; margin-top: 8px;">
+            {% csrf_token %}
+
+            <div>
+                <label for="monthly_budget" class="input-label">💰 Oylik byudjet (so'm)</label>
+                <input
+                    type="number"
+                    name="monthly_budget"
+                    id="monthly_budget"
+                    value="{{ user.monthly_budget }}"
+                    min="0"
+                    step="1000"
+                    class="input-field"
+                    placeholder="Masalan: 2000000"
+                    inputmode="numeric"
+                >
+                <p style="margin-top: 4px; font-size: 0.8rem; color: var(--text-muted);">
+                    Taxminiy oyiga qancha sarflashingizni rejalashtirasiz? Keyin uni sozlamalarda o'zgartira olasiz.
+                </p>
+            </div>
+
+            <div>
+                <p class="input-label" style="margin-bottom: 6px;">🎯 Asosiy moliyaviy maqsadingiz</p>
+                <div style="display: flex; flex-direction: column; gap: 6px;">
+                    {% for value,label in goal_choices %}
+                    <label style="display: flex; align-items: center; gap: 10px; cursor: pointer; font-size: 0.9rem; padding: 8px 10px; border-radius: 12px; background: #f8f8fc;">
+                        <input
+                            type="radio"
+                            name="primary_goal"
+                            value="{{ value }}"
+                            {% if profile.primary_goal == value %}checked{% endif %}
+                            style="width: 18px; height: 18px; accent-color: var(--primary);"
+                        >
+                        <span>{{ label }}</span>
+                    </label>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <div class="form-actions-sticky">
+                <button type="submit" class="btn-primary btn-lg" style="width: 100%;">
+                    <i class="bi bi-check-lg"></i> Davom etish
+                </button>
+            </div>
+        </form>
+
+        <p style="margin-top: 14px; font-size: 0.8rem; color: var(--text-muted); text-align: center;">
+            Bu sozlamalarni istalgan vaqtda <strong>Sozlamalar</strong> bo'limidan o'zgartirishingiz mumkin.
+        </p>
+    </div>
+</div>
+{% endblock %}
+

@@ -1,0 +1,84 @@
+{% extends "base.html" %}
+{% load humanize %}
+{% block title %}Maqsadlar{% endblock %}
+
+{% block content %}
+<div class="page-header" style="justify-content: space-between; flex-wrap: wrap; gap: 12px;">
+    <div>
+        <h1 class="page-title" style="margin-bottom: 2px;">Jamg'arma maqsadlari</h1>
+        <p class="page-subtitle">Maqsadlaringizni ko'rib boring va progressni kuzating</p>
+    </div>
+    <a href="{% url 'expenses:saving_goal_create' %}" class="btn-primary btn-sm" style="min-width: 44px;" title="Yangi maqsad">
+        <i class="bi bi-plus-lg"></i>
+    </a>
+</div>
+
+{% if active_goals %}
+<div class="card" style="margin-bottom: 20px;">
+    <h2 style="font-weight: 600; font-size: 0.95rem; margin-bottom: 8px;">Faol maqsadlar</h2>
+    <ul style="list-style: none; padding: 0; margin: 0;">
+        {% for g in active_goals %}
+        <li class="list-row list-row--stack-sm" style="padding: 12px 0; border-bottom-color: var(--border-soft);">
+            <div style="flex: 1; min-width: 0;">
+                <div style="font-weight: 600; font-size: 0.95rem; color: var(--text-main); margin-bottom: 4px;">
+                    {{ g.name }}
+                </div>
+                <div style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 6px;">
+                    Maqsad: {{ g.target_amount|intcomma }} so'm · Hozircha: {{ g.current_amount|intcomma }} so'm
+                </div>
+                <div style="height: 8px; border-radius: 9999px; background: #edf2ff; overflow: hidden; margin-bottom: 4px;">
+                    <div style="height: 100%; width: {{ g.progress_percent }}%; max-width: 100%; border-radius: 9999px; background: linear-gradient(90deg, #4ade80, var(--primary));"></div>
+                </div>
+                <div style="font-size: 0.8rem; color: var(--text-muted);">
+                    {{ g.progress_percent }}% bajarilgan · Qolgan: {{ g.remaining_amount|intcomma }} so'm
+                </div>
+                {% if g.target_date %}
+                <div style="font-size: 0.8rem; color: var(--text-muted); margin-top: 2px;">
+                    Reja tugash sanasi: {{ g.target_date }}
+                </div>
+                {% endif %}
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 6px; align-items: flex-end;">
+                <a href="{% url 'expenses:saving_goal_edit' g.pk %}" class="btn-secondary btn-sm">
+                    <i class="bi bi-pencil"></i> Tahrirlash
+                </a>
+            </div>
+        </li>
+        {% endfor %}
+    </ul>
+</div>
+{% endif %}
+
+{% if archived_goals %}
+<div class="card card-compact" style="margin-bottom: 24px;">
+    <h2 style="font-weight: 600; font-size: 0.9rem; margin-bottom: 8px;">Yopilgan maqsadlar</h2>
+    <ul style="list-style: none; padding: 0; margin: 0;">
+        {% for g in archived_goals %}
+        <li class="list-row list-row--stack-sm" style="padding: 10px 0; border-bottom-color: var(--border-soft);">
+            <div>
+                <div style="font-size: 0.9rem; font-weight: 500;">{{ g.name }}</div>
+                <div style="font-size: 0.8rem; color: var(--text-muted);">
+                    {{ g.current_amount|intcomma }} / {{ g.target_amount|intcomma }} so'm
+                </div>
+            </div>
+            <a href="{% url 'expenses:saving_goal_edit' g.pk %}" class="btn-secondary btn-sm">
+                <i class="bi bi-pencil"></i>
+            </a>
+        </li>
+        {% endfor %}
+    </ul>
+</div>
+{% endif %}
+
+{% if not active_goals and not archived_goals %}
+<div class="card" style="margin-top: 8px; margin-bottom: 24px; text-align: center;">
+    <div style="font-size: 2.4rem; margin-bottom: 8px;">🎯</div>
+    <p style="font-weight: 600; margin-bottom: 4px;">Hali maqsad qo'shilmagan</p>
+    <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 12px;">
+        Masalan, telefon, ta'til yoki favqulodda jamg'arma uchun maqsad yarating va progressni kuzating.
+    </p>
+    <a href="{% url 'expenses:saving_goal_create' %}" class="btn-primary btn-lg">Birinchi maqsadni qo'shish</a>
+</div>
+{% endif %}
+{% endblock %}
+

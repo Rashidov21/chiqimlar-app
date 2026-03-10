@@ -1,23 +1,30 @@
 """
 Xarajatlar - Dashboard, CRUD, sozlamalar.
 """
-from django.shortcuts import render, redirect, get_object_or_404
-from django.contrib.auth.decorators import login_required
-from django.views.decorators.http import require_http_methods
+import logging
+import os
+from datetime import datetime
+from tempfile import NamedTemporaryFile
+
+from django.conf import settings
+
+logger = logging.getLogger(__name__)
+
 from django.contrib import messages
+from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
+from django.shortcuts import render, redirect
 from django.utils import timezone
 from django.utils.http import url_has_allowed_host_and_scheme
-from django.conf import settings
-from datetime import datetime
-from decimal import Decimal
-from tempfile import NamedTemporaryFile
-import os
+from django.views.decorators.http import require_http_methods
 
-from .models import Expense
-from .forms import ExpenseForm
-from .services import get_monthly_totals, get_category_breakdown
-from analytics.services import get_insights_for_user
+from accounts.models import FinanceProfile
+from core.permissions import get_user_object_or_404
+from core.rate_limit import rate_limit_action
+from .models import Expense, SavingGoal, RecurringExpense, Debt
+from .forms import ExpenseForm, SavingGoalForm, RecurringExpenseForm, DebtForm
+from .services import advance_next_payment, get_dashboard_context, get_monthly_totals
+from analytics.services import get_insights_for_user, get_user_achievements
 from notifications.services import (
     maybe_send_limit_warning_after_expense,
     maybe_send_expense_confirmation_after_expense,
@@ -45,7 +52,11 @@ def _safe_next_url(request, fallback="expenses:dashboard"):
 
 @login_required
 def dashboard(request):
-    """Bu Oy - asosiy dashboard."""
+    """Bu Oy - asosiy dashboard. Ma'lumot get_dashboard_context orqali yig'iladi."""
+    profile, _ = FinanceProfile.objects.get_or_create(user=request.user)
+    if not profile.onboarding_completed:
+        return redirect("expenses:onboarding")
+
     today = timezone.now().date()
     date_str = request.GET.get("date") or ""
     selected_date = today
@@ -54,56 +65,329 @@ def dashboard(request):
             selected_date = datetime.fromisoformat(date_str).date()
         except ValueError:
             selected_date = today
-    data = get_monthly_totals(request.user, year=selected_date.year, month=selected_date.month)
-    breakdown = get_category_breakdown(request.user, year=selected_date.year, month=selected_date.month)
-    month_start = data["month_start"]
-    month_end = data["month_end"]
-    recent = (
-        Expense.objects.filter(user=request.user, date__gte=month_start, date__lte=month_end)
-        .select_related("category")
-        .order_by("-date", "-created_at")[:10]
-    )
-    insights = get_insights_for_user(
-        request.user, year=selected_date.year, month=selected_date.month, limit=3
-    )
-    days_count = max((data["month_end"] - data["month_start"]).days + 1, 1)
-    avg_daily = data["total_spent"] / days_count if data["total_spent"] > 0 else Decimal("0")
-    top_categories = breakdown[:3]
-    month_display = f"{MONTH_NAMES[data['month']]} {data['year']}"
+
+    try:
+        context = get_dashboard_context(request.user, selected_date)
+    except Exception as e:
+        logger.exception("dashboard get_dashboard_context user_id=%s: %s", request.user.pk, e)
+        messages.error(
+            request,
+            "Dashboard ma'lumotlarini yuklashda xatolik. Sahifani yangilab ko'ring.",
+        )
+        context = {
+            "totals": {"total_spent": 0, "budget": 0, "remaining": 0, "month_start": today, "month_end": today, "year": today.year, "month": today.month},
+            "month_display": f"{MONTH_NAMES[today.month]} {today.year}",
+            "selected_date_display": f"{today.day} {MONTH_NAMES[today.month].lower()} {today.year}",
+            "selected_date_iso": today.isoformat(),
+            "breakdown": [],
+            "recent": [],
+            "avg_daily": 0,
+            "top_categories": [],
+            "daily_summary": None,
+            "upcoming_recurring": [],
+            "net_debt": 0,
+            "taken_debt_total": 0,
+            "given_debt_total": 0,
+        }
+    context["finance_profile"] = profile
+    try:
+        context["insights"] = get_insights_for_user(
+            request.user,
+            year=selected_date.year,
+            month=selected_date.month,
+            limit=3,
+        )
+    except Exception:
+        context["insights"] = []
+    try:
+        context["achievements"] = get_user_achievements(request.user, limit=3)
+    except Exception:
+        context["achievements"] = []
+    return render(request, "expenses/dashboard.html", context)
+
+
+@login_required
+@require_http_methods(["GET", "POST"])
+def onboarding_view(request):
+    """Birinchi ishga tushirish uchun oddiy moliyaviy onboarding."""
+    user = request.user
+    profile, _ = FinanceProfile.objects.get_or_create(user=user)
+
+    if profile.onboarding_completed and request.method == "GET":
+        return redirect("expenses:dashboard")
+
+    if request.method == "POST":
+        monthly_budget = request.POST.get("monthly_budget")
+        primary_goal = request.POST.get("primary_goal") or profile.primary_goal
+
+        if monthly_budget is not None and monthly_budget != "":
+            try:
+                user.monthly_budget = int(monthly_budget)
+            except (ValueError, TypeError):
+                pass
+            else:
+                user.save(update_fields=["monthly_budget"])
+
+        profile.primary_goal = primary_goal
+        profile.onboarding_completed = True
+        profile.save(update_fields=["primary_goal", "onboarding_completed"])
+
+        messages.success(request, "Asosiy moliyaviy sozlamalar saqlandi.")
+        return redirect("expenses:dashboard")
+
     return render(
         request,
-        "expenses/dashboard.html",
+        "expenses/onboarding.html",
         {
-            "totals": data,
-            "month_display": month_display,
-            "selected_date_display": f"{selected_date.day} {MONTH_NAMES[selected_date.month].lower()} {selected_date.year}",
-            "selected_date_iso": selected_date.isoformat(),
-            "breakdown": breakdown,
-            "recent": recent,
-            "insights": insights,
-            "avg_daily": avg_daily,
-            "top_categories": top_categories,
+            "user": user,
+            "profile": profile,
+            "goal_choices": FinanceProfile.PrimaryGoal.choices,
+        },
+    )
+
+
+@login_required
+def saving_goal_list(request):
+    """Foydalanuvchining barcha jamg'arma maqsadlari."""
+    goals = (
+        SavingGoal.objects.filter(user=request.user)
+        .order_by("-is_active", "remaining_amount", "-created_at")
+    )
+    active_goals = [g for g in goals if g.is_active]
+    archived_goals = [g for g in goals if not g.is_active]
+    return render(
+        request,
+        "expenses/saving_goal_list.html",
+        {
+            "active_goals": active_goals,
+            "archived_goals": archived_goals,
         },
     )
 
 
 @login_required
 @require_http_methods(["GET", "POST"])
+def saving_goal_create(request):
+    """Yangi jamg'arma maqsadi yaratish."""
+    form = SavingGoalForm(request.POST or None, user=request.user)
+    if form.is_valid():
+        form.save()
+        messages.success(request, "Yangi jamg'arma maqsadi saqlandi.")
+        return redirect("expenses:saving_goal_list")
+    return render(
+        request,
+        "expenses/saving_goal_form.html",
+        {
+            "form": form,
+            "title": "Yangi maqsad",
+        },
+    )
+
+
+@login_required
+@require_http_methods(["GET", "POST"])
+def saving_goal_edit(request, pk):
+    """Mavjud jamg'arma maqsadini tahrirlash."""
+    goal = get_user_object_or_404(SavingGoal, request.user, pk)
+    form = SavingGoalForm(request.POST or None, instance=goal, user=request.user)
+    if form.is_valid():
+        form.save()
+        messages.success(request, "Maqsad yangilandi.")
+        return redirect("expenses:saving_goal_list")
+    return render(
+        request,
+        "expenses/saving_goal_form.html",
+        {
+            "form": form,
+            "goal": goal,
+            "title": "Maqsadni tahrirlash",
+        },
+    )
+
+
+@login_required
+def recurring_list(request):
+    """Qayta takrorlanuvchi chiqimlar ro'yxati."""
+    today = timezone.now().date()
+    upcoming = (
+        RecurringExpense.objects.filter(user=request.user, is_active=True, next_payment_date__gte=today)
+        .order_by("next_payment_date")
+    )
+    archived = RecurringExpense.objects.filter(user=request.user, is_active=False).order_by("-updated_at")
+    return render(
+        request,
+        "expenses/recurring_list.html",
+        {
+            "upcoming": upcoming,
+            "archived": archived,
+        },
+    )
+
+
+@login_required
+@require_http_methods(["GET", "POST"])
+@rate_limit_action("recurring_create", max_requests=20)
+def recurring_create(request):
+    """Yangi qayta takrorlanuvchi chiqim yaratish."""
+    form = RecurringExpenseForm(request.POST or None, user=request.user)
+    if form.is_valid():
+        form.save()
+        messages.success(request, "Qayta takrorlanuvchi chiqim saqlandi.")
+        return redirect("expenses:recurring_list")
+    return render(
+        request,
+        "expenses/recurring_form.html",
+        {
+            "form": form,
+            "title": "Yangi qayta chiqim",
+        },
+    )
+
+
+@login_required
+@require_http_methods(["GET", "POST"])
+def recurring_edit(request, pk):
+    """Mavjud qayta takrorlanuvchi chiqimni tahrirlash."""
+    obj = get_user_object_or_404(RecurringExpense, request.user, pk)
+    form = RecurringExpenseForm(request.POST or None, instance=obj, user=request.user)
+    if form.is_valid():
+        form.save()
+        messages.success(request, "Qayta takrorlanuvchi chiqim yangilandi.")
+        return redirect("expenses:recurring_list")
+    return render(
+        request,
+        "expenses/recurring_form.html",
+        {
+            "form": form,
+            "recurring": obj,
+            "title": "Qayta chiqimni tahrirlash",
+        },
+    )
+
+
+@login_required
+@require_http_methods(["POST"])
+def recurring_delete(request, pk):
+    obj = get_user_object_or_404(RecurringExpense, request.user, pk)
+    obj.delete()
+    messages.success(request, "Qayta takrorlanuvchi chiqim o'chirildi.")
+    return redirect("expenses:recurring_list")
+
+
+@login_required
+@require_http_methods(["POST"])
+@rate_limit_action("recurring_mark_paid", max_requests=15)
+def recurring_mark_paid(request, pk):
+    """To'lov qilindi: keyingi sana yangilanadi, ixtiyoriy Expense yaratiladi."""
+    obj = get_user_object_or_404(RecurringExpense, request.user, pk)
+    create_expense = request.POST.get("create_expense") == "1"
+    try:
+        advance_next_payment(obj, create_expense=create_expense)
+        messages.success(
+            request,
+            "To'lov qabul qilindi. Keyingi to'lov sanasi yangilandi."
+            + (" Xarajat yozuvi qo'shildi." if create_expense else ""),
+        )
+    except Exception as e:
+        logger.exception("recurring_mark_paid error pk=%s: %s", pk, e)
+        messages.error(request, "Xatolik yuz berdi. Keyinroq qayta urinib ko'ring.")
+    return redirect("expenses:recurring_list")
+
+
+@login_required
+def debt_list(request):
+    """Qarz va qarzdorliklar ro'yxati."""
+    open_debts = Debt.objects.filter(user=request.user, is_closed=False).order_by("due_date", "-created_at")
+    closed_debts = Debt.objects.filter(user=request.user, is_closed=True).order_by("-updated_at")
+    taken_total = sum(d.amount for d in open_debts if d.kind == Debt.Kind.TAKEN)
+    given_total = sum(d.amount for d in open_debts if d.kind == Debt.Kind.GIVEN)
+    net_debt = taken_total - given_total
+    return render(
+        request,
+        "expenses/debt_list.html",
+        {
+            "open_debts": open_debts,
+            "closed_debts": closed_debts,
+            "taken_debt_total": taken_total,
+            "given_debt_total": given_total,
+            "net_debt": net_debt,
+        },
+    )
+
+
+@login_required
+@require_http_methods(["GET", "POST"])
+@rate_limit_action("debt_create", max_requests=20)
+def debt_create(request):
+    """Yangi qarz yoki qarzdorlik yozuvi yaratish."""
+    form = DebtForm(request.POST or None, user=request.user)
+    if form.is_valid():
+        form.save()
+        messages.success(request, "Qarz yozuvi saqlandi.")
+        return redirect("expenses:debt_list")
+    return render(
+        request,
+        "expenses/debt_form.html",
+        {
+            "form": form,
+            "title": "Yangi qarz yozuvi",
+        },
+    )
+
+
+@login_required
+@require_http_methods(["GET", "POST"])
+def debt_edit(request, pk):
+    """Mavjud qarz yozuvini tahrirlash yoki yopish."""
+    obj = get_user_object_or_404(Debt, request.user, pk)
+    form = DebtForm(request.POST or None, instance=obj, user=request.user)
+    if form.is_valid():
+        form.save()
+        messages.success(request, "Qarz yozuvi yangilandi.")
+        return redirect("expenses:debt_list")
+    return render(
+        request,
+        "expenses/debt_form.html",
+        {
+            "form": form,
+            "debt": obj,
+            "title": "Qarz yozuvini tahrirlash",
+        },
+    )
+
+
+@login_required
+@require_http_methods(["POST"])
+def debt_delete(request, pk):
+    obj = get_user_object_or_404(Debt, request.user, pk)
+    obj.delete()
+    messages.success(request, "Qarz yozuvi o'chirildi.")
+    return redirect("expenses:debt_list")
+
+
+@login_required
+@require_http_methods(["GET", "POST"])
+@rate_limit_action("expense_add", max_requests=25)
 def expense_add(request):
     form = ExpenseForm(request.POST or None, user=request.user)
     if form.is_valid():
-        expense = form.save()
-        maybe_send_limit_warning_after_expense(request.user)
-        maybe_send_expense_confirmation_after_expense(request.user, expense)
-        messages.success(request, "Xarajat qo'shildi.")
-        return redirect(_safe_next_url(request))
+        try:
+            expense = form.save()
+            maybe_send_limit_warning_after_expense(request.user)
+            maybe_send_expense_confirmation_after_expense(request.user, expense)
+            messages.success(request, "Xarajat qo'shildi.")
+            logger.info("expense_add user_id=%s amount=%s date=%s", request.user.pk, expense.amount, expense.date)
+            return redirect(_safe_next_url(request))
+        except Exception as e:
+            logger.exception("expense_add save user_id=%s: %s", request.user.pk, e)
+            messages.error(request, "Xarajatni saqlashda xatolik. Qaytadan urinib ko'ring.")
     return render(request, "expenses/expense_form.html", {"form": form, "title": "Xarajat qo'shish"})
 
 
 @login_required
 @require_http_methods(["GET", "POST"])
 def expense_edit(request, pk):
-    expense = get_object_or_404(Expense, pk=pk, user=request.user)
+    expense = get_user_object_or_404(Expense, request.user, pk)
     form = ExpenseForm(request.POST or None, instance=expense, user=request.user)
     if form.is_valid():
         expense = form.save()
@@ -117,7 +401,7 @@ def expense_edit(request, pk):
 @login_required
 @require_http_methods(["POST"])
 def expense_delete(request, pk):
-    expense = get_object_or_404(Expense, pk=pk, user=request.user)
+    expense = get_user_object_or_404(Expense, request.user, pk)
     expense.delete()
     messages.success(request, "Xarajat o'chirildi.")
     return redirect(_safe_next_url(request))
