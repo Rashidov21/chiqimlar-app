@@ -31,7 +31,7 @@
             </span>
         {% elif net_debt < 0 %}
             <span style="color: #16a34a;">
-                Boshqalar sizga nisbatan {{ net_debt|abs|intcomma }} so'm qarzdor.
+                Boshqalar sizga nisbatan {{ net_debt_abs|intcomma }} so'm qarzdor.
             </span>
         {% else %}
             <span style="color: var(--text-muted);">
