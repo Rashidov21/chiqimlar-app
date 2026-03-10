@@ -2,14 +2,20 @@
 Tahlil - Moliyaviy tushunchalar, statistikalar va yutuqlar.
 """
 from decimal import Decimal
+from collections import defaultdict
+
+from django.core.cache import cache
 from django.db.models import Sum, Q
 from django.utils import timezone
-from collections import defaultdict
 
 from .models import Achievement, UserAchievement
 
 
-def get_insights_for_user(user, year=None, month=None, limit=5):
+INSIGHTS_CACHE_KEY = "insights:{user_id}:{year}:{month}"
+INSIGHTS_CACHE_TTL = 300  # 5 daqiqa
+
+
+def _compute_insights_for_period(user, year, month, limit=5):
     """
     Foydalanuvchi uchun qisqa moliyaviy tushunchalar (matn).
     Masalan: "Ovqat xarajatlari bu oy 20% oshdi"
@@ -110,6 +116,22 @@ def get_insights_for_user(user, year=None, month=None, limit=5):
             )
 
     return insights[:limit]
+
+
+def get_insights_for_user(user, year=None, month=None, limit=5):
+    """
+    Foydalanuvchi uchun moliyaviy tushunchalar (cache bilan).
+    """
+    today = timezone.now().date()
+    year = year or today.year
+    month = month or today.month
+    cache_key = INSIGHTS_CACHE_KEY.format(user_id=user.pk, year=year, month=month)
+    cached = cache.get(cache_key)
+    if cached is not None:
+        return cached[:limit]
+    insights = _compute_insights_for_period(user, year, month, limit=limit)
+    cache.set(cache_key, insights, timeout=INSIGHTS_CACHE_TTL)
+    return insights
 
 
 ACHIEVEMENT_CHECK_CACHE_KEY = "achievement_check_done:"

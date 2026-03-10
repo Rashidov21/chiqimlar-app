@@ -5,11 +5,12 @@ Cache asosida, identifier (user_id yoki IP) bo'yicha.
 import time
 import logging
 from functools import wraps
-from django.core.cache import cache
+
 from django.conf import settings
+from django.contrib import messages
+from django.core.cache import cache
 from django.http import JsonResponse
 from django.shortcuts import redirect
-from django.contrib import messages
 
 logger = logging.getLogger(__name__)
 
@@ -23,7 +24,12 @@ def _rate_limit_key(identifier: str, action: str) -> str:
     return f"{RATE_LIMIT_KEY_PREFIX}{action}:{identifier}"
 
 
-def check_rate_limit(identifier: str, action: str, window: int = RATE_LIMIT_WINDOW, max_requests: int = RATE_LIMIT_MAX_REQUESTS) -> bool:
+def check_rate_limit(
+    identifier: str,
+    action: str,
+    window: int = RATE_LIMIT_WINDOW,
+    max_requests: int = RATE_LIMIT_MAX_REQUESTS,
+) -> bool:
     """
     True = limit oshmagan, ruxsat beramiz.
     False = limit oshgan, rad etamiz.
@@ -38,11 +44,28 @@ def check_rate_limit(identifier: str, action: str, window: int = RATE_LIMIT_WIND
     return data["count"] <= max_requests
 
 
-def rate_limit_action(action: str, window: int = RATE_LIMIT_WINDOW, max_requests: int = RATE_LIMIT_MAX_REQUESTS):
+def get_client_ip(request) -> str:
+    """
+    X-Forwarded-For mavjud bo'lsa undan, aks holda REMOTE_ADDR dan IP ni oladi.
+    Reverse proxy ortida ishlaganda to'g'ri sozlash zarur.
+    """
+    xff = request.META.get("HTTP_X_FORWARDED_FOR")
+    if xff:
+        # "ip1, ip2, ..." formatida bo'lishi mumkin
+        return xff.split(",")[0].strip()
+    return request.META.get("REMOTE_ADDR", "") or "unknown"
+
+
+def rate_limit_action(
+    action: str,
+    window: int = RATE_LIMIT_WINDOW,
+    max_requests: int = RATE_LIMIT_MAX_REQUESTS,
+):
     """
     View decorator: login qilingan user uchun rate limit.
     Limit oshganda: HTML request da redirect + message, AJAX da 429.
     """
+
     def decorator(view_func):
         @wraps(view_func)
         def _wrapped(request, *args, **kwargs):
@@ -51,9 +74,15 @@ def rate_limit_action(action: str, window: int = RATE_LIMIT_WINDOW, max_requests
             identifier = str(request.user.pk)
             if not check_rate_limit(identifier, action, window=window, max_requests=max_requests):
                 logger.warning("rate_limit exceeded user_id=%s action=%s", request.user.pk, action)
-                if request.headers.get("X-Requested-With") == "XMLHttpRequest" or request.accepts("application/json"):
+                if request.headers.get("X-Requested-With") == "XMLHttpRequest" or request.accepts(
+                    "application/json"
+                ):
                     return JsonResponse(
-                        {"ok": False, "error": "rate_limited", "detail": "Juda ko'p so'rov. Biroz kutib qaytadan urinib ko'ring."},
+                        {
+                            "ok": False,
+                            "error": "rate_limited",
+                            "detail": "Juda ko'p so'rov. Biroz kutib qaytadan urinib ko'ring.",
+                        },
                         status=429,
                     )
                 messages.error(
@@ -62,5 +91,39 @@ def rate_limit_action(action: str, window: int = RATE_LIMIT_WINDOW, max_requests
                 )
                 return redirect("expenses:dashboard")
             return view_func(request, *args, **kwargs)
+
         return _wrapped
+
+    return decorator
+
+
+def rate_limit_ip(
+    action: str,
+    window: int = RATE_LIMIT_WINDOW,
+    max_requests: int = RATE_LIMIT_MAX_REQUESTS,
+):
+    """
+    Public endpointlar (auth, webhook va h.k.) uchun IP asosida rate limit.
+    Limit oshganda JSON 429 yoki generik xato qaytaradi.
+    """
+
+    def decorator(view_func):
+        @wraps(view_func)
+        def _wrapped(request, *args, **kwargs):
+            ip = get_client_ip(request)
+            if not check_rate_limit(ip, action, window=window, max_requests=max_requests):
+                logger.warning("rate_limit_ip exceeded ip=%s action=%s", ip, action)
+                # Public endpointlar odatda JSON qaytaradi
+                return JsonResponse(
+                    {
+                        "ok": False,
+                        "error": "rate_limited",
+                        "detail": "Juda ko'p so'rov. Biroz kutib qaytadan urinib ko'ring.",
+                    },
+                    status=429,
+                )
+            return view_func(request, *args, **kwargs)
+
+        return _wrapped
+
     return decorator

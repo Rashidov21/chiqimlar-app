@@ -29,6 +29,14 @@ class ExpenseForm(forms.ModelForm):
         self.fields["date"].widget.attrs["class"] = "input-field"
         self.fields["category"].widget.attrs["class"] = "input-field"
 
+    def clean_amount(self):
+        amount = self.cleaned_data.get("amount")
+        if amount is None:
+            return amount
+        if amount <= 0:
+            raise forms.ValidationError("Summani musbat qiymat sifatida kiriting.")
+        return amount
+
     def save(self, commit=True):
         obj = super().save(commit=False)
         if self.user:
@@ -57,6 +65,23 @@ class SavingGoalForm(forms.ModelForm):
         self.fields["target_amount"].widget.attrs.setdefault("inputmode", "numeric")
         self.fields["current_amount"].widget.attrs.setdefault("placeholder", "Hozircha jamg'arilgan (ixtiyoriy)")
         self.fields["current_amount"].widget.attrs.setdefault("inputmode", "numeric")
+
+    def clean_target_amount(self):
+        value = self.cleaned_data.get("target_amount")
+        if value is None:
+            return value
+        if value <= 0:
+            raise forms.ValidationError("Maqsad summasi 0 dan katta bo'lishi kerak.")
+        return value
+
+    def clean_current_amount(self):
+        current = self.cleaned_data.get("current_amount") or 0
+        target = self.cleaned_data.get("target_amount") or 0
+        if current < 0:
+            raise forms.ValidationError("Jamg'arilgan summa manfiy bo'lmasligi kerak.")
+        if target and current > target:
+            raise forms.ValidationError("Jamg'arilgan summa maqsad summasidan oshmasligi kerak.")
+        return current
 
     def save(self, commit=True):
         obj = super().save(commit=False)
@@ -89,6 +114,24 @@ class RecurringExpenseForm(forms.ModelForm):
         self.fields["amount"].widget.attrs.setdefault("placeholder", "To'lov summasi (so'm)")
         self.fields["amount"].widget.attrs.setdefault("inputmode", "numeric")
 
+    def clean_amount(self):
+        amount = self.cleaned_data.get("amount")
+        if amount is None:
+            return amount
+        if amount <= 0:
+            raise forms.ValidationError("To'lov summasi 0 dan katta bo'lishi kerak.")
+        return amount
+
+    def clean_next_payment_date(self):
+        value = self.cleaned_data.get("next_payment_date")
+        if value is None:
+            return value
+        today = timezone.now().date()
+        # Juda eski sana bo'lsa foydalanuvchini ogohlantirish: kamida bugundan 1 oy ichida bo'lsin
+        if value < today.replace(year=today.year - 1):
+            raise forms.ValidationError("Keyingi to'lov sanasi juda eski. Yaqinroq sanani tanlang.")
+        return value
+
     def save(self, commit=True):
         obj = super().save(commit=False)
         if self.user and not obj.pk:
@@ -117,6 +160,21 @@ class DebtForm(forms.ModelForm):
         self.fields["amount"].widget.attrs.setdefault("placeholder", "Qarz summasi (so'm)")
         self.fields["amount"].widget.attrs.setdefault("inputmode", "numeric")
         self.fields["note"].widget.attrs.setdefault("placeholder", "Izoh (ixtiyoriy)")
+
+    def clean_amount(self):
+        amount = self.cleaned_data.get("amount")
+        if amount is None:
+            return amount
+        if amount <= 0:
+            raise forms.ValidationError("Qarz summasi 0 dan katta bo'lishi kerak.")
+        return amount
+
+    def clean_due_date(self):
+        due = self.cleaned_data.get("due_date")
+        date = self.cleaned_data.get("date")
+        if due and date and due < date:
+            raise forms.ValidationError("Qaytarish muddati qarz sanasidan oldin bo'lishi mumkin emas.")
+        return due
 
     def save(self, commit=True):
         obj = super().save(commit=False)

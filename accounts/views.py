@@ -13,6 +13,7 @@ from django.views.decorators.http import require_POST
 from django.http import JsonResponse
 from django.conf import settings
 
+from core.rate_limit import rate_limit_ip
 from .services import get_or_create_user_by_telegram, check_rate_limit
 from .telegram_auth import validate_telegram_init_data
 
@@ -78,6 +79,7 @@ def settings_view(request):
 
 @csrf_exempt
 @require_POST
+@rate_limit_ip("telegram_webapp_auth", window=60, max_requests=20)
 def telegram_webapp_auth(request):
     """
     Telegram Mini App: initData orqali avtomatik login.

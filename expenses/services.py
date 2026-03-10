@@ -42,7 +42,7 @@ def get_monthly_totals(user, year=None, month=None):
 
 
 def get_category_breakdown(user, year=None, month=None):
-    """Oy bo'yicha turkumlar bo'yicha yig'indi."""
+    """Oy bo'yicha turkumlar bo'yicha yig'indi (bitta group-by query bilan)."""
     today = timezone.now().date()
     year = year or today.year
     month = month or today.month
@@ -53,17 +53,28 @@ def get_category_breakdown(user, year=None, month=None):
         month_end = month_start.replace(month=month + 1, day=1) - timezone.timedelta(days=1)
     if month == today.month and year == today.year:
         month_end = today
+
     from categories.models import Category
+    from .models import Expense
+
+    # category_id -> summa
+    raw = (
+        Expense.objects.filter(
+            user=user,
+            date__gte=month_start,
+            date__lte=month_end,
+            category_id__isnull=False,
+        )
+        .values("category_id")
+        .annotate(total=Sum("amount"))
+    )
+    totals_by_cat = {row["category_id"]: row["total"] or Decimal("0") for row in raw}
 
     breakdown = []
     for cat in Category.objects.filter(user=user).order_by("order", "name"):
-        s = (
-            cat.expenses.filter(date__gte=month_start, date__lte=month_end)
-            .aggregate(s=Sum("amount"))["s"]
-            or Decimal("0")
-        )
-        if s > 0:
-            breakdown.append({"category": cat, "total": s})
+        total = totals_by_cat.get(cat.id)
+        if total and total > 0:
+            breakdown.append({"category": cat, "total": total})
     return breakdown
 
 
