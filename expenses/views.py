@@ -18,6 +18,8 @@ from django.utils import timezone
 from django.utils.http import url_has_allowed_host_and_scheme
 from django.views.decorators.http import require_http_methods
 
+from django.db.models import F, ExpressionWrapper, DecimalField
+
 from accounts.models import FinanceProfile
 from categories.services import create_default_categories
 from core.permissions import get_user_object_or_404
@@ -166,8 +168,14 @@ GOALS_PAGE_SIZE = 25
 def saving_goal_list(request):
     """Foydalanuvchining jamg'arma maqsadlari (pagination)."""
     goals = (
-        SavingGoal.objects.filter(user=request.user)
-        .order_by("-is_active", "remaining_amount", "-created_at")
+    SavingGoal.objects.filter(user=request.user)
+        .annotate(
+            remaining=ExpressionWrapper(
+                F("target_amount") - F("current_amount"),
+                output_field=DecimalField(),
+            )
+        )
+        .order_by("-is_active", "remaining", "-created_at")
     )
     paginator = Paginator(goals, GOALS_PAGE_SIZE)
     page_obj = paginator.get_page(request.GET.get("page", 1))
