@@ -106,7 +106,7 @@ python manage.py test
 
 ## Eslatmalar (Telegram)
 
-Kunlik eslatma va haftalik xulosa **cron** orqali ishga tushadi. VPS da crontab oching (`crontab -e`) va qo‘shing:
+Kunlik eslatma va haftalik xulosa **cron** orqali ishga tushadi. Batafsil: [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md). VPS da crontab oching (`crontab -e`) va qo‘shing:
 
 ```bash
 # Har kuni 18:00 da kunlik eslatma (xarajat kiritishni eslatadi)

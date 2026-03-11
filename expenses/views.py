@@ -639,7 +639,8 @@ def export_excel_to_telegram(request):
             messages.success(request, "Excel fayl Telegram bot orqali yuborildi.")
         else:
             messages.error(request, "Excel yuborilmadi. Botga /start yuborib qayta urinib ko'ring.")
-    except Exception:
+    except Exception as e:
+        logger.exception("export_excel_to_telegram user_id=%s: %s", getattr(user, "pk", None), e)
         if settings.DEBUG:
             raise
         messages.error(request, "Excel eksportda xatolik yuz berdi. Keyinroq qayta urinib ko'ring.")

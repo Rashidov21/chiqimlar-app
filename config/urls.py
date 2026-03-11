@@ -4,10 +4,11 @@ from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
 
-from config.views import privacy_view, help_view
+from config.views import privacy_view, help_view, health_view
 
 urlpatterns = [
     path("admin/", admin.site.urls),
+    path("health/", health_view),
     path("privacy/", privacy_view),
     path("yordam/", help_view),
     path("", include("expenses.urls")),
