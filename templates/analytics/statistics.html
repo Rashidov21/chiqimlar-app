@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% load humanize %}
+{% load humanize l10n %}
 {% block title %}Umumiy statistika{% endblock %}
 
 {% block content %}
@@ -29,7 +29,7 @@
             {% endif %}
             <select name="year" onchange="this.form.submit()" style="border: 1px solid var(--border-soft); border-radius: 9999px; padding: 6px 10px; font-size: 0.82rem; background: #fff;">
                 {% for y in years %}
-                <option value="{{ y }}" {% if selected_year == y %}selected{% endif %}>{{ y }}</option>
+                <option value="{{ y }}" {% if selected_year == y %}selected{% endif %}>{{ y|unlocalize }}</option>
                 {% endfor %}
             </select>
         </form>
@@ -38,7 +38,7 @@
     <div style="display: flex; align-items: center; justify-content: space-between; gap: 10px;">
         <a href="{% url 'analytics:statistics' %}?view={{ view_type }}&year={{ prev_month_year }}&month={{ prev_month }}{% if view_type == 'day' and selected_day %}&day={{ selected_day }}{% endif %}" style="text-decoration: none; border: 1px solid var(--border-soft); width: 34px; height: 34px; border-radius: 9999px; display: inline-flex; align-items: center; justify-content: center; color: var(--text-main); background: #fff;">‹</a>
         <a href="{% url 'analytics:statistics' %}?view={{ view_type }}&year={{ selected_year }}&month={{ selected_month }}{% if view_type == 'day' and selected_day %}&day={{ selected_day }}{% endif %}" style="text-decoration: none; flex: 1; text-align: center; border: 1px solid var(--border-soft); border-radius: 9999px; padding: 6px 12px; color: var(--text-main); background: #fff; font-weight: 600;">
-            {{ selected_month_name }} {{ selected_year }}
+            {{ selected_month_name }} {{ selected_year|unlocalize }}
         </a>
         <a href="{% url 'analytics:statistics' %}?view={{ view_type }}&year={{ next_month_year }}&month={{ next_month }}{% if view_type == 'day' and selected_day %}&day={{ selected_day }}{% endif %}" style="text-decoration: none; border: 1px solid var(--border-soft); width: 34px; height: 34px; border-radius: 9999px; display: inline-flex; align-items: center; justify-content: center; color: var(--text-main); background: #fff;">›</a>
     </div>
@@ -46,9 +46,9 @@
     {% if view_type == 'day' %}
     <details style="margin-top: 10px;">
         <summary style="font-size: 0.82rem; color: var(--text-muted); cursor: pointer;">Kunni tanlash</summary>
-        <div style="display: flex; gap: 6px; overflow-x: auto; padding-top: 8px; padding-bottom: 2px;">
+        <div style="display: flex; flex-wrap: wrap; gap: 6px; padding-top: 8px; padding-bottom: 2px;">
             {% for d in day_choices %}
-            <a href="{% url 'analytics:statistics' %}?view=day&year={{ selected_year }}&month={{ selected_month }}&day={{ d }}" style="flex: 0 0 auto; text-decoration: none; padding: 6px 10px; border-radius: 9999px; font-size: 0.8rem; border: 1px solid var(--border-soft); background: #fff; color: var(--text-main); {% if selected_day == d %}background: var(--primary); color: #fff; border-color: var(--primary);{% endif %}">{{ d }}</a>
+            <a href="{% url 'analytics:statistics' %}?view=day&year={{ selected_year }}&month={{ selected_month }}&day={{ d }}" style="flex: 0 0 auto; min-width: 32px; text-align: center; text-decoration: none; padding: 6px 8px; border-radius: 9999px; font-size: 0.8rem; border: 1px solid var(--border-soft); background: #fff; color: var(--text-main); {% if selected_day == d %}background: var(--primary); color: #fff; border-color: var(--primary);{% endif %}">{{ d }}</a>
             {% endfor %}
         </div>
     </details>
@@ -59,7 +59,7 @@
     {% if view_type == 'day' %}
     {{ selected_day_label }} uchun chiqimlar
     {% else %}
-    {{ selected_month_name }} - {{ selected_year }} uchun chiqimlar
+    {{ selected_month_name }} - {{ selected_year|unlocalize }} uchun chiqimlar
     {% endif %}
 </p>
 <p style="font-size: 1.75rem; font-weight: 800; color: var(--text-main); margin-bottom: 16px;">
