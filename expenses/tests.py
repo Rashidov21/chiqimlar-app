@@ -8,8 +8,8 @@ from django.core.cache import cache
 from accounts.models import User
 from categories.models import Category
 
-from .models import Expense
-from .services import get_monthly_totals
+from .models import Expense, SavingGoal
+from .services import get_dashboard_context, get_monthly_totals
 
 
 class ExpenseServiceTest(TestCase):
@@ -36,6 +36,57 @@ class ExpenseServiceTest(TestCase):
         self.assertEqual(data["total_spent"], Decimal("50000"))
         self.assertEqual(data["budget"], Decimal("100000"))
         self.assertEqual(data["remaining"], Decimal("50000"))
+
+
+class DashboardContextTest(TestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(username="testuser2", password="testpass123")
+
+    def test_dashboard_context_contains_active_goals(self):
+        ctx = get_dashboard_context(self.user)
+        self.assertIn("active_goals", ctx)
+        self.assertEqual(len(ctx["active_goals"]), 0)
+
+    def test_dashboard_context_active_goals_list(self):
+        today = timezone.now().date()
+        SavingGoal.objects.create(
+            user=self.user,
+            name="Maqsad 1",
+            target_amount=1000000,
+            current_amount=200000,
+            start_date=today,
+            is_active=True,
+        )
+        ctx = get_dashboard_context(self.user)
+        self.assertEqual(len(ctx["active_goals"]), 1)
+        self.assertEqual(ctx["active_goals"][0].name, "Maqsad 1")
+
+
+class SavingGoalListViewTest(TestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(username="testuser3", password="testpass123")
+
+    def test_saving_goal_list_returns_200(self):
+        self.client.login(username="testuser3", password="testpass123")
+        response = self.client.get(reverse("expenses:saving_goal_list"))
+        self.assertEqual(response.status_code, 200)
+
+    def test_saving_goal_list_ordering(self):
+        today = timezone.now().date()
+        SavingGoal.objects.create(
+            user=self.user, name="A", target_amount=100, current_amount=90,
+            start_date=today, is_active=True,
+        )
+        SavingGoal.objects.create(
+            user=self.user, name="B", target_amount=100, current_amount=50,
+            start_date=today, is_active=True,
+        )
+        self.client.login(username="testuser3", password="testpass123")
+        response = self.client.get(reverse("expenses:saving_goal_list"))
+        self.assertEqual(response.status_code, 200)
+        self.assertIn("page_obj", response.context)
+        goals = list(response.context["page_obj"])
+        self.assertEqual(len(goals), 2)
 
 
 class ExportExcelToTelegramTest(TestCase):
