@@ -7,6 +7,7 @@
     <form method="post" style="display: flex; flex-direction: column; gap: 18px;">
         {% csrf_token %}
         {% if request.GET.next %}<input type="hidden" name="next" value="{{ request.GET.next }}">{% endif %}
+        {% include "partials/form_errors.html" with form=form %}
         <div>
             <label for="id_category" class="input-label">Chiqim turkumi</label>
             {{ form.category }}
@@ -26,7 +27,7 @@
             {% if form.date.errors %}<p class="field-error">{{ form.date.errors.0 }}</p>{% endif %}
         </div>
         <div class="form-actions-sticky" style="margin-top: 8px;">
-            <button type="submit" class="btn-primary btn-lg" id="expense-submit-btn" style="width: 100%; box-shadow: 0 16px 40px rgba(90, 63, 255, 0.45);">
+            <button type="submit" class="btn-primary btn-block" id="expense-submit-btn" style="box-shadow: 0 8px 24px rgba(90, 63, 255, 0.35);">
                 <span class="btn-text">Saqlash</span>
             </button>
             <a href="{% url 'expenses:dashboard' %}" style="display: block; text-align: center; margin-top: 12px; font-size: 0.9rem; color: var(--text-muted); text-decoration: none;">Bekor qilish</a>

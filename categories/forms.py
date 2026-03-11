@@ -41,8 +41,8 @@ class CategoryBudgetForm(forms.ModelForm):
         self.fields["category"].widget.attrs.setdefault("class", "input-field")
         self.fields["year"].widget.attrs.setdefault("class", "input-field")
         self.fields["month"].widget.attrs.setdefault("class", "input-field")
-        self.fields["amount"].widget.attrs.setdefault("class", "input-field amount-input")
-        self.fields["amount"].widget.attrs.setdefault("placeholder", "Turkum uchun oylik limit (so'm)")
+        self.fields["amount"].widget.attrs.setdefault("class", "input-field")
+        self.fields["amount"].widget.attrs.setdefault("placeholder", "Masalan: 500 000")
         self.fields["amount"].widget.attrs.setdefault("inputmode", "numeric")
 
         if not self.instance.pk:

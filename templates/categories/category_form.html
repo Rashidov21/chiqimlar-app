@@ -9,6 +9,7 @@
 <div class="card" style="max-width: 480px;">
     <form method="post" style="display: flex; flex-direction: column; gap: 16px;">
         {% csrf_token %}
+        {% include "partials/form_errors.html" with form=form %}
         <div>
             <label for="id_name" class="input-label">📁 Turkum nomi</label>
             {{ form.name }}
@@ -25,7 +26,7 @@
         </div>
         <div class="form-actions-sticky">
             <div style="display: flex; flex-direction: column; gap: 8px;">
-                <button type="submit" class="btn-primary btn-lg" id="category-submit-btn">
+                <button type="submit" class="btn-primary" id="category-submit-btn">
                     <i class="bi bi-check-lg"></i> <span class="btn-text">Saqlash</span>
                 </button>
                 <a href="{% url 'categories:list' %}" class="btn-secondary btn-sm">Bekor qilish</a>

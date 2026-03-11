@@ -16,8 +16,8 @@
         {% csrf_token %}
         <div>
             <label for="monthly_budget" class="input-label">💰 Oylik byudjet (so'm)</label>
-            <input type="number" name="monthly_budget" id="monthly_budget" value="{{ user.monthly_budget }}" min="0" step="1000" class="input-field" placeholder="0" inputmode="numeric">
-            <p style="margin-top: 4px; font-size: 0.8rem; color: var(--text-muted);">Masalan: 2000000</p>
+            <input type="number" name="monthly_budget" id="monthly_budget" value="{{ user.monthly_budget }}" min="0" step="1000" class="input-field" placeholder="1 000 000" inputmode="numeric">
+            <p style="margin-top: 4px; font-size: 0.8rem; color: var(--text-muted);">Masalan: 2 000 000</p>
         </div>
         <div>
             <p class="input-label" style="margin-bottom: 6px; display: flex; align-items: center; gap: 6px;">
@@ -43,7 +43,7 @@
             </div>
         </div>
         <div class="form-actions-sticky">
-            <button type="submit" class="btn-primary btn-lg" id="settings-submit-btn">
+            <button type="submit" class="btn-primary" id="settings-submit-btn">
                 <i class="bi bi-check-lg"></i> <span class="btn-text">Saqlash</span>
             </button>
         </div>
@@ -74,16 +74,38 @@
         </div>
 
         <div style="display: flex; align-items: flex-start; gap: 12px;">
+            <span style="font-size: 1.4rem;">📋</span>
+            <div>
+                <p style="font-weight: 500; color: var(--text-main); margin-bottom: 6px;">Ilova bo'limlari</p>
+                <ul style="list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 6px;">
+                    <li><a href="{% url 'expenses:saving_goal_list' %}" style="color: var(--primary); font-size: 0.9rem; text-decoration: none;">Maqsadlar →</a></li>
+                    <li><a href="{% url 'expenses:recurring_list' %}" style="color: var(--primary); font-size: 0.9rem; text-decoration: none;">Qayta to'lov →</a></li>
+                    <li><a href="{% url 'expenses:debt_list' %}" style="color: var(--primary); font-size: 0.9rem; text-decoration: none;">Qarzlar →</a></li>
+                </ul>
+            </div>
+        </div>
+
+        <div style="display: flex; align-items: flex-start; gap: 12px;">
+            <span style="font-size: 1.4rem;">🔒</span>
+            <div>
+                <p style="font-weight: 500; color: var(--text-main); margin-bottom: 4px;">Maxfiylik va yordam</p>
+                <p style="font-size: 0.82rem; color: var(--text-muted); margin-bottom: 6px;">Maxfiylik siyosati va tez-tez beriladigan savollar.</p>
+                <a href="/privacy/" style="color: var(--primary); font-size: 0.9rem; text-decoration: none; margin-right: 12px;">Maxfiylik</a>
+                <a href="/yordam/" style="color: var(--primary); font-size: 0.9rem; text-decoration: none;">Yordam</a>
+            </div>
+        </div>
+
+        <div style="display: flex; align-items: flex-start; gap: 12px;">
             <span style="font-size: 1.4rem;">📥</span>
             <div>
                 <p style="font-weight: 500; color: var(--text-main); margin-bottom: 4px;">Ma'lumotlarni eksport qilish</p>
                 <p style="font-size: 0.82rem; color: var(--text-muted); margin-bottom: 8px;">
-                    Tugmani bossangiz Excel fayl bot orqali yuboriladi.
+                    Tugmani bossangiz Excel fayl bot orqali yuboriladi. Eksportda faqat oxirgi 24 oy ma'lumotlari bo'ladi.
                 </p>
-                <form method="post" action="{% url 'expenses:export_excel_to_telegram' %}">
+                <form method="post" action="{% url 'expenses:export_excel_to_telegram' %}" id="excel-export-form">
                     {% csrf_token %}
                     <button type="submit" class="btn-secondary btn-sm" id="excel-export-btn">
-                        <i class="bi bi-file-earmark-excel"></i> Excelni botga yuborish
+                        <i class="bi bi-file-earmark-excel"></i> <span id="excel-export-btn-text">Excelni botga yuborish</span>
                     </button>
                 </form>
             </div>
@@ -92,11 +114,14 @@
 </div>
 <script>
 (function(){
+    var form = document.getElementById('excel-export-form');
     var exportBtn = document.getElementById('excel-export-btn');
-    if (!exportBtn) return;
-    exportBtn.addEventListener('click', function() {
+    var btnText = document.getElementById('excel-export-btn-text');
+    if (!form || !exportBtn) return;
+    form.addEventListener('submit', function() {
         exportBtn.disabled = true;
-        exportBtn.innerHTML = '<i class="bi bi-hourglass-split"></i> Yuborilmoqda...';
+        if (btnText) btnText.textContent = 'Yuborilmoqda...';
+        exportBtn.querySelector('i').className = 'bi bi-hourglass-split';
     });
 })();
 </script>

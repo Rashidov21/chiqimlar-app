@@ -11,6 +11,7 @@
 <div class="card" style="max-width: 480px;">
     <form method="post" style="display: flex; flex-direction: column; gap: 16px;">
         {% csrf_token %}
+        {% include "partials/form_errors.html" with form=form %}
         <div>
             <label for="{{ form.name.id_for_label }}" class="input-label">📌 Nomi</label>
             {{ form.name }}
@@ -18,7 +19,6 @@
         </div>
         <div>
             <label for="{{ form.amount.id_for_label }}" class="input-label">💰 Summasi (so'm)</label>
-            {% if preset_amounts %}{% include "partials/quick_amount_chips.html" with input_id="id_amount" preset_amounts=preset_amounts %}{% endif %}
             {{ form.amount }}
             {% if form.amount.errors %}<p class="field-error">{{ form.amount.errors.0 }}</p>{% endif %}
         </div>
@@ -45,7 +45,7 @@
         </div>
         <div class="form-actions-sticky">
             <div style="display: flex; flex-direction: column; gap: 8px;">
-                <button type="submit" class="btn-primary btn-lg" id="recurring-submit-btn">
+                <button type="submit" class="btn-primary" id="recurring-submit-btn">
                     <i class="bi bi-check-lg"></i> <span class="btn-text">Saqlash</span>
                 </button>
                 <a href="{% url 'expenses:recurring_list' %}" class="btn-secondary btn-sm">Bekor qilish</a>

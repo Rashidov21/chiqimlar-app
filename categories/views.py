@@ -9,6 +9,7 @@ from django.utils import timezone
 from django.views.decorators.http import require_http_methods
 
 from core.permissions import get_user_object_or_404
+from core.rate_limit import rate_limit_action
 from expenses.models import Expense
 from expenses.services import get_monthly_totals, get_category_breakdown
 from .models import Category, CategoryBudget
@@ -34,6 +35,7 @@ def category_list(request):
 
 @login_required
 @require_http_methods(["GET", "POST"])
+@rate_limit_action("category_create", max_requests=30)
 def category_create(request):
     form = CategoryForm(request.POST or None, user=request.user)
     if form.is_valid():
@@ -45,6 +47,7 @@ def category_create(request):
 
 @login_required
 @require_http_methods(["GET", "POST"])
+@rate_limit_action("category_edit", max_requests=30)
 def category_edit(request, pk):
     category = get_user_object_or_404(Category, request.user, pk)
     form = CategoryForm(request.POST or None, instance=category, user=request.user)
@@ -57,6 +60,7 @@ def category_edit(request, pk):
 
 @login_required
 @require_http_methods(["POST"])
+@rate_limit_action("category_delete", max_requests=30)
 def category_delete(request, pk):
     category = get_user_object_or_404(Category, request.user, pk)
     category.delete()
@@ -129,6 +133,7 @@ def category_budget_list(request):
 
 @login_required
 @require_http_methods(["GET", "POST"])
+@rate_limit_action("category_budget_create", max_requests=30)
 def category_budget_create(request):
     """Yangi turkum byudjeti yaratish."""
     form = CategoryBudgetForm(request.POST or None, user=request.user)
@@ -136,16 +141,19 @@ def category_budget_create(request):
         form.save()
         messages.success(request, "Turkum bo'yicha byudjet saqlandi.")
         return redirect("categories:budgets")
-    preset_amounts = [100_000, 500_000, 1_000_000, 2_000_000]
     return render(
         request,
         "categories/category_budget_form.html",
-        {"form": form, "title": "Yangi turkum byudjeti", "preset_amounts": preset_amounts},
+        {
+            "form": form,
+            "title": "Yangi turkum byudjeti",
+        },
     )
 
 
 @login_required
 @require_http_methods(["GET", "POST"])
+@rate_limit_action("category_budget_edit", max_requests=30)
 def category_budget_edit(request, pk):
     """Mavjud turkum byudjetini tahrirlash."""
     budget = get_user_object_or_404(CategoryBudget, request.user, pk)
@@ -154,16 +162,20 @@ def category_budget_edit(request, pk):
         form.save()
         messages.success(request, "Turkum byudjeti yangilandi.")
         return redirect("categories:budgets")
-    preset_amounts = [100_000, 500_000, 1_000_000, 2_000_000]
     return render(
         request,
         "categories/category_budget_form.html",
-        {"form": form, "budget": budget, "title": "Byudjetni tahrirlash", "preset_amounts": preset_amounts},
+        {
+            "form": form,
+            "budget": budget,
+            "title": "Byudjetni tahrirlash",
+        },
     )
 
 
 @login_required
 @require_http_methods(["POST"])
+@rate_limit_action("category_budget_delete", max_requests=30)
 def category_budget_delete(request, pk):
     budget = get_user_object_or_404(CategoryBudget, request.user, pk)
     budget.delete()

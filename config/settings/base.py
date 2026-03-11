@@ -92,6 +92,11 @@ TIME_ZONE = env("TIME_ZONE", default="Asia/Tashkent")
 USE_I18N = True
 USE_TZ = True
 
+# Raqamlarda minglik ajratish (intcomma va ko‘rsatishlar uchun)
+USE_THOUSAND_SEPARATOR = True
+THOUSAND_SEPARATOR = "\u00a0"  # no-break space
+NUMBER_GROUPING = 3
+
 STATIC_URL = "static/"
 STATIC_ROOT = BASE_DIR / "staticfiles"
 STATICFILES_DIRS = [BASE_DIR / "static"] if (BASE_DIR / "static").exists() else []
@@ -99,11 +104,21 @@ STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
-CACHES = {
-    "default": {
-        "BACKEND": "django.core.cache.backends.locmem.LocMemCache",
+# Production: REDIS_URL berilsa Redis (rate limit, replay, insights cache), aks holda LocMem
+REDIS_URL = env("REDIS_URL", default="")
+if REDIS_URL:
+    CACHES = {
+        "default": {
+            "BACKEND": "django.core.cache.backends.redis.RedisCache",
+            "LOCATION": REDIS_URL,
+        }
     }
-}
+else:
+    CACHES = {
+        "default": {
+            "BACKEND": "django.core.cache.backends.locmem.LocMemCache",
+        }
+    }
 
 LOGIN_URL = "accounts:login"
 LOGIN_REDIRECT_URL = "expenses:dashboard"
