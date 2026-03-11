@@ -17,7 +17,7 @@ class ExpenseForm(forms.ModelForm):
         self.fields["category"].required = False
         self.fields["category"].empty_label = "Chiqim turkumi"
         self.fields["date"].initial = timezone.now().date()
-        self.fields["amount"].widget.attrs["class"] = "input-field"
+        self.fields["amount"].widget.attrs["class"] = "input-field amount-input"
         self.fields["amount"].widget.attrs["placeholder"] = "Summasi (so'm)"
         self.fields["amount"].widget.attrs["inputmode"] = "numeric"
         self.fields["amount"].widget.attrs["min"] = "0"
@@ -57,10 +57,11 @@ class SavingGoalForm(forms.ModelForm):
         if not self.instance.pk:
             self.fields["start_date"].initial = timezone.now().date()
 
-        for name in ("name", "target_amount", "current_amount", "start_date", "target_date"):
+        for name in ("name", "start_date", "target_date"):
             if name in self.fields:
                 self.fields[name].widget.attrs.setdefault("class", "input-field")
-
+        self.fields["target_amount"].widget.attrs.setdefault("class", "input-field amount-input")
+        self.fields["current_amount"].widget.attrs.setdefault("class", "input-field amount-input")
         self.fields["target_amount"].widget.attrs.setdefault("placeholder", "Maqsad summa (so'm)")
         self.fields["target_amount"].widget.attrs.setdefault("inputmode", "numeric")
         self.fields["current_amount"].widget.attrs.setdefault("placeholder", "Hozircha jamg'arilgan (ixtiyoriy)")
@@ -107,10 +108,10 @@ class RecurringExpenseForm(forms.ModelForm):
         if not self.instance.pk:
             self.fields["next_payment_date"].initial = timezone.now().date()
 
-        for name in ("name", "amount", "category", "interval", "next_payment_date"):
+        for name in ("name", "category", "interval", "next_payment_date"):
             if name in self.fields:
                 self.fields[name].widget.attrs.setdefault("class", "input-field")
-
+        self.fields["amount"].widget.attrs.setdefault("class", "input-field amount-input")
         self.fields["amount"].widget.attrs.setdefault("placeholder", "To'lov summasi (so'm)")
         self.fields["amount"].widget.attrs.setdefault("inputmode", "numeric")
 
@@ -152,10 +153,10 @@ class DebtForm(forms.ModelForm):
         if not self.instance.pk:
             self.fields["date"].initial = timezone.now().date()
 
-        for name in ("kind", "counterparty", "amount", "date", "due_date", "note"):
+        for name in ("kind", "counterparty", "date", "due_date", "note"):
             if name in self.fields:
                 self.fields[name].widget.attrs.setdefault("class", "input-field")
-
+        self.fields["amount"].widget.attrs.setdefault("class", "input-field amount-input")
         self.fields["counterparty"].widget.attrs.setdefault("placeholder", "Ism yoki tashkilot nomi")
         self.fields["amount"].widget.attrs.setdefault("placeholder", "Qarz summasi (so'm)")
         self.fields["amount"].widget.attrs.setdefault("inputmode", "numeric")

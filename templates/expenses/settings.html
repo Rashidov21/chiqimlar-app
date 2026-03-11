@@ -11,12 +11,30 @@
     </div>
 </div>
 
-<div class="card" style="max-width: 560px;">
+<div class="card section-grid" style="max-width: 560px;">
+    <section style="margin-bottom: 20px;">
+        <h2 style="font-size: 1rem; font-weight: 600; color: var(--text-main); margin-bottom: 12px;">Tezkor kirish</h2>
+        <div style="display: flex; flex-direction: column; gap: 2px;">
+            <a href="{% url 'expenses:dashboard' %}" class="list-row" style="text-decoration: none; color: inherit;">Bu Oy</a>
+            <a href="{% url 'expenses:add' %}" class="list-row" style="text-decoration: none; color: inherit;">Xarajat qo'shish</a>
+            <a href="{% url 'expenses:list' %}" class="list-row" style="text-decoration: none; color: inherit;">Barcha xarajatlar</a>
+            <a href="{% url 'expenses:saving_goal_list' %}" class="list-row" style="text-decoration: none; color: inherit;">Maqsadlar</a>
+            <a href="{% url 'expenses:recurring_list' %}" class="list-row" style="text-decoration: none; color: inherit;">Qayta to'lovlar</a>
+            <a href="{% url 'expenses:debt_list' %}" class="list-row" style="text-decoration: none; color: inherit;">Qarzlar</a>
+            <a href="{% url 'analytics:statistics' %}" class="list-row" style="text-decoration: none; color: inherit;">Statistika</a>
+            <a href="{% url 'categories:list' %}" class="list-row" style="text-decoration: none; color: inherit;">Turkumlar</a>
+            <a href="{% url 'categories:budgets' %}" class="list-row" style="text-decoration: none; color: inherit;">Turkum byudjetlari</a>
+            <a href="/privacy/" class="list-row" style="text-decoration: none; color: inherit;">Maxfiylik</a>
+            <a href="/yordam/" class="list-row" style="text-decoration: none; color: inherit;">Yordam</a>
+        </div>
+    </section>
+
     <form method="post" action="{% url 'expenses:settings' %}" style="display: flex; flex-direction: column; gap: 16px;">
         {% csrf_token %}
         <div>
             <label for="monthly_budget" class="input-label">💰 Oylik byudjet (so'm)</label>
-            <input type="number" name="monthly_budget" id="monthly_budget" value="{{ user.monthly_budget }}" min="0" step="1000" class="input-field" placeholder="0" inputmode="numeric">
+            {% include "partials/quick_amount_chips.html" with input_id="monthly_budget" preset_amounts=preset_amounts %}
+            <input type="number" name="monthly_budget" id="monthly_budget" value="{{ user.monthly_budget }}" min="0" step="1000" class="input-field amount-input" placeholder="0" inputmode="numeric" style="margin-top: 8px;">
             <p style="margin-top: 4px; font-size: 0.8rem; color: var(--text-muted);">Masalan: 2000000</p>
         </div>
         <div>

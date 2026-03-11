@@ -56,12 +56,12 @@ def login_view(request):
 @require_http_methods(["GET", "HEAD"])
 def register_view(request):
     """
-    Ro'yxatdan o'tish sahifasi: endi alohida forma yo'q.
-    Foydalanuvchi botga /start yuborib, Mini App orqali avtomatik yaratiladi.
+    Ro'yxatdan o'tish bot orqali — alohida sahifa yo'q.
+    /register/ kelsa login sahifasiga yo'naltiramiz.
     """
     if request.user.is_authenticated:
         return redirect("expenses:dashboard")
-    return render(request, "accounts/register.html")
+    return redirect("accounts:login")
 
 
 @require_http_methods(["POST"])

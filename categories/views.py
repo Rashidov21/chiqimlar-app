@@ -141,13 +141,11 @@ def category_budget_create(request):
         form.save()
         messages.success(request, "Turkum bo'yicha byudjet saqlandi.")
         return redirect("categories:budgets")
+    preset_amounts = [100_000, 500_000, 1_000_000, 2_000_000]
     return render(
         request,
         "categories/category_budget_form.html",
-        {
-            "form": form,
-            "title": "Yangi turkum byudjeti",
-        },
+        {"form": form, "title": "Yangi turkum byudjeti", "preset_amounts": preset_amounts},
     )
 
 
@@ -162,14 +160,11 @@ def category_budget_edit(request, pk):
         form.save()
         messages.success(request, "Turkum byudjeti yangilandi.")
         return redirect("categories:budgets")
+    preset_amounts = [100_000, 500_000, 1_000_000, 2_000_000]
     return render(
         request,
         "categories/category_budget_form.html",
-        {
-            "form": form,
-            "budget": budget,
-            "title": "Byudjetni tahrirlash",
-        },
+        {"form": form, "budget": budget, "title": "Byudjetni tahrirlash", "preset_amounts": preset_amounts},
     )
 
 

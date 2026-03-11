@@ -21,11 +21,13 @@
         </div>
         <div>
             <label for="{{ form.target_amount.id_for_label }}" class="input-label">🎯 Maqsad summa (so'm)</label>
+            {% if preset_amounts %}{% include "partials/quick_amount_chips.html" with input_id="id_target_amount" preset_amounts=preset_amounts %}{% endif %}
             {{ form.target_amount }}
             {% if form.target_amount.errors %}<p class="field-error">{{ form.target_amount.errors.0 }}</p>{% endif %}
         </div>
         <div>
             <label for="{{ form.current_amount.id_for_label }}" class="input-label">💰 Hozircha jamg'arilgan (ixtiyoriy)</label>
+            {% if preset_amounts %}{% include "partials/quick_amount_chips.html" with input_id="id_current_amount" preset_amounts=preset_amounts %}{% endif %}
             {{ form.current_amount }}
             {% if form.current_amount.errors %}<p class="field-error">{{ form.current_amount.errors.0 }}</p>{% endif %}
         </div>

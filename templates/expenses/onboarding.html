@@ -20,6 +20,7 @@
 
             <div>
                 <label for="monthly_budget" class="input-label">💰 Oylik byudjet (so'm)</label>
+                {% if preset_amounts %}{% include "partials/quick_amount_chips.html" with input_id="monthly_budget" preset_amounts=preset_amounts %}{% endif %}
                 <input
                     type="number"
                     name="monthly_budget"
@@ -27,9 +28,10 @@
                     value="{{ user.monthly_budget }}"
                     min="0"
                     step="1000"
-                    class="input-field"
+                    class="input-field amount-input"
                     placeholder="Masalan: 2000000"
                     inputmode="numeric"
+                    style="margin-top: 8px;"
                 >
                 <p style="margin-top: 4px; font-size: 0.8rem; color: var(--text-muted);">
                     Taxminiy oyiga qancha sarflashingizni rejalashtirasiz? Keyin uni sozlamalarda o'zgartira olasiz.

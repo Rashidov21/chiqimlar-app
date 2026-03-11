@@ -24,6 +24,7 @@
         </div>
         <div>
             <label for="{{ form.amount.id_for_label }}" class="input-label">Summasi (so'm)</label>
+            {% if preset_amounts %}{% include "partials/quick_amount_chips.html" with input_id="id_amount" preset_amounts=preset_amounts %}{% endif %}
             {{ form.amount }}
             {% if form.amount.errors %}<p class="field-error">{{ form.amount.errors.0 }}</p>{% endif %}
         </div>

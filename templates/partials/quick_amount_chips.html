@@ -1,0 +1,32 @@
+{% load humanize %}
+{# input_id: id of the amount input (e.g. id_amount, monthly_budget) #}
+{# preset_amounts: list of numbers; last_amounts: optional list from context #}
+<div class="quick-amount-chips" data-input-id="{{ input_id }}">
+    <p class="input-label" style="margin-bottom: 8px;">Tezkor summa</p>
+    <div style="display: flex; flex-wrap: wrap; gap: 8px;">
+        {% for amount in preset_amounts %}
+        <button type="button" class="amount-chip" data-amount="{{ amount }}">{{ amount|intcomma }}</button>
+        {% endfor %}
+        {% if last_amounts %}
+        {% for amount in last_amounts %}
+        <button type="button" class="amount-chip amount-chip-last" data-amount="{{ amount }}">{{ amount|intcomma }}</button>
+        {% endfor %}
+        {% endif %}
+    </div>
+</div>
+<script>
+(function(){
+    var container = document.querySelector('.quick-amount-chips[data-input-id="{{ input_id }}"]');
+    if (!container) return;
+    var inputId = container.getAttribute('data-input-id');
+    var input = inputId ? document.getElementById(inputId) : null;
+    if (!input) return;
+    container.querySelectorAll('.amount-chip').forEach(function(btn) {
+        btn.addEventListener('click', function() {
+            var val = this.getAttribute('data-amount');
+            if (val) { input.value = val; input.dispatchEvent(new Event('input', { bubbles: true })); }
+            if (window.haptic) window.haptic();
+        });
+    });
+})();
+</script>

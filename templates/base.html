@@ -25,15 +25,17 @@
     <style>
         /* Tailwind CDN @apply ni qo'llamaydi — oddiy CSS */
         :root {
-            --bg-page: #f5f5ff;
+            --bg-page: #f8fafc;
             --bg-card: #ffffff;
-            --border-subtle: #e8e6ff;
-            --border-soft: #f3f3ff;
-            --text-main: #121331;
-            --text-muted: #6b6b8a;
+            --border-subtle: #e2e8f0;
+            --border-soft: #f1f5f9;
+            --text-main: #0f172a;
+            --text-muted: #64748b;
             --primary: #5a3fff;
-            --primary-soft: #ebe6ff;
+            --primary-soft: #eef2ff;
             --danger: #dc2626;
+            --success: #16a34a;
+            --warning: #ca8a04;
         }
         body {
             font-family: 'Inter', system-ui, sans-serif;
@@ -72,7 +74,7 @@
             color: var(--danger);
         }
 
-        /* Tugmalar */
+        /* Tugmalar — loyiha standarti (mobile-first, 44–48px touch) */
         .btn-primary,
         .btn-secondary {
             display: inline-flex;
@@ -80,9 +82,7 @@
             justify-content: center;
             gap: 6px;
             border-radius: 9999px;
-            padding: 10px 18px;
             font-weight: 500;
-            font-size: 0.95rem;
             text-decoration: none;
             cursor: pointer;
             border: none;
@@ -90,32 +90,39 @@
             white-space: nowrap;
         }
         .btn-primary {
+            min-height: 48px;
+            padding: 12px 20px;
+            font-size: 1rem;
             background: var(--primary);
             color: #ffffff;
-            box-shadow: 0 8px 24px rgba(90, 63, 255, 0.35);
+            box-shadow: 0 4px 14px rgba(90, 63, 255, 0.25);
         }
         .btn-primary:hover {
             background: #4c33e6;
-            box-shadow: 0 12px 28px rgba(90, 63, 255, 0.4);
         }
         .btn-secondary {
+            min-height: 44px;
+            padding: 10px 18px;
+            font-size: 0.9375rem;
             background: #ffffff;
             color: #374151;
             border: 1px solid var(--border-subtle);
         }
         .btn-secondary:hover {
-            background: #f9fafb;
+            background: #f8fafc;
         }
-
         .btn-sm {
+            min-height: 44px;
             padding: 8px 14px;
             font-size: 0.875rem;
         }
         .btn-lg {
-            padding: 14px 24px;
+            min-height: 48px;
+            padding: 12px 24px;
             font-size: 1rem;
         }
         .btn-danger-sm {
+            min-height: 44px;
             padding: 8px 14px;
             font-size: 0.875rem;
             border-radius: 9999px;
@@ -131,13 +138,8 @@
         .btn-danger-sm:hover {
             background: #fef2f2;
         }
-
-        @media (max-width: 480px) {
-            .btn-primary,
-            .btn-secondary {
-                width: 100%;
-            }
-            .btn-sm { width: auto; }
+        .btn-block {
+            width: 100%;
         }
 
         /* Kartalar va sahifa layout */
@@ -168,19 +170,12 @@
             color: var(--text-muted);
             margin-top: 2px;
         }
-        @media (max-width: 768px) {
-            .page-title { font-size: 1.15rem; }
-            .page-subtitle { font-size: 0.8rem; }
-        }
+        .page-title { font-size: 1.15rem; }
+        .page-subtitle { font-size: 0.8rem; }
 
         .section-grid {
             display: grid;
             gap: 16px;
-        }
-        @media (min-width: 768px) {
-            .section-grid--two {
-                grid-template-columns: 1fr 1fr;
-            }
         }
 
         .list-row {
@@ -226,9 +221,10 @@
             display: flex;
             justify-content: space-around;
             align-items: center;
-            padding: 10px 0;
-            padding-bottom: calc(10px + env(safe-area-inset-bottom, 0px));
-            background: #ffffff;
+            min-height: 56px;
+            padding: 8px 0;
+            padding-bottom: calc(8px + env(safe-area-inset-bottom, 0px));
+            background: var(--bg-card);
             border-top: 1px solid var(--border-soft);
             position: fixed;
             bottom: 0;
@@ -244,9 +240,11 @@
             color: var(--text-muted);
             text-decoration: none;
             font-size: 0.75rem;
-            padding: 6px 10px;
+            padding: 8px 12px;
             border-radius: 9999px;
             transition: all 0.15s;
+            min-height: 44px;
+            justify-content: center;
         }
         .bottom-nav a:hover {
             color: var(--primary);
@@ -275,18 +273,14 @@
             to { opacity: 1; transform: translateX(0); }
         }
 
-        @media (min-width: 768px) {
-            .bottom-nav { display: none !important; }
-        }
-        @media (max-width: 767px) {
-            .top-nav-links { display: none !important; }
-        }
+        /* Mobile-only: bitta layout, bottom-nav doim, yuqori nav yashirin (faqat logo) */
+        .top-nav-links { display: none !important; }
 
         main {
-            padding-bottom: calc(100px + 28px + env(safe-area-inset-bottom, 0px));
-        }
-        @media (min-width: 768px) {
-            main { padding-bottom: 24px; }
+            padding-bottom: calc(56px + 24px + env(safe-area-inset-bottom, 0px));
+            max-width: 480px;
+            margin-left: auto;
+            margin-right: auto;
         }
 
         .stat-segment--active {
@@ -294,7 +288,7 @@
             color: #fff !important;
         }
 
-        /* Form action tugmalari klaviatura ochiqda ham ko‘rinsin (mobil) */
+        /* Form action tugmalari — sticky pastda */
         .form-actions-sticky {
             position: sticky;
             bottom: 0;
@@ -307,23 +301,49 @@
             margin-top: 8px;
             box-shadow: 0 -2px 12px rgba(15, 23, 42, 0.06);
         }
-        @media (min-width: 769px) {
-            .form-actions-sticky {
-                position: static;
-                padding: 0;
-                margin-top: 0;
-                box-shadow: none;
-                background: transparent;
-            }
+        .amount-chip {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 40px;
+            padding: 8px 14px;
+            font-size: 0.875rem;
+            font-weight: 500;
+            border-radius: 9999px;
+            border: 1px solid var(--border-subtle);
+            background: var(--bg-card);
+            color: var(--text-main);
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+        .amount-chip:hover {
+            border-color: var(--primary);
+            background: var(--primary-soft);
+            color: var(--primary);
         }
     </style>
     {% block extra_head %}{% endblock %}
 </head>
 <body>
+    <svg xmlns="http://www.w3.org/2000/svg" style="position: absolute; width: 0; height: 0; overflow: hidden;" aria-hidden="true">
+        <defs>
+            <symbol id="icon-wallet" viewBox="0 0 16 16"><path fill="currentColor" d="M13.5 3a.5.5 0 0 1 .5.5V4h-1v-.5a.5.5 0 0 1 .5-.5zm-1 1V4H2v8h10.5v-.5a.5.5 0 0 1 1 0v.5a1 1 0 0 1-1 1H2a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h10.5zM2 5.5a.5.5 0 0 1 .5-.5h3a.5.5 0 0 1 .5.5v3a.5.5 0 0 1-.5.5h-3a.5.5 0 0 1-.5-.5v-3zm4.5 0a.5.5 0 0 1 .5-.5h6a.5.5 0 0 1 0 1h-6a.5.5 0 0 1-.5-.5z"/></symbol>
+            <symbol id="icon-speedometer" viewBox="0 0 16 16"><path fill="currentColor" d="M8 4a.5.5 0 0 1 .5.5V6a.5.5 0 0 1-1 0V4.5A.5.5 0 0 1 8 4zM3.732 5.732a.5.5 0 0 1 .707 0l.915.914a.5.5 0 1 1-.708.708l-.914-.915a.5.5 0 0 1 0-.707zM2 10a.5.5 0 0 1 .5-.5h1.586a.5.5 0 0 1 0 1H2.5A.5.5 0 0 1 2 10zm9.5 0a.5.5 0 0 1 .5-.5h1.5a.5.5 0 0 1 0 1H12a.5.5 0 0 1-.5-.5zm.754-4.246a.389.389 0 0 0-.527-.02L7.547 9.31a.91.91 0 1 0 1.302 1.258l3.434-4.297a.389.389 0 0 0-.029-.518z"/><path fill="currentColor" d="M0 10a8 8 0 1 1 15.547 2.661c-.442 1.253-1.845 1.602-2.932 1.25C11.309 13.488 9.475 13 8 13c-1.474 0-3.31.488-4.615.911-1.087.352-2.49.003-2.932-1.25A7.988 7.988 0 0 1 0 10zm8-7a7 7 0 0 0-6.603 9.329c.203.575.923.876 1.68.63C4.397 12.533 6.358 12 8 12s3.604.532 4.923.96c.757.245 1.477-.056 1.68-.631A7 7 0 0 0 8 3z"/></symbol>
+            <symbol id="icon-plus" viewBox="0 0 16 16"><path fill="currentColor" d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4z"/></symbol>
+            <symbol id="icon-plus-circle" viewBox="0 0 16 16"><path fill="currentColor" d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"/><path fill="currentColor" d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4z"/></symbol>
+            <symbol id="icon-bullseye" viewBox="0 0 16 16"><path fill="currentColor" d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"/><path fill="currentColor" d="M8 13A5 5 0 1 1 8 3a5 5 0 0 1 0 10zm0 1A6 6 0 1 0 8 2a6 6 0 0 0 0 12z"/><path fill="currentColor" d="M8 11a3 3 0 1 1 0-6 3 3 0 0 1 0 6zm0 1a4 4 0 1 0 0-8 4 4 0 0 0 0 8z"/></symbol>
+            <symbol id="icon-arrow-repeat" viewBox="0 0 16 16"><path fill="currentColor" d="M11.534 7h3.932a.25.25 0 0 1 .192.41l-1.966 2.36a.25.25 0 0 1-.384 0l-1.966-2.36a.25.25 0 0 1 .192-.41zm-11 2h3.932a.25.25 0 0 0 .192-.41L2.692 6.23a.25.25 0 0 0-.384 0L.342 8.59A.25.25 0 0 0 .534 9z"/><path fill="currentColor" fill-rule="evenodd" d="M8 3c-1.552 0-2.94.707-3.857 1.818a.5.5 0 1 1-.771-.636A6.002 6.002 0 0 1 13.917 7H12.9A5.002 5.002 0 0 0 8 3zM3.1 9a5.002 5.002 0 0 0 8.757 2.182.5.5 0 1 1 .771.636A6.002 6.002 0 0 1 2.083 9H3.1z"/></symbol>
+            <symbol id="icon-people" viewBox="0 0 16 16"><path fill="currentColor" d="M15 14s1 0 1-1-1-4-5-4-5 3-5 4 1 1 1 1h8zm-7.978-1A.261.261 0 0 1 7 12.996c.001-.264.167-1.03.76-1.72C8.312 10.629 9.282 10 11 10c1.717 0 2.687.63 3.24 1.276.593.69.758 1.457.76 1.72l-.008.002a.274.274 0 0 1-.014.002H7.022zM11 7a2 2 0 1 0 0-4 2 2 0 0 0 0 4zm3-2a3 3 0 1 1-6 0 3 3 0 0 1 6 0zM6.936 9.28a5.88 5.88 0 0 0-1.23-.247A7.35 7.35 0 0 0 5 9c-4 0-5 3-5 4 0 .667.333 1 1 1h4.216A2.238 2.238 0 0 1 5 13c0-1.01.377-2.042 1.09-2.904.243-.294.526-.569.846-.816zM4.92 10A5.493 5.493 0 0 0 4 13H1c0-.26.164-1.03.76-1.724C2.42 10.43 3.557 10 5 10c.37 0 .724.034 1.07.096z"/></symbol>
+            <symbol id="icon-bar-chart" viewBox="0 0 16 16"><path fill="currentColor" d="M4 11H2v3h2v-3zm5-4H7v7h2V7zm5-5v12h-2V2h2zm-2-1a1 1 0 0 0-1 1v12a1 1 0 0 0 1 1h2a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1h-2zM6 7a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v7a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V7zm-5 4a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v3a1 1 0 0 1-1 1H2a1 1 0 0 1-1-1v-3z"/></symbol>
+            <symbol id="icon-folder" viewBox="0 0 16 16"><path fill="currentColor" d="M.54 3.87.5 3a2 2 0 0 1 2-2h3.672a2 2 0 0 1 1.414.586l.828.828A2 2 0 0 0 9.828 3h3.982a2 2 0 0 1 1.992 2.181l-.637 7A2 2 0 0 1 13.566 14H2.434a2 2 0 0 1-1.995-1.853l-.637-7A1.994 1.994 0 0 1 .54 3.87zM2.434 4a1 1 0 0 0-.996.901l-.637 7a1 1 0 0 0 .995 1.098h11.132a1 1 0 0 0 .995-.901l.637-7A1 1 0 0 0 13.566 4H2.434z"/></symbol>
+            <symbol id="icon-gear" viewBox="0 0 16 16"><path fill="currentColor" d="M8 4.754a3.246 3.246 0 1 0 0 6.492 3.246 3.246 0 0 0 0-6.492zM5.754 8a2.246 2.246 0 1 1 4.492 0 2.246 2.246 0 0 1-4.492 0z"/><path fill="currentColor" d="M9.796 1.343c-.527-1.79-3.065-1.79-3.592 0l-.094.319a.873.873 0 0 1-1.255.52l-.292-.16c-1.64-.892-3.433.902-2.54 2.541l.159.292a.873.873 0 0 1-.52 1.255l-.319.094c-1.79.527-1.79 3.065 0 3.592l.319.094a.873.873 0 0 1 .52 1.255l-.16.292c-.892 1.64.901 3.434 2.541 2.54l.292-.159a.873.873 0 0 1 1.255.52l.094.319c.527 1.79 3.065 1.79 3.592 0l.094-.319a.873.873 0 0 1 1.255-.52l.292.16c1.64.893 3.434-.902 2.54-2.541l-.159-.292a.873.873 0 0 1 .52-1.255l.319-.094c1.79-.527 1.79-3.065 0-3.592l-.319-.094a.873.873 0 0 1-.52-1.255l.16-.292c.893-1.64-.902-3.433-2.541-2.54l-.292.159a.873.873 0 0 1-1.255-.52l-.094-.319z"/></symbol>
+            <symbol id="icon-box-arrow-right" viewBox="0 0 16 16"><path fill="currentColor" fill-rule="evenodd" d="M10 12.5a.5.5 0 0 1-.5.5h-8a.5.5 0 0 1-.5-.5v-9a.5.5 0 0 1 .5-.5h8a.5.5 0 0 1 .5.5v2a.5.5 0 0 0 1 0v-2A1.5 1.5 0 0 0 9.5 2h-8A1.5 1.5 0 0 0 0 3.5v9A1.5 1.5 0 0 0 1.5 14h8a1.5 1.5 0 0 0 1.5-1.5v-2a.5.5 0 0 0-1 0v2z"/><path fill="currentColor" fill-rule="evenodd" d="M15.854 2.646a.5.5 0 0 1 0 .708l-3 3a.5.5 0 0 1-.708-.708L14.293 3H6.5a.5.5 0 0 1 0-1h7.793l-2.147-2.146a.5.5 0 0 1 .708-.708l3 3z"/></symbol>
+        </defs>
+    </svg>
     {% if messages %}
     <div id="message-toast" class="message-toast" style="display: flex; flex-direction: column; gap: 8px;">
         {% for message in messages %}
-        <div class="rounded-xl px-4 py-3 shadow-lg msg-item" data-msg-tag="{{ message.tags|default:'info' }}" style="{% if message.tags == 'error' %}background: #fef2f2; color: #991b1b; border: 1px solid #fecaca{% elif message.tags == 'success' %}background: #ebe6ff; color: #4338ca; border: 1px solid #c4b5fd{% else %}background: #eff6ff; color: #1e40af; border: 1px solid #bfdbfe{% endif %}">
+        <div class="rounded-xl px-4 py-3 shadow-lg msg-item" data-msg-tag="{{ message.tags|default:'info' }}" style="{% if message.tags == 'error' %}background: #fef2f2; color: var(--danger); border: 1px solid #fecaca{% elif message.tags == 'success' %}background: var(--primary-soft); color: var(--primary); border: 1px solid var(--border-subtle){% else %}background: #eff6ff; color: #1e40af; border: 1px solid #bfdbfe{% endif %}">
             {% if message.tags == 'success' %}<i class="bi bi-check-circle-fill" style="margin-right: 8px;"></i>{% elif message.tags == 'error' %}<i class="bi bi-exclamation-circle-fill" style="margin-right: 8px;"></i>{% endif %}{{ message }}
         </div>
         {% endfor %}
@@ -333,55 +353,24 @@
     {% block nav %}
     {% if user.is_authenticated %}
     <nav class="bg-white border-b border-gray-100 shadow-sm sticky top-0 z-40" style="padding-top: env(safe-area-inset-top, 0px);">
-        <div class="max-w-4xl mx-auto px-4 py-3 flex items-center justify-between">
+        <div class="max-w-[480px] mx-auto px-4 py-3 flex items-center justify-between">
             <a href="{% url 'expenses:dashboard' %}" class="text-xl font-semibold flex items-center gap-2" style="color: var(--primary);">
-                <i class="bi bi-wallet2"></i> Chiqimlar
+                <svg class="icon" width="24" height="24" fill="currentColor" aria-hidden="true"><use href="#icon-wallet"></use></svg> Chiqimlar
             </a>
-            <div class="flex items-center gap-1 top-nav-links">
-                <a href="{% url 'expenses:dashboard' %}" class="nav-link {% if request.resolver_match.namespace == 'expenses' and request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
-                    <i class="bi bi-speedometer2"></i> Bu Oy
-                </a>
-                <a href="{% url 'expenses:add' %}" class="btn-primary btn-sm">
-                    <i class="bi bi-plus-lg"></i> Qo'shish
-                </a>
-                <a href="{% url 'expenses:saving_goal_list' %}" class="nav-link {% if request.resolver_match.namespace == 'expenses' and request.resolver_match.url_name == 'saving_goal_list' %}active{% endif %}">
-                    <i class="bi bi-bullseye"></i> Maqsadlar
-                </a>
-                <a href="{% url 'expenses:recurring_list' %}" class="nav-link {% if request.resolver_match.namespace == 'expenses' and request.resolver_match.url_name == 'recurring_list' %}active{% endif %}">
-                    <i class="bi bi-arrow-repeat"></i> Qayta to'lov
-                </a>
-                <a href="{% url 'expenses:debt_list' %}" class="nav-link {% if request.resolver_match.namespace == 'expenses' and request.resolver_match.url_name == 'debt_list' %}active{% endif %}">
-                    <i class="bi bi-people"></i> Qarzlar
-                </a>
-                <a href="{% url 'analytics:statistics' %}" class="nav-link {% if request.resolver_match.namespace == 'analytics' and request.resolver_match.url_name == 'statistics' %}active{% endif %}">
-                    <i class="bi bi-bar-chart"></i> Statistika
-                </a>
-                <a href="{% url 'categories:list' %}" class="nav-link {% if request.resolver_match.namespace == 'categories' and request.resolver_match.url_name == 'list' %}active{% endif %}">
-                    <i class="bi bi-folder"></i> Turkumlar
-                </a>
-                <a href="{% url 'expenses:settings' %}" class="nav-link {% if request.resolver_match.namespace == 'expenses' and request.resolver_match.url_name == 'settings' %}active{% endif %}">
-                    <i class="bi bi-gear"></i> Sozlamalar
-                </a>
-                <form method="post" action="{% url 'accounts:logout' %}" class="inline" style="margin-left: 8px;">{% csrf_token %}
-                    <button type="submit" class="nav-link" style="color: #dc2626; background: none; border: none; cursor: pointer;">
-                        <i class="bi bi-box-arrow-right"></i> Chiqish
-                    </button>
-                </form>
-            </div>
         </div>
     </nav>
 
     <div class="bottom-nav mt-5">
-        <a href="{% url 'expenses:dashboard' %}" class="{% if request.resolver_match.namespace == 'expenses' and request.resolver_match.url_name == 'dashboard' %}active{% endif %}"><i class="bi bi-speedometer2"></i> Bu Oy</a>
-        <a href="{% url 'expenses:add' %}" class="{% if request.resolver_match.namespace == 'expenses' and request.resolver_match.url_name == 'add' %}active{% endif %}"><i class="bi bi-plus-circle-fill"></i> Qo'shish</a>
-        <a href="{% url 'analytics:statistics' %}" class="{% if request.resolver_match.namespace == 'analytics' and request.resolver_match.url_name == 'statistics' %}active{% endif %}"><i class="bi bi-bar-chart"></i> Statistika</a>
-        <a href="{% url 'categories:list' %}" class="{% if request.resolver_match.namespace == 'categories' and request.resolver_match.url_name == 'list' %}active{% endif %}"><i class="bi bi-folder"></i> Turkumlar</a>
-        <a href="{% url 'expenses:settings' %}" class="{% if request.resolver_match.namespace == 'expenses' and request.resolver_match.url_name == 'settings' %}active{% endif %}"><i class="bi bi-gear"></i> Sozlamalar</a>
+        <a href="{% url 'expenses:dashboard' %}" class="{% if request.resolver_match.namespace == 'expenses' and request.resolver_match.url_name == 'dashboard' %}active{% endif %}"><svg class="icon" width="22" height="22" fill="currentColor" aria-hidden="true"><use href="#icon-speedometer"></use></svg> Bu Oy</a>
+        <a href="{% url 'expenses:add' %}" class="{% if request.resolver_match.namespace == 'expenses' and request.resolver_match.url_name == 'add' %}active{% endif %}"><svg class="icon" width="22" height="22" fill="currentColor" aria-hidden="true"><use href="#icon-plus-circle"></use></svg> Qo'shish</a>
+        <a href="{% url 'analytics:statistics' %}" class="{% if request.resolver_match.namespace == 'analytics' and request.resolver_match.url_name == 'statistics' %}active{% endif %}"><svg class="icon" width="22" height="22" fill="currentColor" aria-hidden="true"><use href="#icon-bar-chart"></use></svg> Statistika</a>
+        <a href="{% url 'categories:list' %}" class="{% if request.resolver_match.namespace == 'categories' and request.resolver_match.url_name == 'list' %}active{% endif %}"><svg class="icon" width="22" height="22" fill="currentColor" aria-hidden="true"><use href="#icon-folder"></use></svg> Turkumlar</a>
+        <a href="{% url 'expenses:settings' %}" class="{% if request.resolver_match.namespace == 'expenses' and request.resolver_match.url_name == 'settings' %}active{% endif %}"><svg class="icon" width="22" height="22" fill="currentColor" aria-hidden="true"><use href="#icon-gear"></use></svg> Sozlamalar</a>
     </div>
     {% endif %}
     {% endblock %}
 
-    <main class="max-w-4xl mx-auto px-4 py-4 mb-16">
+    <main class="max-w-[480px] mx-auto px-4 py-4 mb-16">
         {% block content %}{% endblock %}
     </main>
 
@@ -392,7 +381,7 @@
                 tg.ready();
                 tg.expand();
                 if (tg.setHeaderColor) tg.setHeaderColor('#5a3fff');
-                if (tg.setBackgroundColor) tg.setBackgroundColor('#f5f5ff');
+                if (tg.setBackgroundColor) tg.setBackgroundColor('#f8fafc');
                 if (tg.BackButton && window.history.length > 1) {
                     tg.BackButton.show();
                     tg.BackButton.onClick(function() { window.history.back(); });
@@ -412,6 +401,33 @@
             var tg = window.Telegram && window.Telegram.WebApp;
             if (tg && tg.HapticFeedback) tg.HapticFeedback.impactOccurred(style || 'light');
         };
+
+        (function amountFormat() {
+            function strip(s) { return (s || '').toString().replace(/\s/g, '').replace(/[^\d]/g, ''); }
+            function format(numStr) {
+                var n = strip(numStr);
+                if (!n) return '';
+                return n.replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
+            }
+            document.addEventListener('DOMContentLoaded', function() {
+                document.querySelectorAll('.amount-input').forEach(function(inp) {
+                    inp.addEventListener('blur', function() {
+                        var raw = strip(this.value);
+                        if (raw) this.value = format(raw);
+                    });
+                    inp.addEventListener('focus', function() {
+                        this.value = strip(this.value) || '';
+                    });
+                });
+                document.querySelectorAll('form').forEach(function(form) {
+                    form.addEventListener('submit', function() {
+                        form.querySelectorAll('.amount-input').forEach(function(inp) {
+                            inp.value = strip(inp.value);
+                        });
+                    });
+                });
+            });
+        })();
     </script>
     {% block extra_js %}{% endblock %}
 </body>

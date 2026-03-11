@@ -38,6 +38,8 @@ MONTH_NAMES = [
     "Iyul", "Avgust", "Sentabr", "Oktabr", "Noyabr", "Dekabr",
 ]
 
+PRESET_AMOUNTS = [100_000, 500_000, 1_000_000, 2_000_000]
+
 
 def _safe_next_url(request, fallback="expenses:dashboard"):
     """Faqat shu host ichidagi next URL ni qabul qiladi."""
@@ -151,11 +153,7 @@ def onboarding_view(request):
     return render(
         request,
         "expenses/onboarding.html",
-        {
-            "user": user,
-            "profile": profile,
-            "goal_choices": FinanceProfile.PrimaryGoal.choices,
-        },
+        {"user": user, "profile": profile, "goal_choices": FinanceProfile.PrimaryGoal.choices, "preset_amounts": PRESET_AMOUNTS},
     )
 
 
@@ -197,10 +195,7 @@ def saving_goal_create(request):
     return render(
         request,
         "expenses/saving_goal_form.html",
-        {
-            "form": form,
-            "title": "Yangi maqsad",
-        },
+        {"form": form, "title": "Yangi maqsad", "preset_amounts": PRESET_AMOUNTS},
     )
 
 
@@ -218,11 +213,7 @@ def saving_goal_edit(request, pk):
     return render(
         request,
         "expenses/saving_goal_form.html",
-        {
-            "form": form,
-            "goal": goal,
-            "title": "Maqsadni tahrirlash",
-        },
+        {"form": form, "goal": goal, "title": "Maqsadni tahrirlash", "preset_amounts": PRESET_AMOUNTS},
     )
 
 
@@ -265,10 +256,7 @@ def recurring_create(request):
     return render(
         request,
         "expenses/recurring_form.html",
-        {
-            "form": form,
-            "title": "Yangi qayta chiqim",
-        },
+        {"form": form, "title": "Yangi qayta chiqim", "preset_amounts": PRESET_AMOUNTS},
     )
 
 
@@ -286,11 +274,7 @@ def recurring_edit(request, pk):
     return render(
         request,
         "expenses/recurring_form.html",
-        {
-            "form": form,
-            "recurring": obj,
-            "title": "Qayta chiqimni tahrirlash",
-        },
+        {"form": form, "recurring": obj, "title": "Qayta chiqimni tahrirlash", "preset_amounts": PRESET_AMOUNTS},
     )
 
 
@@ -374,10 +358,7 @@ def debt_create(request):
     return render(
         request,
         "expenses/debt_form.html",
-        {
-            "form": form,
-            "title": "Yangi qarz yozuvi",
-        },
+        {"form": form, "title": "Yangi qarz yozuvi", "preset_amounts": PRESET_AMOUNTS},
     )
 
 
@@ -395,11 +376,7 @@ def debt_edit(request, pk):
     return render(
         request,
         "expenses/debt_form.html",
-        {
-            "form": form,
-            "debt": obj,
-            "title": "Qarz yozuvini tahrirlash",
-        },
+        {"form": form, "debt": obj, "title": "Qarz yozuvini tahrirlash", "preset_amounts": PRESET_AMOUNTS},
     )
 
 
@@ -429,7 +406,16 @@ def expense_add(request):
         except Exception as e:
             logger.exception("expense_add save user_id=%s: %s", request.user.pk, e)
             messages.error(request, "Xarajatni saqlashda xatolik. Qaytadan urinib ko'ring.")
-    return render(request, "expenses/expense_form.html", {"form": form, "title": "Xarajat qo'shish"})
+    last_expense_amounts = list(
+        Expense.objects.filter(user=request.user)
+        .order_by("-date", "-id")
+        .values_list("amount", flat=True)[:3]
+    )
+    return render(
+        request,
+        "expenses/expense_form.html",
+        {"form": form, "title": "Xarajat qo'shish", "last_expense_amounts": last_expense_amounts, "preset_amounts": PRESET_AMOUNTS},
+    )
 
 
 @login_required
@@ -444,7 +430,7 @@ def expense_edit(request, pk):
         maybe_send_expense_confirmation_after_expense(request.user, expense)
         messages.success(request, "Xarajat yangilandi.")
         return redirect(_safe_next_url(request))
-    return render(request, "expenses/expense_form.html", {"form": form, "expense": expense, "title": "Xarajatni tahrirlash"})
+    return render(request, "expenses/expense_form.html", {"form": form, "expense": expense, "title": "Xarajatni tahrirlash", "preset_amounts": PRESET_AMOUNTS})
 
 
 @login_required
@@ -631,4 +617,4 @@ def settings_view(request):
             user.save(update_fields=["monthly_budget", "telegram_notifications", "daily_reminder", "weekly_summary", "limit_warning"])
             messages.success(request, "Sozlamalar saqlandi.")
         return redirect("expenses:settings")
-    return render(request, "expenses/settings.html", {"user": user})
+    return render(request, "expenses/settings.html", {"user": user, "preset_amounts": PRESET_AMOUNTS})
