@@ -73,26 +73,48 @@
             </div>
         </div>
 
-        <div style="display: flex; align-items: flex-start; gap: 12px;">
-            <span style="font-size: 1.4rem;">📋</span>
-            <div>
-                <p style="font-weight: 500; color: var(--text-main); margin-bottom: 6px;">Ilova bo'limlari</p>
-                <ul style="list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 6px;">
-                    <li><a href="{% url 'expenses:saving_goal_list' %}" style="color: var(--primary); font-size: 0.9rem; text-decoration: none;">Maqsadlar →</a></li>
-                    <li><a href="{% url 'expenses:recurring_list' %}" style="color: var(--primary); font-size: 0.9rem; text-decoration: none;">Qayta to'lov →</a></li>
-                    <li><a href="{% url 'expenses:debt_list' %}" style="color: var(--primary); font-size: 0.9rem; text-decoration: none;">Qarzlar →</a></li>
-                </ul>
-            </div>
-        </div>
-
-        <div style="display: flex; align-items: flex-start; gap: 12px;">
-            <span style="font-size: 1.4rem;">🔒</span>
-            <div>
-                <p style="font-weight: 500; color: var(--text-main); margin-bottom: 4px;">Maxfiylik va yordam</p>
-                <p style="font-size: 0.82rem; color: var(--text-muted); margin-bottom: 6px;">Maxfiylik siyosati va tez-tez beriladigan savollar.</p>
-                <a href="/privacy/" style="color: var(--primary); font-size: 0.9rem; text-decoration: none; margin-right: 12px;">Maxfiylik</a>
-                <a href="/yordam/" style="color: var(--primary); font-size: 0.9rem; text-decoration: none;">Yordam</a>
-            </div>
+        <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 8px; font-weight: 500;">Ilova bo'limlari</p>
+        <div style="display: grid; gap: 10px;">
+            <a href="{% url 'expenses:saving_goal_list' %}" class="card card-compact" style="display: flex; align-items: center; gap: 12px; text-decoration: none; color: inherit; padding: 14px 16px;">
+                <i class="bi bi-bullseye" style="font-size: 1.5rem; color: var(--primary);"></i>
+                <div>
+                    <div style="font-weight: 600; font-size: 0.95rem;">Maqsadlar</div>
+                    <div style="font-size: 0.8rem; color: var(--text-muted);">Jamg'arma maqsadlari</div>
+                </div>
+                <i class="bi bi-chevron-right" style="margin-left: auto; color: var(--text-muted);"></i>
+            </a>
+            <a href="{% url 'expenses:recurring_list' %}" class="card card-compact" style="display: flex; align-items: center; gap: 12px; text-decoration: none; color: inherit; padding: 14px 16px;">
+                <i class="bi bi-arrow-repeat" style="font-size: 1.5rem; color: var(--primary);"></i>
+                <div>
+                    <div style="font-weight: 600; font-size: 0.95rem;">Qayta to'lov</div>
+                    <div style="font-size: 0.8rem; color: var(--text-muted);">Takrorlanuvchi to'lovlar</div>
+                </div>
+                <i class="bi bi-chevron-right" style="margin-left: auto; color: var(--text-muted);"></i>
+            </a>
+            <a href="{% url 'expenses:debt_list' %}" class="card card-compact" style="display: flex; align-items: center; gap: 12px; text-decoration: none; color: inherit; padding: 14px 16px;">
+                <i class="bi bi-people" style="font-size: 1.5rem; color: var(--primary);"></i>
+                <div>
+                    <div style="font-weight: 600; font-size: 0.95rem;">Qarzlar</div>
+                    <div style="font-size: 0.8rem; color: var(--text-muted);">Olingan va berilgan qarzlar</div>
+                </div>
+                <i class="bi bi-chevron-right" style="margin-left: auto; color: var(--text-muted);"></i>
+            </a>
+            <a href="/privacy/" class="card card-compact" style="display: flex; align-items: center; gap: 12px; text-decoration: none; color: inherit; padding: 14px 16px;">
+                <i class="bi bi-shield-lock" style="font-size: 1.5rem; color: var(--primary);"></i>
+                <div>
+                    <div style="font-weight: 600; font-size: 0.95rem;">Maxfiylik</div>
+                    <div style="font-size: 0.8rem; color: var(--text-muted);">Maxfiylik siyosati</div>
+                </div>
+                <i class="bi bi-chevron-right" style="margin-left: auto; color: var(--text-muted);"></i>
+            </a>
+            <a href="/yordam/" class="card card-compact" style="display: flex; align-items: center; gap: 12px; text-decoration: none; color: inherit; padding: 14px 16px;">
+                <i class="bi bi-question-circle" style="font-size: 1.5rem; color: var(--primary);"></i>
+                <div>
+                    <div style="font-weight: 600; font-size: 0.95rem;">Yordam</div>
+                    <div style="font-size: 0.8rem; color: var(--text-muted);">Tez-tez beriladigan savollar</div>
+                </div>
+                <i class="bi bi-chevron-right" style="margin-left: auto; color: var(--text-muted);"></i>
+            </a>
         </div>
 
         <div style="display: flex; align-items: flex-start; gap: 12px;">
@@ -100,7 +122,7 @@
             <div>
                 <p style="font-weight: 500; color: var(--text-main); margin-bottom: 4px;">Ma'lumotlarni eksport qilish</p>
                 <p style="font-size: 0.82rem; color: var(--text-muted); margin-bottom: 8px;">
-                    Tugmani bossangiz Excel fayl bot orqali yuboriladi. Eksportda faqat oxirgi 24 oy ma'lumotlari bo'ladi.
+                    Tugmani bossangiz Excel fayl bot orqali yuboriladi. Faylda: joriy oy chiqimlari, byudjet, qarzlar va maqsadlar.
                 </p>
                 <form method="post" action="{% url 'expenses:export_excel_to_telegram' %}" id="excel-export-form">
                     {% csrf_token %}

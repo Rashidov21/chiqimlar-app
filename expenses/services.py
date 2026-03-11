@@ -186,7 +186,7 @@ def get_dashboard_context(user: User, selected_date: date_type | None = None) ->
     Dashboard uchun barcha ma'lumotlarni yig'adi (insights va achievements dan tashqari).
     View bu context'ga analytics'dan insights va achievements qo'shadi.
     """
-    from .models import Expense, RecurringExpense, Debt
+    from .models import Expense, RecurringExpense, Debt, SavingGoal
 
     today = timezone.now().date()
     if selected_date is None:
@@ -231,6 +231,10 @@ def get_dashboard_context(user: User, selected_date: date_type | None = None) ->
         .order_by("-date", "-created_at")[:10]
     )
 
+    active_goals = (
+        SavingGoal.objects.filter(user=user, is_active=True).order_by("target_date")[:5]
+    )
+
     return {
         "totals": data,
         "month_display": month_display,
@@ -246,4 +250,5 @@ def get_dashboard_context(user: User, selected_date: date_type | None = None) ->
         "net_debt_abs": net_debt_abs,
         "taken_debt_total": taken_total,
         "given_debt_total": given_total,
+        "active_goals": active_goals,
     }

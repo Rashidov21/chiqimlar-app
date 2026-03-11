@@ -137,6 +137,35 @@
 </div>
 {% endif %}
 
+{% if active_goals %}
+<div class="card card-compact" style="margin-bottom: 16px;">
+    <h2 style="font-weight: 600; margin-bottom: 8px; font-size: 0.95rem; display: flex; align-items: center; gap: 6px;">
+        <i class="bi bi-bullseye"></i> Maqsadlar bo'yicha holat
+    </h2>
+    <ul style="list-style: none; padding: 0; margin: 0;">
+        {% for g in active_goals %}
+        <li style="border-bottom: 1px solid var(--border-soft); padding-bottom: 12px; margin-bottom: 12px;">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 8px;">
+                <div style="flex: 1; min-width: 0;">
+                    <div style="font-size: 0.9rem; font-weight: 500;">{{ g.name }}</div>
+                    <div style="font-size: 0.8rem; color: var(--text-muted);">
+                        {{ g.current_amount|intcomma }} / {{ g.target_amount|intcomma }} so'm · {{ g.progress_percent }}%
+                    </div>
+                    <div style="height: 6px; border-radius: 9999px; background: #eee; margin-top: 6px; overflow: hidden;">
+                        <div style="height: 100%; border-radius: 9999px; width: {{ g.progress_percent }}%; background: var(--primary); max-width: 100%;"></div>
+                    </div>
+                </div>
+                <a href="{% url 'expenses:saving_goal_list' %}" style="font-size: 0.8rem; color: var(--primary); text-decoration: none; white-space: nowrap;">Batafsil →</a>
+            </div>
+        </li>
+        {% endfor %}
+    </ul>
+    <a href="{% url 'expenses:saving_goal_list' %}" style="display: inline-block; margin-top: 4px; font-size: 0.85rem; color: var(--primary); font-weight: 500; text-decoration: none;">
+        Barcha maqsadlar →
+    </a>
+</div>
+{% endif %}
+
 {% if net_debt is not None %}
 <div class="card card-compact" style="margin-bottom: 16px;">
     <h2 style="font-weight: 600; margin-bottom: 8px; font-size: 0.95rem; display: flex; align-items: center; gap: 6px;">

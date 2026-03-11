@@ -168,7 +168,7 @@ GOALS_PAGE_SIZE = 25
 def saving_goal_list(request):
     """Foydalanuvchining jamg'arma maqsadlari (pagination)."""
     goals = (
-    SavingGoal.objects.filter(user=request.user)
+        SavingGoal.objects.filter(user=request.user)
         .annotate(
             remaining=ExpressionWrapper(
                 F("target_amount") - F("current_amount"),
@@ -559,8 +559,8 @@ def export_view(request):
 @rate_limit_action("export_excel_telegram", max_requests=10, window=600)
 def export_excel_to_telegram(request):
     """
-    Excel faylni yaratib, Telegram bot orqali foydalanuvchiga yuboradi.
-    Temp fayl yuborilgach darhol o'chiriladi.
+    Excel faylni yaratib, Telegram bot orqali yuboradi.
+    Varaqlar: Chiqimlar (joriy oy), Byudjet, Qarzlar, Maqsadlar.
     """
     user = request.user
     if not user.telegram_id:
@@ -572,24 +572,68 @@ def export_excel_to_telegram(request):
         from openpyxl import Workbook
 
         today = timezone.now().date()
-        cutoff = today - timezone.timedelta(days=EXPORT_MAX_MONTHS * 31)
-        wb = Workbook(write_only=True)
-        ws = wb.create_sheet(title="Chiqimlar")
-        ws.append(["Sana", "Turkum", "Summa", "Izoh"])
+        month_start = today.replace(day=1)
+        import calendar
+        last_day = calendar.monthrange(today.year, today.month)[1]
+        month_end = today.replace(day=last_day)
 
-        qs = (
-            Expense.objects.filter(user=user, date__gte=cutoff)
+        wb = Workbook(write_only=True)
+
+        # 1) Chiqimlar — joriy oy
+        ws_exp = wb.create_sheet(title="Chiqimlar")
+        ws_exp.append(["Sana", "Turkum", "Summa", "Izoh"])
+        qs_exp = (
+            Expense.objects.filter(user=user, date__gte=month_start, date__lte=month_end)
             .select_related("category")
             .order_by("-date", "-created_at")
         )
-        for e in qs.iterator(chunk_size=500):
-            ws.append([str(e.date), e.category.name if e.category else "", int(e.amount), e.note or ""])
+        for e in qs_exp.iterator(chunk_size=500):
+            ws_exp.append([str(e.date), e.category.name if e.category else "", int(e.amount), e.note or ""])
+
+        # 2) Byudjet
+        totals = get_monthly_totals(user, year=today.year, month=today.month)
+        ws_budget = wb.create_sheet(title="Byudjet")
+        ws_budget.append(["Ko'rsatkich", "Qiymat (so'm)"])
+        budget_val = totals.get("budget") or 0
+        spent_val = totals.get("total_spent") or 0
+        remaining_val = budget_val - spent_val
+        ws_budget.append(["Oylik limit", int(budget_val)])
+        ws_budget.append(["Joriy oy sarflangan", int(spent_val)])
+        ws_budget.append(["Qolgan", int(remaining_val)])
+
+        # 3) Qarzlar
+        ws_debt = wb.create_sheet(title="Qarzlar")
+        ws_debt.append(["Turi", "Kimga / Kimdan", "Summa", "Sana", "Qaytarish muddati", "Izoh", "Yopilgan"])
+        for d in Debt.objects.filter(user=user).order_by("-is_closed", "due_date"):
+            ws_debt.append([
+                d.get_kind_display(),
+                d.counterparty or "",
+                int(d.amount),
+                str(d.date),
+                str(d.due_date) if d.due_date else "",
+                d.note or "",
+                "Ha" if d.is_closed else "Yo'q",
+            ])
+
+        # 4) Maqsadlar
+        ws_goals = wb.create_sheet(title="Maqsadlar")
+        ws_goals.append(["Nomi", "Maqsad summa", "Joriy summa", "Foiz %", "Boshlanish", "Tugash", "Faol"])
+        for g in SavingGoal.objects.filter(user=user).order_by("-is_active", "-created_at"):
+            ws_goals.append([
+                g.name or "",
+                int(g.target_amount),
+                int(g.current_amount),
+                g.progress_percent,
+                str(g.start_date),
+                str(g.target_date) if g.target_date else "",
+                "Ha" if g.is_active else "Yo'q",
+            ])
 
         with NamedTemporaryFile(prefix=f"chiqimlar_{user.pk}_", suffix=".xlsx", delete=False) as tmp:
             tmp_file_path = tmp.name
         wb.save(tmp_file_path)
 
-        caption = f"📥 {timezone.now().date()} holatiga xarajatlar Excel fayli."
+        caption = f"📥 {today} holatiga: chiqimlar, byudjet, qarzlar, maqsadlar."
         ok = send_telegram_document(user.telegram_id, tmp_file_path, caption=caption)
         if ok:
             messages.success(request, "Excel fayl Telegram bot orqali yuborildi.")

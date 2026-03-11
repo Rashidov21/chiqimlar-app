@@ -26,7 +26,7 @@ class ExpenseForm(forms.ModelForm):
         self.fields["note"].widget.attrs["class"] = "input-field"
         self.fields["note"].widget.attrs["placeholder"] = "Izoh (to'ldirish shart emas)"
         self.fields["note"].widget.attrs["maxlength"] = "255"
-        self.fields["date"].widget.attrs["class"] = "input-field"
+        self.fields["date"].widget = forms.DateInput(attrs={"type": "date", "class": "input-field"})
         self.fields["category"].widget.attrs["class"] = "input-field"
 
     def clean_amount(self):
@@ -57,7 +57,9 @@ class SavingGoalForm(forms.ModelForm):
         if not self.instance.pk:
             self.fields["start_date"].initial = timezone.now().date()
 
-        for name in ("name", "target_amount", "current_amount", "start_date", "target_date"):
+        self.fields["start_date"].widget = forms.DateInput(attrs={"type": "date", "class": "input-field"})
+        self.fields["target_date"].widget = forms.DateInput(attrs={"type": "date", "class": "input-field"})
+        for name in ("name", "target_amount", "current_amount"):
             if name in self.fields:
                 self.fields[name].widget.attrs.setdefault("class", "input-field")
 
@@ -107,7 +109,8 @@ class RecurringExpenseForm(forms.ModelForm):
         if not self.instance.pk:
             self.fields["next_payment_date"].initial = timezone.now().date()
 
-        for name in ("name", "amount", "category", "interval", "next_payment_date"):
+        self.fields["next_payment_date"].widget = forms.DateInput(attrs={"type": "date", "class": "input-field"})
+        for name in ("name", "amount", "category", "interval"):
             if name in self.fields:
                 self.fields[name].widget.attrs.setdefault("class", "input-field")
 
@@ -152,7 +155,9 @@ class DebtForm(forms.ModelForm):
         if not self.instance.pk:
             self.fields["date"].initial = timezone.now().date()
 
-        for name in ("kind", "counterparty", "amount", "date", "due_date", "note"):
+        self.fields["date"].widget = forms.DateInput(attrs={"type": "date", "class": "input-field"})
+        self.fields["due_date"].widget = forms.DateInput(attrs={"type": "date", "class": "input-field"})
+        for name in ("kind", "counterparty", "amount", "note"):
             if name in self.fields:
                 self.fields[name].widget.attrs.setdefault("class", "input-field")
 
