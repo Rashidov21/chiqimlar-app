@@ -13,7 +13,7 @@ class UserAdmin(BaseUserAdmin):
         ("Telegram", {"fields": ("telegram_id", "phone")}),
         ("Byudjet", {"fields": ("monthly_budget",)}),
         ("Bildirishnomalar", {"fields": ("telegram_notifications", "daily_reminder", "weekly_summary", "limit_warning")}),
-        ("Supporter", {"fields": ("is_supporter",)}),
+        ("Donater", {"fields": ("is_supporter",)}),
     )
 
 
@@ -52,6 +52,6 @@ class DonationAdmin(admin.ModelAdmin):
                     donation.user.is_supporter = True
                     donation.user.save(update_fields=["is_supporter"])
                 updated += 1
-        self.message_user(request, f"{updated} ta donat tasdiqlandi va foydalanuvchilar supporter sifatida belgilandi.")
+        self.message_user(request, f"{updated} ta donat tasdiqlandi va foydalanuvchilar donater sifatida belgilandi.")
 
-    mark_as_confirmed.short_description = "Tanlangan donatlarni tasdiqlash va foydalanuvchilarni supporter qilish"
+    mark_as_confirmed.short_description = "Tanlangan donatlarni tasdiqlash va foydalanuvchilarni donater qilish"

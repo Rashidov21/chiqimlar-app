@@ -108,9 +108,21 @@
     </h2>
     <ul style="list-style: none; padding: 0; margin: 0;">
         {% for msg in insights %}
+        {% if can_see_advanced_statistics %}
         <li style="font-size: 0.8rem; color: var(--text-main); margin-bottom: 4px;">• {{ msg }}</li>
+        {% else %}
+        {% if forloop.counter <= 2 %}<li style="font-size: 0.8rem; color: var(--text-main); margin-bottom: 4px;">• {{ msg }}</li>{% endif %}
+        {% endif %}
         {% endfor %}
     </ul>
+    {% if not can_see_advanced_statistics and insights|length > 2 %}
+    <p style="font-size: 0.8rem; color: var(--text-muted); margin-top: 10px; margin-bottom: 10px;">
+        To'liq maslahatlar va 12 oylik trend uchun donat qiling — Donater bo'ling.
+    </p>
+    <a href="{% url 'expenses:settings' %}" class="btn-primary btn-sm" style="display: inline-flex; align-items: center; gap: 6px; text-decoration: none;">
+        <i class="bi bi-heart"></i> Donater bo'lish
+    </a>
+    {% endif %}
 </div>
 {% endif %}
 
@@ -213,6 +225,35 @@
     <p style="color: var(--text-muted); font-size: 0.85rem; text-align: center; padding: 18px 8px;">Ma'lumot yo'q</p>
     {% endif %}
 </div>
+
+{% if can_see_advanced_statistics and trend_12 %}
+<div class="card card-compact">
+    <h2 style="font-weight: 600; margin-bottom: 8px; display: flex; align-items: center; gap: 6px;">
+        <i class="bi bi-graph-up-arrow"></i> Oylik trend (oxirgi 12 oy) — Donater
+    </h2>
+    <div style="height: 170px; display: flex; align-items: flex-end; gap: 4px;">
+        {% for t in trend_12 %}
+        <div style="flex: 1; display: flex; flex-direction: column; align-items: center; min-width: 0;">
+            <div class="stat-bar" role="button" tabindex="0" data-label="{{ t.label }}" data-value="{{ t.total|floatformat:0 }}" style="width: 100%; background: var(--primary); border-radius: 4px 4px 0 0; min-height: 6px; transition: background 0.2s; height: {% widthratio t.total trend_12_max 80 %}%; cursor: pointer;" onmouseover="this.style.background='#4c33e6'" onmouseout="this.style.background='var(--primary)'" title="{{ t.label }}: {{ t.total|floatformat:0 }} so'm"></div>
+            <span style="font-size: 0.65rem; color: var(--text-muted); margin-top: 4px; text-align: center; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 100%;">{{ t.label }}</span>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% elif not is_supporter %}
+<div class="card card-compact" style="background: linear-gradient(135deg, rgba(var(--primary-rgb, 59, 130, 246), 0.06), transparent); border: 1px dashed rgba(var(--primary-rgb, 59, 130, 246), 0.35);">
+    <h2 style="font-weight: 600; margin-bottom: 6px; display: flex; align-items: center; gap: 6px;">
+        <i class="bi bi-lock"></i> Kengaytirilgan statistika (Donater uchun)
+    </h2>
+    <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 12px;">
+        Oxirgi 12 oy trendi va to'liq moliyaviy tushunchalar faqat donater'lar uchun. Donat qiling va Sozlamalarda «Donater bo'ling» orqali to'liq ma'lumotga ega bo'ling.
+    </p>
+    <a href="{% url 'expenses:settings' %}" class="btn-primary btn-sm" style="display: inline-flex; align-items: center; gap: 6px; text-decoration: none;">
+        <i class="bi bi-gear"></i> Sozlamalarga o'tish
+    </a>
+</div>
+{% endif %}
+
 <script>
 (function(){
     document.querySelectorAll('.stat-bar').forEach(function(el){

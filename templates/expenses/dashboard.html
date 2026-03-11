@@ -92,9 +92,14 @@
     </h2>
     <ul style="list-style: none; padding: 0; margin: 0;">
         {% for msg in insights %}
-        <li style="font-size: 0.8rem; color: var(--text-main); margin-bottom: 4px;">• {{ msg }}</li>
+        {% if can_see_full_insights %}<li style="font-size: 0.8rem; color: var(--text-main); margin-bottom: 4px;">• {{ msg }}</li>
+        {% else %}{% if forloop.counter <= 2 %}<li style="font-size: 0.8rem; color: var(--text-main); margin-bottom: 4px;">• {{ msg }}</li>{% endif %}{% endif %}
         {% endfor %}
     </ul>
+    {% if not can_see_full_insights and insights|length > 2 %}
+    <p style="font-size: 0.8rem; color: var(--text-muted); margin-top: 10px; margin-bottom: 10px;">To'liq maslahatlar va 12 oylik statistika uchun donat qiling — Donater bo'ling.</p>
+    <a href="{% url 'expenses:settings' %}" class="btn-primary btn-sm" style="display: inline-flex; align-items: center; gap: 6px; text-decoration: none;"><i class="bi bi-heart"></i> Donater bo'lish</a>
+    {% endif %}
 </div>
 {% endif %}
 

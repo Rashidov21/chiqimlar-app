@@ -132,6 +132,32 @@
                 </form>
             </div>
         </div>
+
+        <div class="card card-compact" style="margin-top: 8px; padding: 16px; background: linear-gradient(135deg, rgba(var(--primary-rgb, 59, 130, 246), 0.08), rgba(var(--primary-rgb, 59, 130, 246), 0.02)); border: 1px solid rgba(var(--primary-rgb, 59, 130, 246), 0.2);">
+            <p style="font-weight: 600; color: var(--text-main); margin-bottom: 4px; display: flex; align-items: center; gap: 8px;">
+                <span style="font-size: 1.2rem;">⭐</span> Donater bo'ling
+            </p>
+            {% if user.is_supporter %}
+                <p style="font-size: 0.9rem; color: var(--text-muted); margin: 0;">Rahmat, siz donater'siz. 🎉</p>
+            {% else %}
+                <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 12px;">
+                    Ilovani rivojlantirishga yordam bering — donat qilsangiz to'liq moliyaviy tushunchalar va 12 oylik statistikaga ega bo'lasiz.
+                </p>
+                {% if donation_methods %}
+                    <div style="display: flex; flex-wrap: wrap; gap: 10px;">
+                        {% for m in donation_methods %}
+                            {% if m.payment_link %}
+                                <a href="{{ m.payment_link }}" target="_blank" rel="noopener noreferrer" class="btn-secondary btn-sm" style="text-decoration: none;">
+                                    <i class="bi bi-heart"></i> {{ m.title }}
+                                </a>
+                            {% endif %}
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <p style="font-size: 0.82rem; color: var(--text-muted);">Hozircha to'lov usullari qo'shilmagan.</p>
+                {% endif %}
+            {% endif %}
+        </div>
     </div>
 </div>
 <script>

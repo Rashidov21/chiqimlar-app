@@ -84,10 +84,29 @@ def handle_help(chat_id: int) -> bool:
     text = (
         "📌 Buyruqlar:\n"
         "/start — «Chiqimlarni ochish» tugmasi (Mini App avtologin)\n"
-        "/help — Yordam\n\n"
+        "/help — Yordam\n"
+        "/donat — Donat usullari va linklar\n\n"
         "Ilovani ochish: pastdagi tugmani bosing — kod yoki alohida ro'yxatdan o'tish talab qilinmaydi."
     )
     _send_message(chat_id, text)
+    return True
+
+
+def handle_donate(chat_id: int) -> bool:
+    """Donat usullari ro'yxati va linklar."""
+    from accounts.models import DonationMethod
+
+    methods = DonationMethod.objects.filter(is_active=True).order_by("sort_order", "id")
+    if not methods.exists():
+        text = "Hozircha donat usullari qo'shilmagan. Keyinroq qayta urinib ko'ring."
+        _send_message(chat_id, text)
+        return True
+    lines = ["⭐ <b>Donater bo'ling</b>\n", "Ilovani rivojlantirishga yordam bering. To'liq moliyaviy tushunchalar va 12 oylik statistika donat qilganlar uchun. Quyidagi usullar orqali donat qilishingiz mumkin:\n"]
+    for m in methods:
+        if m.payment_link:
+            lines.append(f"• <b>{m.title}</b>\n{m.payment_link}")
+    lines.append("\nRahmat! Donat qilgandan keyin donater statusi admin tomonidan tasdiqlanadi.")
+    _send_message(chat_id, "\n".join(lines))
     return True
 
 
@@ -104,4 +123,6 @@ def process_update(update_dict: dict) -> None:
         handle_start(chat_id, first_name)
     elif text == "/help":
         handle_help(chat_id)
+    elif text == "/donat":
+        handle_donate(chat_id)
 

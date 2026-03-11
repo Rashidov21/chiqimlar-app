@@ -54,6 +54,7 @@ def statistics_view(request):
         month_end = today
     category_chart = get_category_totals_for_period(request.user, month_start, month_end)
     trend = get_monthly_trend(request.user, 6)
+    trend_12 = get_monthly_trend(request.user, 12) if getattr(request.user, "is_supporter", False) else []
 
     # Qo'shimcha agregatlar: kunlik o'rtacha va o'tgan oyga nisbatan o'zgarish
     this_total = totals["total_spent"]
@@ -78,6 +79,9 @@ def statistics_view(request):
     trend_max = max((t["total"] for t in trend), default=0)
     if trend_max <= 0:
         trend_max = 1
+    trend_12_max = max((t["total"] for t in trend_12), default=0)
+    if trend_12_max <= 0:
+        trend_12_max = 1
 
     years = list(range(max(MIN_YEAR, year - 2), min(MAX_YEAR, year + 2) + 1))
     months = list(range(1, 13))
@@ -117,6 +121,10 @@ def statistics_view(request):
     else:
         next_month_year, next_month = year, month + 1
 
+    user = request.user
+    is_supporter = getattr(user, "is_supporter", False)
+    can_see_advanced = is_supporter
+
     return render(
         request,
         "analytics/statistics.html",
@@ -147,6 +155,10 @@ def statistics_view(request):
             "prev_month": prev_month,
             "next_month_year": next_month_year,
             "next_month": next_month,
+            "is_supporter": is_supporter,
+            "can_see_advanced_statistics": can_see_advanced,
+            "trend_12": trend_12,
+            "trend_12_max": trend_12_max,
         },
     )
 

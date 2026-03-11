@@ -100,10 +100,11 @@ def dashboard(request):
             request.user,
             year=selected_date.year,
             month=selected_date.month,
-            limit=3,
+            limit=5,
         )
     except Exception:
         context["insights"] = []
+    context["can_see_full_insights"] = getattr(request.user, "is_supporter", False)
     try:
         context["achievements"] = get_user_achievements(request.user, limit=3)
     except Exception:
@@ -658,7 +659,9 @@ def export_excel_to_telegram(request):
 @require_http_methods(["GET", "POST"])
 @rate_limit_action("settings_save", max_requests=30)
 def settings_view(request):
-    """Sozlamalar - oylik limit, kod almashtirish, kategoriyalar, eksport."""
+    """Sozlamalar - oylik limit, kategoriyalar, eksport, donat/supporter."""
+    from accounts.models import DonationMethod
+
     user = request.user
     if request.method == "POST":
         monthly_budget_raw = request.POST.get("monthly_budget")
@@ -684,4 +687,9 @@ def settings_view(request):
             user.save(update_fields=["monthly_budget", "telegram_notifications", "daily_reminder", "weekly_summary", "limit_warning"])
             messages.success(request, "Sozlamalar saqlandi.")
         return redirect("expenses:settings")
-    return render(request, "expenses/settings.html", {"user": user})
+    donation_methods = DonationMethod.objects.filter(is_active=True).order_by("sort_order", "id")
+    return render(
+        request,
+        "expenses/settings.html",
+        {"user": user, "donation_methods": donation_methods},
+    )
