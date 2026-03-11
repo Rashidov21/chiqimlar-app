@@ -139,5 +139,28 @@ Foydalanuvchida `telegram_id` bo‘lishi va Sozlamalarda bildirishnomalar yoqilg
 - `telegram_bot/` — webhook, /start (Mini App avtologin)
 - `templates/` — HTML (base, login, dashboard, statistika, …)
 
+## Muhit o'zgaruvchilari (to'liq ro'yxat)
+
+| O'zgaruvchi | Tavsif | Default |
+|-------------|--------|---------|
+| `SECRET_KEY` | Django maxfiy kalit | `dev-secret-change-in-production` |
+| `DEBUG` | Debug rejim | `True` |
+| `ALLOWED_HOSTS` | Ruxsat etilgan hostlar (vergul bilan) | `localhost,127.0.0.1` |
+| `DATABASE_URL` | PostgreSQL URL (bo'sh bo'lsa SQLite) | — |
+| `TIME_ZONE` | Vaqt zonasi | `Asia/Tashkent` |
+| `TELEGRAM_BOT_TOKEN` | Bot token (@BotFather) | — |
+| `TELEGRAM_WEBAPP_URL` | Mini App root URL | — |
+| `TELEGRAM_WEBHOOK_SECRET` | Webhook himoya (ixtiyoriy) | — |
+| `TELEGRAM_INITDATA_MAX_AGE` | initData amal qilish (soniya) | `604800` (7 kun) |
+| `REDIS_URL` | Redis (production cache, rate limit) | — |
+| `CELERY_BROKER_URL` | Celery broker (ixtiyoriy) | — |
+| `SENTRY_DSN` | Sentry xatolik kuzatish (ixtiyoriy) | — |
+
+**Production:** `REDIS_URL` berilsa (masalan `redis://localhost:6379/0`), cache (rate limit, replay himoya, insights, oylik yig‘indilar) Redis’da saqlanadi. Ko‘p worker (gunicorn) ishlatilganda Redis majburiy tavsiya etiladi.
+
+## Hujjatlar
+
+- [Implementatsiya rejasi (sprintlar)](docs/IMPLEMENTATION_PLAN.md) — performance, security, UI/UX va keyingi ishlar rejasi.
+- [Multi-currency dizayn](docs/MULTI_CURRENCY_DESIGN.md) — ko‘p valyutali tizim uchun dizayn hujjati.
+
 Litsenziya: MIT (yoki loyiha qoidalariga qarab).
-cd /var/www/chiqimlar-app && source venv/bin/activate

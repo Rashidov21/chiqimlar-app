@@ -87,5 +87,13 @@
     <a href="{% url 'expenses:recurring_create' %}" class="btn-primary btn-lg">Yangi qayta chiqim qo'shish</a>
 </div>
 {% endif %}
+
+{% if page_obj.has_other_pages %}
+<div style="display: flex; justify-content: center; align-items: center; gap: 16px; margin-top: 24px; padding-top: 24px; border-top: 1px solid var(--border-soft);">
+    {% if page_obj.has_previous %}<a href="?page={{ page_obj.previous_page_number }}" class="btn-secondary btn-sm">← Oldingi</a>{% endif %}
+    <span style="color: var(--text-muted); font-size: 0.875rem;">{{ page_obj.number }} / {{ page_obj.paginator.num_pages }}</span>
+    {% if page_obj.has_next %}<a href="?page={{ page_obj.next_page_number }}" class="btn-secondary btn-sm">Keyingi →</a>{% endif %}
+</div>
+{% endif %}
 {% endblock %}
 

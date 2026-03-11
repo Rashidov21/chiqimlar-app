@@ -199,19 +199,9 @@ def _grant_new_achievements(user):
 
 def get_user_achievements(user, limit=5):
     """
-    Foydalanuvchi yutuqlari ro'yxati. Yangi yutuq tekshiruvi cache orqali
-    har 10 min da ko'pi bilan bir marta ishlaydi.
+    Foydalanuvchi yutuqlari ro'yxati (faqat o'qish).
+    Yangi yutuq berish faqat analytics.signals (Expense post_save) orqali amalga oshadi.
     """
-    from django.core.cache import cache
-
-    cache_key = f"{ACHIEVEMENT_CHECK_CACHE_KEY}{user.pk}"
-    if not cache.get(cache_key):
-        try:
-            _grant_new_achievements(user)
-        except Exception:
-            pass
-        cache.set(cache_key, 1, timeout=ACHIEVEMENT_CHECK_CACHE_TTL)
-
     return list(
         UserAchievement.objects.filter(user=user)
         .select_related("achievement")
@@ -244,18 +234,30 @@ def get_daily_totals(user, year, month):
 
 
 def get_category_totals_for_period(user, start_date, end_date):
-    """Davr bo'yicha turkumlar yig'indisi (pasta grafik)."""
+    """Davr bo'yicha turkumlar yig'indisi (pasta grafik) — bitta group-by so'rov."""
+    from expenses.models import Expense
     from categories.models import Category
-    result = []
-    for cat in Category.objects.filter(user=user):
-        s = (
-            cat.expenses.filter(date__gte=start_date, date__lte=end_date)
-            .aggregate(s=Sum("amount"))["s"]
-            or Decimal("0")
+
+    raw = (
+        Expense.objects.filter(
+            user=user,
+            date__gte=start_date,
+            date__lte=end_date,
+            category_id__isnull=False,
         )
-        if s > 0:
-            result.append({"name": f"{cat.emoji} {cat.name}", "total": float(s), "slug": cat.pk})
-    return result
+        .values("category_id")
+        .annotate(s=Sum("amount"))
+    )
+    totals_by_cat = {row["category_id"]: row["s"] or Decimal("0") for row in raw if row["s"]}
+    if not totals_by_cat:
+        return []
+    categories = Category.objects.filter(
+        user=user, id__in=list(totals_by_cat.keys())
+    ).order_by("order", "name")
+    return [
+        {"name": f"{c.emoji} {c.name}", "total": float(totals_by_cat[c.id]), "slug": c.pk}
+        for c in categories
+    ]
 
 
 MONTH_NAMES_SHORT = [

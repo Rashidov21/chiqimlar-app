@@ -78,12 +78,12 @@
             <div>
                 <p style="font-weight: 500; color: var(--text-main); margin-bottom: 4px;">Ma'lumotlarni eksport qilish</p>
                 <p style="font-size: 0.82rem; color: var(--text-muted); margin-bottom: 8px;">
-                    Tugmani bossangiz Excel fayl bot orqali yuboriladi.
+                    Tugmani bossangiz Excel fayl bot orqali yuboriladi. Eksportda faqat oxirgi 24 oy ma'lumotlari bo'ladi.
                 </p>
-                <form method="post" action="{% url 'expenses:export_excel_to_telegram' %}">
+                <form method="post" action="{% url 'expenses:export_excel_to_telegram' %}" id="excel-export-form">
                     {% csrf_token %}
                     <button type="submit" class="btn-secondary btn-sm" id="excel-export-btn">
-                        <i class="bi bi-file-earmark-excel"></i> Excelni botga yuborish
+                        <i class="bi bi-file-earmark-excel"></i> <span id="excel-export-btn-text">Excelni botga yuborish</span>
                     </button>
                 </form>
             </div>
@@ -92,11 +92,14 @@
 </div>
 <script>
 (function(){
+    var form = document.getElementById('excel-export-form');
     var exportBtn = document.getElementById('excel-export-btn');
-    if (!exportBtn) return;
-    exportBtn.addEventListener('click', function() {
+    var btnText = document.getElementById('excel-export-btn-text');
+    if (!form || !exportBtn) return;
+    form.addEventListener('submit', function() {
         exportBtn.disabled = true;
-        exportBtn.innerHTML = '<i class="bi bi-hourglass-split"></i> Yuborilmoqda...';
+        if (btnText) btnText.textContent = 'Yuborilmoqda...';
+        exportBtn.querySelector('i').className = 'bi bi-hourglass-split';
     });
 })();
 </script>
