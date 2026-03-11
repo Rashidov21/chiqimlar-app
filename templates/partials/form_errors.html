@@ -1,9 +1,0 @@
-{% if form.non_field_errors %}
-<div class="form-errors-nonfield" style="margin-bottom: 12px; padding: 10px 12px; border-radius: 12px; background: #fef2f2; border: 1px solid #fecaca;">
-    <ul style="margin: 0; padding-left: 18px; color: var(--danger); font-size: 0.9rem;">
-        {% for err in form.non_field_errors %}
-        <li>{{ err }}</li>
-        {% endfor %}
-    </ul>
-</div>
-{% endif %}

@@ -7,7 +7,6 @@
     <form method="post" style="display: flex; flex-direction: column; gap: 18px;">
         {% csrf_token %}
         {% if request.GET.next %}<input type="hidden" name="next" value="{{ request.GET.next }}">{% endif %}
-        {% include "partials/form_errors.html" with form=form %}
         <div>
             <label for="id_category" class="input-label">Chiqim turkumi</label>
             {{ form.category }}

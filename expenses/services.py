@@ -5,26 +5,17 @@ Barcha dashboard ma'lumotlari bitta get_dashboard_context orqali yig'iladi.
 from datetime import date as date_type
 from decimal import Decimal
 
-from django.core.cache import cache
 from django.db.models import Sum
 from django.utils import timezone
 
 from accounts.models import User
 
-MONTHLY_TOTALS_CACHE_KEY = "monthly_totals:{user_id}:{year}:{month}"
-MONTHLY_TOTALS_CACHE_TTL = 120  # 2 daqiqa
-
 
 def get_monthly_totals(user, year=None, month=None):
-    """Berilgan oy uchun jami xarajat va byudjet (cache bilan)."""
+    """Berilgan oy uchun jami xarajat va byudjet."""
     today = timezone.now().date()
     year = year or today.year
     month = month or today.month
-    cache_key = MONTHLY_TOTALS_CACHE_KEY.format(user_id=user.pk, year=year, month=month)
-    cached = cache.get(cache_key)
-    if cached is not None:
-        return cached
-
     month_start = today.replace(year=year, month=month, day=1)
     if month == 12:
         month_end = month_start.replace(year=year + 1, month=1, day=1) - timezone.timedelta(days=1)
@@ -39,7 +30,7 @@ def get_monthly_totals(user, year=None, month=None):
     )
     budget = user.monthly_budget or Decimal("0")
     remaining = budget - total
-    data = {
+    return {
         "total_spent": total,
         "budget": budget,
         "remaining": remaining,
@@ -48,8 +39,6 @@ def get_monthly_totals(user, year=None, month=None):
         "year": year,
         "month": month,
     }
-    cache.set(cache_key, data, timeout=MONTHLY_TOTALS_CACHE_TTL)
-    return data
 
 
 def get_category_breakdown(user, year=None, month=None):
@@ -215,13 +204,9 @@ def get_dashboard_context(user: User, selected_date: date_type | None = None) ->
         )
         .order_by("next_payment_date")[:5]
     )
-    debt_base = Debt.objects.filter(user=user, is_closed=False)
-    taken_total = (
-        debt_base.filter(kind=Debt.Kind.TAKEN).aggregate(s=Sum("amount"))["s"] or Decimal("0")
-    )
-    given_total = (
-        debt_base.filter(kind=Debt.Kind.GIVEN).aggregate(s=Sum("amount"))["s"] or Decimal("0")
-    )
+    open_debts = Debt.objects.filter(user=user, is_closed=False)
+    taken_total = sum(d.amount for d in open_debts if d.kind == Debt.Kind.TAKEN)
+    given_total = sum(d.amount for d in open_debts if d.kind == Debt.Kind.GIVEN)
     net_debt = taken_total - given_total
     net_debt_abs = abs(net_debt)
 

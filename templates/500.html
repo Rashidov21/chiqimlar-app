@@ -3,13 +3,12 @@
 {% block nav %}{% endblock %}
 
 {% block content %}
-<div style="min-height: 70vh; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 24px 16px; max-width: 420px; margin: 0 auto;">
+<div style="min-height: 70vh; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 24px;">
     <p style="font-size: 4rem; margin-bottom: 16px;">500</p>
-    <h1 style="font-size: 1.5rem; font-weight: 700; color: var(--text-main); margin-bottom: 8px;">Xatolik yuz berdi</h1>
-    <p style="color: var(--text-muted); margin-bottom: 24px; font-size: 0.95rem;">Ichki server xatosi. Iltimos, keyinroq urinib ko‘ring.</p>
-    <a href="/" class="btn-primary btn-lg" style="margin-bottom: 12px;">
+    <h1 style="font-size: 1.5rem; font-weight: 700; color: var(--text-main); margin-bottom: 8px;">Ichki server xatosi</h1>
+    <p style="color: var(--text-muted); margin-bottom: 24px;">Nimadir noto‘g‘ri ketdi. Iltimos, keyinroq urinib ko‘ring.</p>
+    <a href="/" class="btn-primary btn-lg">
         <i class="bi bi-house"></i> Bosh sahifaga
     </a>
-    <a href="{% url 'accounts:login' %}" class="btn-secondary btn-sm">Kirish sahifasi</a>
 </div>
 {% endblock %}

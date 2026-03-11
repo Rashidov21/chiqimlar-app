@@ -122,25 +122,16 @@ def onboarding_view(request):
         return redirect("expenses:dashboard")
 
     if request.method == "POST":
-        if request.POST.get("skip_budget") == "1":
-            profile.onboarding_completed = True
-            profile.save(update_fields=["onboarding_completed"])
-            create_default_categories(user)
-            messages.success(request, "Sozlamalarni keyinroq Sozlamalar bo‘limida to‘ldirishingiz mumkin.")
-            return redirect("expenses:dashboard")
-
         monthly_budget = request.POST.get("monthly_budget")
         primary_goal = request.POST.get("primary_goal") or profile.primary_goal
 
-        if monthly_budget is not None and monthly_budget.strip() != "":
+        if monthly_budget is not None and monthly_budget != "":
             try:
-                user.monthly_budget = int(monthly_budget.strip())
+                user.monthly_budget = int(monthly_budget)
             except (ValueError, TypeError):
                 pass
-            user.save(update_fields=["monthly_budget"])
-        else:
-            user.monthly_budget = None
-            user.save(update_fields=["monthly_budget"])
+            else:
+                user.save(update_fields=["monthly_budget"])
 
         profile.primary_goal = primary_goal
         profile.onboarding_completed = True
@@ -157,25 +148,19 @@ def onboarding_view(request):
     )
 
 
-GOALS_PAGE_SIZE = 25
-
-
 @login_required
 def saving_goal_list(request):
-    """Foydalanuvchining jamg'arma maqsadlari (pagination)."""
+    """Foydalanuvchining barcha jamg'arma maqsadlari."""
     goals = (
         SavingGoal.objects.filter(user=request.user)
         .order_by("-is_active", "remaining_amount", "-created_at")
     )
-    paginator = Paginator(goals, GOALS_PAGE_SIZE)
-    page_obj = paginator.get_page(request.GET.get("page", 1))
-    active_goals = [g for g in page_obj if g.is_active]
-    archived_goals = [g for g in page_obj if not g.is_active]
+    active_goals = [g for g in goals if g.is_active]
+    archived_goals = [g for g in goals if not g.is_active]
     return render(
         request,
         "expenses/saving_goal_list.html",
         {
-            "page_obj": page_obj,
             "active_goals": active_goals,
             "archived_goals": archived_goals,
         },
@@ -184,7 +169,6 @@ def saving_goal_list(request):
 
 @login_required
 @require_http_methods(["GET", "POST"])
-@rate_limit_action("saving_goal_create", max_requests=30)
 def saving_goal_create(request):
     """Yangi jamg'arma maqsadi yaratish."""
     form = SavingGoalForm(request.POST or None, user=request.user)
@@ -201,7 +185,6 @@ def saving_goal_create(request):
 
 @login_required
 @require_http_methods(["GET", "POST"])
-@rate_limit_action("saving_goal_edit", max_requests=30)
 def saving_goal_edit(request, pk):
     """Mavjud jamg'arma maqsadini tahrirlash."""
     goal = get_user_object_or_404(SavingGoal, request.user, pk)
@@ -217,26 +200,19 @@ def saving_goal_edit(request, pk):
     )
 
 
-RECURRING_PAGE_SIZE = 25
-
-
 @login_required
 def recurring_list(request):
-    """Qayta takrorlanuvchi chiqimlar ro'yxati (pagination)."""
+    """Qayta takrorlanuvchi chiqimlar ro'yxati."""
     today = timezone.now().date()
-    qs = (
-        RecurringExpense.objects.filter(user=request.user)
-        .order_by("-is_active", "next_payment_date", "-updated_at")
+    upcoming = (
+        RecurringExpense.objects.filter(user=request.user, is_active=True, next_payment_date__gte=today)
+        .order_by("next_payment_date")
     )
-    paginator = Paginator(qs, RECURRING_PAGE_SIZE)
-    page_obj = paginator.get_page(request.GET.get("page", 1))
-    upcoming = [r for r in page_obj if r.is_active and r.next_payment_date >= today]
-    archived = [r for r in page_obj if not r.is_active]
+    archived = RecurringExpense.objects.filter(user=request.user, is_active=False).order_by("-updated_at")
     return render(
         request,
         "expenses/recurring_list.html",
         {
-            "page_obj": page_obj,
             "upcoming": upcoming,
             "archived": archived,
         },
@@ -262,7 +238,6 @@ def recurring_create(request):
 
 @login_required
 @require_http_methods(["GET", "POST"])
-@rate_limit_action("recurring_edit", max_requests=30)
 def recurring_edit(request, pk):
     """Mavjud qayta takrorlanuvchi chiqimni tahrirlash."""
     obj = get_user_object_or_404(RecurringExpense, request.user, pk)
@@ -280,7 +255,6 @@ def recurring_edit(request, pk):
 
 @login_required
 @require_http_methods(["POST"])
-@rate_limit_action("recurring_delete", max_requests=30)
 def recurring_delete(request, pk):
     obj = get_user_object_or_404(RecurringExpense, request.user, pk)
     obj.delete()
@@ -308,33 +282,19 @@ def recurring_mark_paid(request, pk):
     return redirect("expenses:recurring_list")
 
 
-DEBTS_PAGE_SIZE = 25
-
-
 @login_required
 def debt_list(request):
-    """Qarz va qarzdorliklar ro'yxati (pagination)."""
-    from decimal import Decimal
-    from django.db.models import Sum
-
-    debts_qs = (
-        Debt.objects.filter(user=request.user)
-        .order_by("is_closed", "due_date", "-created_at")
-    )
-    paginator = Paginator(debts_qs, DEBTS_PAGE_SIZE)
-    page_obj = paginator.get_page(request.GET.get("page", 1))
-    open_debts = [d for d in page_obj if not d.is_closed]
-    closed_debts = [d for d in page_obj if d.is_closed]
-    debt_base = Debt.objects.filter(user=request.user, is_closed=False)
-    taken_total = debt_base.filter(kind=Debt.Kind.TAKEN).aggregate(s=Sum("amount"))["s"] or Decimal("0")
-    given_total = debt_base.filter(kind=Debt.Kind.GIVEN).aggregate(s=Sum("amount"))["s"] or Decimal("0")
+    """Qarz va qarzdorliklar ro'yxati."""
+    open_debts = Debt.objects.filter(user=request.user, is_closed=False).order_by("due_date", "-created_at")
+    closed_debts = Debt.objects.filter(user=request.user, is_closed=True).order_by("-updated_at")
+    taken_total = sum(d.amount for d in open_debts if d.kind == Debt.Kind.TAKEN)
+    given_total = sum(d.amount for d in open_debts if d.kind == Debt.Kind.GIVEN)
     net_debt = taken_total - given_total
     net_debt_abs = abs(net_debt)
     return render(
         request,
         "expenses/debt_list.html",
         {
-            "page_obj": page_obj,
             "open_debts": open_debts,
             "closed_debts": closed_debts,
             "taken_debt_total": taken_total,
@@ -364,7 +324,6 @@ def debt_create(request):
 
 @login_required
 @require_http_methods(["GET", "POST"])
-@rate_limit_action("debt_edit", max_requests=30)
 def debt_edit(request, pk):
     """Mavjud qarz yozuvini tahrirlash yoki yopish."""
     obj = get_user_object_or_404(Debt, request.user, pk)
@@ -382,7 +341,6 @@ def debt_edit(request, pk):
 
 @login_required
 @require_http_methods(["POST"])
-@rate_limit_action("debt_delete", max_requests=30)
 def debt_delete(request, pk):
     obj = get_user_object_or_404(Debt, request.user, pk)
     obj.delete()
@@ -420,7 +378,6 @@ def expense_add(request):
 
 @login_required
 @require_http_methods(["GET", "POST"])
-@rate_limit_action("expense_edit", max_requests=30)
 def expense_edit(request, pk):
     expense = get_user_object_or_404(Expense, request.user, pk)
     form = ExpenseForm(request.POST or None, instance=expense, user=request.user)
@@ -435,7 +392,6 @@ def expense_edit(request, pk):
 
 @login_required
 @require_http_methods(["POST"])
-@rate_limit_action("expense_delete", max_requests=30)
 def expense_delete(request, pk):
     expense = get_user_object_or_404(Expense, request.user, pk)
     expense.delete()
@@ -505,25 +461,19 @@ def expense_list(request):
     )
 
 
-EXPORT_MAX_MONTHS = 24  # Eksportda faqat oxirgi N oy
-
-
 @login_required
-@rate_limit_action("export_csv", max_requests=10, window=600)
 def export_view(request):
-    """CSV eksport (oxirgi 24 oy)."""
+    """CSV eksport."""
     import csv
     from django.http import HttpResponse
-
-    today = timezone.now().date()
-    cutoff = today - timezone.timedelta(days=EXPORT_MAX_MONTHS * 31)
+    from django.utils import timezone
     response = HttpResponse(content_type="text/csv; charset=utf-8")
     response["Content-Disposition"] = 'attachment; filename="chiqimlar.csv"'
     response.write("\ufeff")  # BOM for Excel UTF-8
     writer = csv.writer(response)
     writer.writerow(["Sana", "Turkum", "Summa", "Izoh"])
     qs = (
-        Expense.objects.filter(user=request.user, date__gte=cutoff)
+        Expense.objects.filter(user=request.user)
         .select_related("category")
         .order_by("-date", "-created_at")
     )
@@ -534,7 +484,6 @@ def export_view(request):
 
 @login_required
 @require_http_methods(["POST"])
-@rate_limit_action("export_excel_telegram", max_requests=10, window=600)
 def export_excel_to_telegram(request):
     """
     Excel faylni yaratib, Telegram bot orqali foydalanuvchiga yuboradi.
@@ -549,14 +498,12 @@ def export_excel_to_telegram(request):
     try:
         from openpyxl import Workbook
 
-        today = timezone.now().date()
-        cutoff = today - timezone.timedelta(days=EXPORT_MAX_MONTHS * 31)
         wb = Workbook(write_only=True)
         ws = wb.create_sheet(title="Chiqimlar")
         ws.append(["Sana", "Turkum", "Summa", "Izoh"])
 
         qs = (
-            Expense.objects.filter(user=user, date__gte=cutoff)
+            Expense.objects.filter(user=user)
             .select_related("category")
             .order_by("-date", "-created_at")
         )
@@ -589,32 +536,21 @@ def export_excel_to_telegram(request):
 
 @login_required
 @require_http_methods(["GET", "POST"])
-@rate_limit_action("settings_save", max_requests=30)
 def settings_view(request):
     """Sozlamalar - oylik limit, kod almashtirish, kategoriyalar, eksport."""
     user = request.user
     if request.method == "POST":
-        monthly_budget_raw = request.POST.get("monthly_budget")
-        budget_ok = True
-        if monthly_budget_raw is not None and monthly_budget_raw.strip() != "":
+        monthly_budget = request.POST.get("monthly_budget")
+        if monthly_budget is not None:
             try:
-                val = int(monthly_budget_raw.strip())
-                if val < 0:
-                    messages.error(request, "Oylik byudjet manfiy bo‘lmasligi kerak.")
-                    budget_ok = False
-                else:
-                    user.monthly_budget = val
+                user.monthly_budget = int(monthly_budget)
+                messages.success(request, "Oylik byudjet yangilandi.")
             except (ValueError, TypeError):
-                messages.error(request, "Oylik byudjet uchun to‘g‘ri son kiriting.")
-                budget_ok = False
-        else:
-            user.monthly_budget = None
+                pass
         user.telegram_notifications = request.POST.get("telegram_notifications") == "on"
         user.daily_reminder = request.POST.get("daily_reminder") == "on"
         user.weekly_summary = request.POST.get("weekly_summary") == "on"
         user.limit_warning = request.POST.get("limit_warning") == "on"
-        if budget_ok:
-            user.save(update_fields=["monthly_budget", "telegram_notifications", "daily_reminder", "weekly_summary", "limit_warning"])
-            messages.success(request, "Sozlamalar saqlandi.")
+        user.save(update_fields=["monthly_budget", "telegram_notifications", "daily_reminder", "weekly_summary", "limit_warning"])
         return redirect("expenses:settings")
     return render(request, "expenses/settings.html", {"user": user, "preset_amounts": PRESET_AMOUNTS})

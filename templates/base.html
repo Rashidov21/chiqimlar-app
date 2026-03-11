@@ -338,28 +338,19 @@
                 <i class="bi bi-wallet2"></i> Chiqimlar
             </a>
             <div class="flex items-center gap-1 top-nav-links">
-                <a href="{% url 'expenses:dashboard' %}" class="nav-link {% if request.resolver_match.namespace == 'expenses' and request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
+                <a href="{% url 'expenses:dashboard' %}" class="nav-link {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
                     <i class="bi bi-speedometer2"></i> Bu Oy
                 </a>
                 <a href="{% url 'expenses:add' %}" class="btn-primary btn-sm">
                     <i class="bi bi-plus-lg"></i> Qo'shish
                 </a>
-                <a href="{% url 'expenses:saving_goal_list' %}" class="nav-link {% if request.resolver_match.namespace == 'expenses' and request.resolver_match.url_name == 'saving_goal_list' %}active{% endif %}">
-                    <i class="bi bi-bullseye"></i> Maqsadlar
-                </a>
-                <a href="{% url 'expenses:recurring_list' %}" class="nav-link {% if request.resolver_match.namespace == 'expenses' and request.resolver_match.url_name == 'recurring_list' %}active{% endif %}">
-                    <i class="bi bi-arrow-repeat"></i> Qayta to'lov
-                </a>
-                <a href="{% url 'expenses:debt_list' %}" class="nav-link {% if request.resolver_match.namespace == 'expenses' and request.resolver_match.url_name == 'debt_list' %}active{% endif %}">
-                    <i class="bi bi-people"></i> Qarzlar
-                </a>
-                <a href="{% url 'analytics:statistics' %}" class="nav-link {% if request.resolver_match.namespace == 'analytics' and request.resolver_match.url_name == 'statistics' %}active{% endif %}">
+                <a href="{% url 'analytics:statistics' %}" class="nav-link {% if request.resolver_match.url_name == 'statistics' %}active{% endif %}">
                     <i class="bi bi-bar-chart"></i> Statistika
                 </a>
-                <a href="{% url 'categories:list' %}" class="nav-link {% if request.resolver_match.namespace == 'categories' and request.resolver_match.url_name == 'list' %}active{% endif %}">
+                <a href="{% url 'categories:list' %}" class="nav-link {% if 'categories' in request.path %}active{% endif %}">
                     <i class="bi bi-folder"></i> Turkumlar
                 </a>
-                <a href="{% url 'expenses:settings' %}" class="nav-link {% if request.resolver_match.namespace == 'expenses' and request.resolver_match.url_name == 'settings' %}active{% endif %}">
+                <a href="{% url 'expenses:settings' %}" class="nav-link {% if 'settings' in request.path %}active{% endif %}">
                     <i class="bi bi-gear"></i> Sozlamalar
                 </a>
                 <form method="post" action="{% url 'accounts:logout' %}" class="inline" style="margin-left: 8px;">{% csrf_token %}
@@ -372,11 +363,11 @@
     </nav>
 
     <div class="bottom-nav mt-5">
-        <a href="{% url 'expenses:dashboard' %}" class="{% if request.resolver_match.namespace == 'expenses' and request.resolver_match.url_name == 'dashboard' %}active{% endif %}"><i class="bi bi-speedometer2"></i> Bu Oy</a>
-        <a href="{% url 'expenses:add' %}" class="{% if request.resolver_match.namespace == 'expenses' and request.resolver_match.url_name == 'add' %}active{% endif %}"><i class="bi bi-plus-circle-fill"></i> Qo'shish</a>
-        <a href="{% url 'analytics:statistics' %}" class="{% if request.resolver_match.namespace == 'analytics' and request.resolver_match.url_name == 'statistics' %}active{% endif %}"><i class="bi bi-bar-chart"></i> Statistika</a>
-        <a href="{% url 'categories:list' %}" class="{% if request.resolver_match.namespace == 'categories' and request.resolver_match.url_name == 'list' %}active{% endif %}"><i class="bi bi-folder"></i> Turkumlar</a>
-        <a href="{% url 'expenses:settings' %}" class="{% if request.resolver_match.namespace == 'expenses' and request.resolver_match.url_name == 'settings' %}active{% endif %}"><i class="bi bi-gear"></i> Sozlamalar</a>
+        <a href="{% url 'expenses:dashboard' %}" class="{% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}"><i class="bi bi-speedometer2"></i> Bu Oy</a>
+        <a href="{% url 'expenses:add' %}" class="{% if request.resolver_match.url_name == 'add' %}active{% endif %}"><i class="bi bi-plus-circle-fill"></i> Qo'shish</a>
+        <a href="{% url 'analytics:statistics' %}" class="{% if request.resolver_match.url_name == 'statistics' %}active{% endif %}"><i class="bi bi-bar-chart"></i> Statistika</a>
+        <a href="{% url 'categories:list' %}" class="{% if 'categories' in request.path %}active{% endif %}"><i class="bi bi-folder"></i> Turkumlar</a>
+        <a href="{% url 'expenses:settings' %}" class="{% if 'settings' in request.path %}active{% endif %}"><i class="bi bi-gear"></i> Sozlamalar</a>
     </div>
     {% endif %}
     {% endblock %}

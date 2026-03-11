@@ -9,7 +9,6 @@
 <div class="card" style="max-width: 480px;">
     <form method="post" style="display: flex; flex-direction: column; gap: 16px;">
         {% csrf_token %}
-        {% include "partials/form_errors.html" with form=form %}
         <div>
             <label for="id_name" class="input-label">📁 Turkum nomi</label>
             {{ form.name }}
