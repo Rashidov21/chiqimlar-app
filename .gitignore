@@ -37,3 +37,7 @@ htmlcov/
 
 # Docker
 .docker/
+
+
+# Media
+*md
