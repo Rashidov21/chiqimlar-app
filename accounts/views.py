@@ -15,6 +15,7 @@ from django.conf import settings
 
 from core.rate_limit import rate_limit_ip
 from .services import get_or_create_user_by_telegram, check_rate_limit
+from telegram_bot.services import required_channels_ok_for_telegram_id
 from .telegram_auth import validate_telegram_init_data
 
 logger = logging.getLogger(__name__)
@@ -105,6 +106,11 @@ def telegram_webapp_auth(request):
     if not telegram_id:
         logger.warning("tg_webapp_auth: no_user (user_data without id)")
         return JsonResponse({"ok": False, "error": "no_user"}, status=400)
+
+    # Majburiy kanallarga obuna bo'lgan-bo'lmaganini tekshirish
+    if not required_channels_ok_for_telegram_id(telegram_id):
+        logger.warning("tg_webapp_auth: subscription_required telegram_id=%s", telegram_id)
+        return JsonResponse({"ok": False, "error": "subscription_required"}, status=403)
 
     # Rate limit: bir foydalanuvchi uchun tez-tez auth bo'lishiga yo'l qo'ymaslik
     if not check_rate_limit(f"tg_webapp_auth_{telegram_id}"):

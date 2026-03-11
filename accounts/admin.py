@@ -1,18 +1,19 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
-from .models import User, VerificationCode
+from .models import User, VerificationCode, DonationMethod, Donation
 
 
 @admin.register(User)
 class UserAdmin(BaseUserAdmin):
-    list_display = ["username", "telegram_id", "email", "monthly_budget", "is_active"]
-    list_filter = ["is_staff", "is_active"]
+    list_display = ["username", "telegram_id", "email", "monthly_budget", "is_supporter", "is_active"]
+    list_filter = ["is_staff", "is_active", "is_supporter"]
     search_fields = ["username", "first_name", "telegram_id"]
     ordering = ["-date_joined"]
     fieldsets = BaseUserAdmin.fieldsets + (
         ("Telegram", {"fields": ("telegram_id", "phone")}),
         ("Byudjet", {"fields": ("monthly_budget",)}),
         ("Bildirishnomalar", {"fields": ("telegram_notifications", "daily_reminder", "weekly_summary", "limit_warning")}),
+        ("Supporter", {"fields": ("is_supporter",)}),
     )
 
 
@@ -22,3 +23,35 @@ class VerificationCodeAdmin(admin.ModelAdmin):
     list_filter = ["is_used"]
     search_fields = ["code", "telegram_id"]
     readonly_fields = ["created_at"]
+
+
+@admin.register(DonationMethod)
+class DonationMethodAdmin(admin.ModelAdmin):
+    list_display = ["title", "is_active", "sort_order"]
+    list_filter = ["is_active"]
+    search_fields = ["title"]
+    ordering = ["sort_order", "id"]
+
+
+@admin.register(Donation)
+class DonationAdmin(admin.ModelAdmin):
+    list_display = ["user", "amount", "method", "confirmed", "created_at"]
+    list_filter = ["confirmed", "method"]
+    search_fields = ["user__username", "user__telegram_id"]
+    readonly_fields = ["created_at"]
+
+    actions = ["mark_as_confirmed"]
+
+    def mark_as_confirmed(self, request, queryset):
+        updated = 0
+        for donation in queryset:
+            if not donation.confirmed:
+                donation.confirmed = True
+                donation.save(update_fields=["confirmed"])
+                if donation.user and not donation.user.is_supporter:
+                    donation.user.is_supporter = True
+                    donation.user.save(update_fields=["is_supporter"])
+                updated += 1
+        self.message_user(request, f"{updated} ta donat tasdiqlandi va foydalanuvchilar supporter sifatida belgilandi.")
+
+    mark_as_confirmed.short_description = "Tanlangan donatlarni tasdiqlash va foydalanuvchilarni supporter qilish"

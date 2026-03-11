@@ -21,8 +21,12 @@ class User(AbstractUser):
     daily_reminder = models.BooleanField(default=True)
     weekly_summary = models.BooleanField(default=True)
     limit_warning = models.BooleanField(default=True)
+    is_supporter = models.BooleanField(
+        default=False,
+        help_text="Donat qilgan/supporter foydalanuvchi",
+    )
     created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
+    updated_at = models.DateTimeField(auto_now_add=False, auto_now=True)
 
     class Meta:
         verbose_name = "Foydalanuvchi"
@@ -127,3 +131,59 @@ class VerificationCode(models.Model):
         from django.utils import timezone
 
         return not self.is_used and timezone.now() < self.expires_at
+
+
+class DonationMethod(models.Model):
+    """Donat qilish usullari (Click/Payme/Stars linklari)."""
+
+    title = models.CharField(max_length=120)
+    description = models.TextField(blank=True)
+    payment_link = models.URLField(
+        help_text="To'lov sahifasi yoki bot deep-link (donat uchun)."
+    )
+    is_active = models.BooleanField(default=True)
+    sort_order = models.PositiveIntegerField(default=0)
+
+    class Meta:
+        verbose_name = "Donat usuli"
+        verbose_name_plural = "Donat usullari"
+        ordering = ["sort_order", "id"]
+
+    def __str__(self):
+        return self.title
+
+
+class Donation(models.Model):
+    """Foydalanuvchi donatlari (supporter uchun)."""
+
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name="donations",
+    )
+    method = models.ForeignKey(
+        DonationMethod,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="donations",
+    )
+    amount = models.DecimalField(max_digits=12, decimal_places=0)
+    note = models.CharField(
+        max_length=255,
+        blank=True,
+        help_text="Admin uchun izoh (chek, tranzaksiya ID va hokazo).",
+    )
+    confirmed = models.BooleanField(
+        default=False,
+        help_text="Tasdiqlangan donat (supporter statusini beradi).",
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = "Donat"
+        verbose_name_plural = "Donatlar"
+        ordering = ["-created_at"]
+
+    def __str__(self):
+        return f"{self.user} — {self.amount}"
