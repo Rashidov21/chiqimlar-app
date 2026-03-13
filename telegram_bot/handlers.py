@@ -4,6 +4,7 @@ Telegram bot - Webhook orqali komandalar (sinxron).
 import logging
 import requests
 from django.conf import settings
+from django.core.cache import cache
 
 from .services import required_channels_ok_for_telegram_id
 from .models import RequiredChannel
@@ -72,7 +73,11 @@ def _required_channels_text() -> str:
 def handle_start(chat_id: int, first_name: str = "") -> bool:
     """/start - Mini App tugmasi (avtologin, kanal obunasi shart)."""
     # Avval foydalanuvchi majburiy kanallarga obuna bo'lganini tekshiramiz.
-    if not required_channels_ok_for_telegram_id(chat_id):
+    prev_key = f"sub_prev:{chat_id}"
+    prev_status = cache.get(prev_key)
+    now_ok = required_channels_ok_for_telegram_id(chat_id)
+    cache.set(prev_key, now_ok, 3600)
+    if not now_ok:
         text = _required_channels_text()
         _send_message(chat_id, text)
         return True
@@ -83,6 +88,12 @@ def handle_start(chat_id: int, first_name: str = "") -> bool:
         "Pastdagi <b>«Chiqimlarni ochish»</b> tugmasini bosing — ilova ochiladi va siz avtomatik kirasiz. "
         "Ro'yxatdan o'tish ham, kod kiritish ham shart emas. Faqat Telegram profilingiz asosida kirasiz."
     )
+    # Agar oldingi holatda obuna bo'lmagan bo'lsa, endi esa bo'lsa — foydalanuvchiga qisqa tasdiq xabari beramiz.
+    if prev_status is False and now_ok:
+        text = (
+            "✅ Obunangiz tasdiqlandi.\n\n"
+            + text
+        )
     _send_message(chat_id, text, reply_markup=_web_app_keyboard())
     return True
 

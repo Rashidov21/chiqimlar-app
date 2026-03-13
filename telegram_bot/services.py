@@ -102,3 +102,15 @@ def required_channels_ok_for_telegram_id(telegram_id: int) -> bool:
             return False
     return True
 
+
+def clear_subscription_cache_for_user(telegram_id: int) -> None:
+    """
+    Berilgan Telegram ID uchun kanal obunasi cache'ini tozalaydi.
+    Faqat SUBSCRIPTION_CACHE_TTL bilan saqlanadigan kalitlarni o'chiradi.
+    """
+    if not telegram_id:
+        return
+    for ch in RequiredChannel.objects.all():
+        cache_key = f"sub:{telegram_id}:{ch.pk}"
+        cache.delete(cache_key)
+

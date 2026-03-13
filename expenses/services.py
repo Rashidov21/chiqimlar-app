@@ -10,9 +10,10 @@ from django.db.models import Sum
 from django.utils import timezone
 
 from accounts.models import User
+from django.conf import settings
 
 MONTHLY_TOTALS_CACHE_KEY = "monthly_totals:{user_id}:{year}:{month}"
-MONTHLY_TOTALS_CACHE_TTL = 120  # 2 daqiqa
+MONTHLY_TOTALS_CACHE_TTL = getattr(settings, "MONTHLY_TOTALS_CACHE_TTL", 120)  # 2 daqiqa (default)
 
 
 def get_monthly_totals(user, year=None, month=None):
@@ -50,6 +51,18 @@ def get_monthly_totals(user, year=None, month=None):
     }
     cache.set(cache_key, data, timeout=MONTHLY_TOTALS_CACHE_TTL)
     return data
+
+
+def invalidate_monthly_totals_cache(user, year=None, month=None) -> None:
+    """
+    Berilgan foydalanuvchi uchun oylik jami cache'ini tozalaydi.
+    Agar year/month berilmasa, bugungi oy uchun hisoblanadi.
+    """
+    today = timezone.now().date()
+    year = year or today.year
+    month = month or today.month
+    cache_key = MONTHLY_TOTALS_CACHE_KEY.format(user_id=user.pk, year=year, month=month)
+    cache.delete(cache_key)
 
 
 def get_category_breakdown(user, year=None, month=None):

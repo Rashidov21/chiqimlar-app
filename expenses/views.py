@@ -26,7 +26,7 @@ from core.permissions import get_user_object_or_404
 from core.rate_limit import rate_limit_action
 from .models import Expense, SavingGoal, RecurringExpense, Debt
 from .forms import ExpenseForm, SavingGoalForm, RecurringExpenseForm, DebtForm
-from .services import advance_next_payment, get_dashboard_context, get_monthly_totals
+from .services import advance_next_payment, get_dashboard_context, get_monthly_totals, invalidate_monthly_totals_cache
 from analytics.services import get_insights_for_user, get_user_achievements
 from notifications.services import (
     maybe_send_limit_warning_after_expense,
@@ -95,6 +95,7 @@ def dashboard(request):
             "given_debt_total": 0,
         }
     context["finance_profile"] = profile
+    context["needs_budget"] = not bool(getattr(request.user, "monthly_budget", 0))
     try:
         context["insights"] = get_insights_for_user(
             request.user,
@@ -430,6 +431,7 @@ def expense_add(request):
     if form.is_valid():
         try:
             expense = form.save()
+            invalidate_monthly_totals_cache(request.user, year=expense.date.year, month=expense.date.month)
             maybe_send_limit_warning_after_expense(request.user)
             maybe_send_expense_confirmation_after_expense(request.user, expense)
             messages.success(request, "Xarajat qo'shildi.")
@@ -449,6 +451,7 @@ def expense_edit(request, pk):
     form = ExpenseForm(request.POST or None, instance=expense, user=request.user)
     if form.is_valid():
         expense = form.save()
+        invalidate_monthly_totals_cache(request.user, year=expense.date.year, month=expense.date.month)
         maybe_send_limit_warning_after_expense(request.user)
         maybe_send_expense_confirmation_after_expense(request.user, expense)
         messages.success(request, "Xarajat yangilandi.")
@@ -461,7 +464,9 @@ def expense_edit(request, pk):
 @rate_limit_action("expense_delete", max_requests=30)
 def expense_delete(request, pk):
     expense = get_user_object_or_404(Expense, request.user, pk)
+    year, month = expense.date.year, expense.date.month
     expense.delete()
+    invalidate_monthly_totals_cache(request.user, year=year, month=month)
     messages.success(request, "Xarajat o'chirildi.")
     return redirect(_safe_next_url(request))
 

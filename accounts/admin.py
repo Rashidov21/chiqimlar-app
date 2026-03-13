@@ -1,5 +1,6 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
+from telegram_bot.services import clear_subscription_cache_for_user
 from .models import User, VerificationCode, DonationMethod, Donation
 
 
@@ -15,6 +16,20 @@ class UserAdmin(BaseUserAdmin):
         ("Bildirishnomalar", {"fields": ("telegram_notifications", "daily_reminder", "weekly_summary", "limit_warning")}),
         ("Donater", {"fields": ("is_supporter",)}),
     )
+    actions = ["clear_subscription_cache"]
+
+    def clear_subscription_cache(self, request, queryset):
+        cleared = 0
+        for user in queryset:
+            if user.telegram_id:
+                clear_subscription_cache_for_user(user.telegram_id)
+                cleared += 1
+        if cleared:
+            self.message_user(request, f"{cleared} ta foydalanuvchi uchun kanal obunasi cache'i tozalandi.")
+        else:
+            self.message_user(request, "Tanlangan foydalanuvchilarda telegram_id topilmadi.")
+
+    clear_subscription_cache.short_description = "Tanlangan foydalanuvchilar uchun kanal obunasi cache'ini tozalash"
 
 
 @admin.register(VerificationCode)

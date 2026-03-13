@@ -134,6 +134,18 @@ def get_insights_for_user(user, year=None, month=None, limit=5):
     return insights
 
 
+def clear_insights_cache_for_user(user, year=None, month=None) -> None:
+    """
+    Berilgan foydalanuvchi uchun moliyaviy tushunchalar cache'ini tozalaydi.
+    Agar year/month berilmasa, joriy oy uchun ishlaydi.
+    """
+    today = timezone.now().date()
+    year = year or today.year
+    month = month or today.month
+    cache_key = INSIGHTS_CACHE_KEY.format(user_id=user.pk, year=year, month=month)
+    cache.delete(cache_key)
+
+
 ACHIEVEMENT_CHECK_CACHE_KEY = "achievement_check_done:"
 ACHIEVEMENT_CHECK_CACHE_TTL = 600  # 10 min - tekshiruv har 10 min da max 1 marta
 

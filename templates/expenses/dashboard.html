@@ -10,6 +10,20 @@
         <span>{{ selected_date_display }}</span>
     </button>
 </p>
+{% if needs_budget %}
+<div class="card card-compact" style="margin-bottom: 16px; background: #fefce8; border-color: #facc15;">
+    <div style="display: flex; align-items: flex-start; gap: 10px;">
+        <i class="bi bi-flag" style="font-size: 1.3rem; color: #ca8a04;"></i>
+        <div>
+            <p style="font-weight: 600; margin-bottom: 4px; font-size: 0.95rem;">1-qadam: Oylik byudjetni kiriting</p>
+            <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 8px;">Kunlik limit va aniqroq moliyaviy tavsiyalar uchun oylik byudjetni sozlamalarda belgilang.</p>
+            <a href="{% url 'expenses:settings' %}" class="btn-primary btn-sm" style="text-decoration: none; display: inline-flex; align-items: center; gap: 6px;">
+                <i class="bi bi-gear"></i> Byudjetni sozlash
+            </a>
+        </div>
+    </div>
+</div>
+{% endif %}
 <p style="text-align: center; font-size: 2rem; font-weight: 800; color: var(--text-main); margin-bottom: 20px; letter-spacing: -0.02em;">{{ totals.total_spent|intcomma }}</p>
 
 {% if daily_summary %}

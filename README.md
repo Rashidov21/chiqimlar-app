@@ -71,14 +71,14 @@ Bu loyiha Telegram Mini App sifatida ham ishlaydi. Sozlash:
 1. `.env` da:
    - `TELEGRAM_WEBAPP_URL=https://your-domain.com` (root URL, foydalanuvchi uchun `/` ochiladi, login bo'lmasa `/accounts/login/` ga yo'naltiriladi)
 2. [@BotFather](https://t.me/BotFather) da:
-   - `/mybots` → botni tanlang → **Bot Settings** → **Menu Button** yoki **Web App** bo'limidan `TELEGRAM_WEBAPP_URL` ni Web App URL sifatida kiriting.
+   - `/mybots` → botni tanlang → **Bot Settings** → **Menu Button** yoki **Web App** bo'limidan `TELEGRAM_WEBAPP_URL` ni Web App URL sifatida kiriting (agar kanal obunasi qat'iy bo'lsa, bu tugmani o'chirib, faqat botdagi `/start` javobidagi tugmani ishlatishingiz mumkin).
 3. Foydalanuvchi `/start` yuborganda bot:
-   - Kirish kodi yuboradi
-   - “💰 Chiqimlarni ochish” Web App tugmasini yuboradi (Telegram ichida veb-ilova ochiladi)
+   - Agar majburiy kanallarga obuna bo'lmasa — kanal(lar) ro'yxatini yuboradi
+   - Agar obuna bo'lgan bo'lsa — “💰 Chiqimlarni ochish” Web App tugmasini yuboradi (Telegram ichida veb-ilova ochiladi)
 4. Mini App ichida:
    - Telegram WebApp SDK yordamida `initData` serverga yuboriladi
    - Backend `initData` imzo va vaqtini tekshiradi, foydalanuvchini Telegram ID bo'yicha yaratadi/topadi va sessiyani ochadi
-   - Agar avtomatik login muvaffaqiyatli bo'lmasa, foydalanuvchi odatdagi kod kiritish formasi orqali kira oladi
+   - Agar avtomatik login muvaffaqiyatli bo'lmasa, foydalanuvchi ekranda xato turi va keyingi qadamlar (masalan, /start ni qayta yuborish, kanallarga obuna bo'lish) bo‘yicha aniq ko‘rsatmani ko‘radi
 
 ### 5. Ishga tushirish
 
@@ -87,7 +87,7 @@ python manage.py runserver
 ```
 
 Veb: http://127.0.0.1:8000/  
-Kirish: Telegramda botga `/start` yuboring, kodni veb sahifada kiriting.
+Kirish: Telegramda botga `/start` yuboring va “Chiqimlarni ochish” tugmasi orqali Mini App'ni oching (initData asosida avtomatik login).
 
 ## Docker
 
