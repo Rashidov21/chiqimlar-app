@@ -100,6 +100,12 @@
                             textEl.innerText = "Sessiya muddati tugagan. Botda /start yuboring va «Chiqimlarni ochish» tugmasini qayta bosing.";
                         } else if (result.error === 'rate_limited') {
                             textEl.innerText = "Juda ko'p urinish. Bir necha soniyadan so'ng qayta urinib ko'ring.";
+                        } else if (result.error === 'subscription_required') {
+                            textEl.innerText = "Majburiy Telegram kanal(lar)iga obuna bo'lmagansiz. Bot chatida kanallar ro'yxatini ko'rasiz — ularga obuna bo'ling va so'ngra /start yuborib «Chiqimlarni ochish» tugmasi orqali qayta kiring.";
+                        } else if (result.error === 'forbidden_origin') {
+                            textEl.innerText = "Xavfsizlik cheklovi tufayli ushbu sahifadan kirish mumkin emas. Botdagi rasmiy «Chiqimlarni ochish» tugmasi orqali ilovani oching.";
+                        } else if (result.error === 'no_user') {
+                            textEl.innerText = "Telegram ma'lumotlari to'liq kelmadi. Botni yopib qayta /start yuboring va «Chiqimlarni ochish» tugmasini yana bosing.";
                         }
                     }
                 }

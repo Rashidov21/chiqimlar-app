@@ -51,6 +51,9 @@ def _get_chat_member_status(chat_identifier: str | int, user_id: int) -> Optiona
     return result.get("status")
 
 
+SUBSCRIPTION_CACHE_TTL = 600  # sekund, kanal obunasi holati uchun cache
+
+
 def is_member_of_required_channel(telegram_id: int, channel: RequiredChannel) -> bool:
     """
     Bitta RequiredChannel uchun foydalanuvchi obunasini tekshiradi (cache bilan).
@@ -70,7 +73,7 @@ def is_member_of_required_channel(telegram_id: int, channel: RequiredChannel) ->
         username = channel.username.strip()
         if not username:
             logger.warning("RequiredChannel pk=%s da username yo'q.", channel.pk)
-            cache.set(cache_key, False, 3600)
+            cache.set(cache_key, False, SUBSCRIPTION_CACHE_TTL)
             return False
         if not username.startswith("@"):
             username = "@" + username
@@ -78,7 +81,7 @@ def is_member_of_required_channel(telegram_id: int, channel: RequiredChannel) ->
 
     status = _get_chat_member_status(chat_identifier, telegram_id)
     ok = status in {"member", "administrator", "creator"}
-    cache.set(cache_key, ok, 3600)
+    cache.set(cache_key, ok, SUBSCRIPTION_CACHE_TTL)
     return ok
 
 

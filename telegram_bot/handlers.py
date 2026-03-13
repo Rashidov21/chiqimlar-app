@@ -47,9 +47,13 @@ def _required_channels_text() -> str:
     channels = RequiredChannel.objects.filter(is_active=True, is_mandatory=True)
     if not channels.exists():
         return (
-            "Ilova uchun hozir majburiy kanal yo'q. Agar bu xabarni ko'rsangiz, iltimos, /start ni qayta yuboring."
+            "Ilova uchun hozir majburiy kanal yo'q. Agar bu xabarni ko'rsangiz, iltimos, /start ni qayta yuboring "
+            "va «Chiqimlarni ochish» tugmasi orqali Mini App ni oching."
         )
-    lines: list[str] = ["Ilovadan foydalanish uchun quyidagi kanal(lar)ga obuna bo'ling:", ""]
+    lines: list[str] = [
+        "Ilovadan foydalanish uchun quyidagi kanal(lar)ga obuna bo'ling:",
+        "",
+    ]
     for ch in channels:
         username = (ch.username or "").strip()
         if not username:
@@ -58,7 +62,10 @@ def _required_channels_text() -> str:
             username = "@" + username
         lines.append(f"• {ch.name}: {username}")
     lines.append("")
-    lines.append("Obuna bo'lgandan keyin /start deb yozing va Mini App tugmasi chiqadi.")
+    lines.append(
+        "Obuna bo'lgandan keyin Telegram bot chatida yana bir marta /start deb yozing — shundan so'ng «Chiqimlarni "
+        "ochish» tugmasi paydo bo'ladi va Mini App orqali ilovaga kirasiz."
+    )
     return "\n".join(lines)
 
 
