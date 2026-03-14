@@ -135,11 +135,18 @@ def handle_donate(chat_id: int) -> bool:
         text = "Hozircha donat usullari qo'shilmagan. Keyinroq qayta urinib ko'ring."
         _send_message(chat_id, text)
         return True
-    lines = ["⭐ <b>Donater bo'ling</b>\n", "Ilovani rivojlantirishga yordam bering. To'liq moliyaviy tushunchalar va 12 oylik statistika donat qilganlar uchun. Quyidagi usullar orqali donat qilishingiz mumkin:\n"]
+    lines = [
+        "⭐ <b>Donater bo'ling</b>\n",
+        "Ilovani rivojlantirishga yordam bering. To'liq moliyaviy tushunchalar va 12 oylik statistika donat qilganlar uchun. Quyidagi usullar orqali donat qilishingiz mumkin:\n",
+    ]
     for m in methods:
         if m.payment_link:
             lines.append(f"• <b>{m.title}</b>\n{m.payment_link}")
-    lines.append("\nRahmat! Donat qilgandan keyin donater statusi admin tomonidan tasdiqlanadi.")
+    lines.append(
+        "\n\u2705 To'lov qilganingizdan so'ng, iltimos <b>chek / to'lov screenshotini</b> aynan shu bot chatiga yuboring.\n"
+        "Rasm captionida <b>donat summasini</b> va <b>qaysi usul orqali (masalan, karta/Click/Payme)</b> bo'lganini yozib qo'ying.\n"
+        "Admin screenshotni tekshiradi va tasdiqlangach, sizga donater statusini beradi."
+    )
     _send_message(chat_id, "\n".join(lines))
     return True
 
@@ -147,12 +154,72 @@ def handle_donate(chat_id: int) -> bool:
 def process_update(update_dict: dict) -> None:
     """Webhook update ni qayta ishlash."""
     message = update_dict.get("message") or {}
-    text = (message.get("text") or "").strip()
     chat_id = message.get("chat", {}).get("id")
     if not chat_id:
         return
     user = message.get("from") or {}
     first_name = user.get("first_name", "")
+    text = (message.get("text") or "").strip()
+
+    # 1) Donat chek screenshotlari: foydalanuvchi rasm yuborsa (private chat)
+    photos = message.get("photo") or []
+    if photos:
+        # Faqat private chat uchun ishlaymiz (group/supergroup emas)
+        chat_type = (message.get("chat") or {}).get("type")
+        if chat_type == "private":
+            try:
+                from accounts.services import get_or_create_user_by_telegram
+                from accounts.models import Donation
+            except Exception as e:  # pragma: no cover - import xatolari loglanadi
+                logger.warning("donation_photo: import error: %s", e)
+            else:
+                try:
+                    telegram_id = user.get("id")
+                    if telegram_id:
+                        app_user = get_or_create_user_by_telegram(
+                            telegram_id=telegram_id,
+                            first_name=first_name,
+                        )
+                        caption = (message.get("caption") or "").strip()
+                        # Eng katta sifatdagi rasmni olamiz (oxirgisi)
+                        best_photo = photos[-1]
+                        file_id = best_photo.get("file_id", "")
+                        msg_id = message.get("message_id")
+
+                        note_parts = []
+                        if caption:
+                            note_parts.append(f"Foydalanuvchi yozuvi: {caption}")
+                        if msg_id:
+                            note_parts.append(f"Telegram message_id={msg_id}")
+                        if file_id:
+                            note_parts.append(f"photo_file_id={file_id}")
+                        note_text = " | ".join(note_parts) if note_parts else "Telegram chek screenshot (detalsiz)."
+
+                        # Summani caption ichidan avtomatik aniq ajratish qiyin, admin keyin o'zi to'g'rilaydi.
+                        donation = Donation.objects.create(
+                            user=app_user,
+                            method=None,
+                            amount=0,
+                            note=note_text,
+                            confirmed=False,
+                        )
+                        logger.info(
+                            "donation_photo: created donation_id=%s for telegram_id=%s",
+                            donation.pk,
+                            telegram_id,
+                        )
+                        confirm_text = (
+                            "Rahmat! Donat chek screenshotini qabul qildik.\n\n"
+                            "Admin to'lovni tekshirib, tasdiqlagandan so'ng sizga donater statusi beriladi. "
+                            "Agar captionga donat summasini va qaysi usul (karta/Click/Payme) bo'lganini yozsangiz, "
+                            "tekshiruv tezroq bo'ladi."
+                        )
+                        _send_message(chat_id, confirm_text)
+                        return
+                except Exception as e:  # pragma: no cover - istalgan xato loglanadi, lekin bot yiqilmaydi
+                    logger.exception("donation_photo: error: %s", e)
+
+    # 2) Matnli komandalar
     if text == "/start":
         handle_start(chat_id, first_name)
     elif text == "/help":
