@@ -1,15 +1,21 @@
 """
-Hisoblar - Biznes logikasi (tasdiqlash kodi, rate limit).
+Hisoblar - Biznes logikasi (tasdiqlash kodi, rate limit, Telegram login token).
 """
+import secrets
 import time
+
 from django.utils import timezone
 from django.core.cache import cache
+
 from .models import User, VerificationCode
 
 
 RATE_LIMIT_KEY_PREFIX = "verify_code:"
 RATE_LIMIT_WINDOW = 60  # soniya
 RATE_LIMIT_MAX = 5
+
+TELEGRAM_LOGIN_TOKEN_PREFIX = "tg_login_token:"
+TELEGRAM_LOGIN_TOKEN_TTL = 300  # soniya, 5 daqiqa ichida foydalanilishi kerak
 
 
 def check_rate_limit(identifier: str) -> bool:
@@ -22,6 +28,39 @@ def check_rate_limit(identifier: str) -> bool:
     data["count"] += 1
     cache.set(key, data, timeout=RATE_LIMIT_WINDOW)
     return data["count"] <= RATE_LIMIT_MAX
+
+
+def generate_telegram_login_token(telegram_id: int) -> str:
+    """
+    Telegram login uchun bir martalik token yaratadi.
+    Token cache'da saqlanadi va faqat bir marta ishlatiladi.
+    """
+    if not telegram_id:
+        raise ValueError("telegram_id bo'sh bo'lishi mumkin emas")
+    # token_urlsafe 16 ~ 22 belgili bo'ladi, URL uchun qulay
+    token = secrets.token_urlsafe(16)
+    cache_key = f"{TELEGRAM_LOGIN_TOKEN_PREFIX}{token}"
+    cache.set(
+        cache_key,
+        {"telegram_id": telegram_id, "created_at": int(time.time())},
+        timeout=TELEGRAM_LOGIN_TOKEN_TTL,
+    )
+    return token
+
+
+def consume_telegram_login_token(token: str) -> int | None:
+    """
+    Tokenni o'qib, bir marta foydalanilgandan so'ng o'chiradi.
+    To'g'ri bo'lsa telegram_id qaytaradi, aks holda None.
+    """
+    if not token:
+        return None
+    cache_key = f"{TELEGRAM_LOGIN_TOKEN_PREFIX}{token}"
+    data = cache.get(cache_key)
+    if not data or "telegram_id" not in data:
+        return None
+    cache.delete(cache_key)
+    return int(data["telegram_id"])
 
 
 def get_or_create_user_by_telegram(telegram_id: int, username: str = None, first_name: str = None) -> User:

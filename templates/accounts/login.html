@@ -47,6 +47,13 @@
 (function() {
     var tg = window.Telegram && window.Telegram.WebApp;
     var initData = tg && tg.initData;
+    var params;
+    try {
+        params = new URLSearchParams(window.location.search || "");
+    } catch (e) {
+        params = null;
+    }
+    var tgToken = params ? (params.get('tg_token') || '').trim() : '';
 
     var debugEl = document.getElementById('login-debug');
     if (debugEl) {
@@ -60,7 +67,7 @@
     var miniappError = document.getElementById('login-miniapp-error');
     if (!root || !loading || !formWrap) return;
 
-    // Telegram Mini App: initData bor bo'lsa — avtomatik login
+    // Telegram Mini App: initData bor bo'lsa — asosiy avtologin yo'li
     if (initData) {
         if (codeFormWrap) codeFormWrap.style.display = 'none';
         formWrap.style.display = 'block';
@@ -119,7 +126,62 @@
         return; // Mini App holati shu branchda tugaydi
     }
 
-    // Oddiy brauzer: initData yo'q — foydalanuvchi faqat /start bo'yicha instruktsiyani ko'radi
+    // Agar initData yo'q, lekin tg_token mavjud bo'lsa — bir martalik token orqali login
+    if (tgToken) {
+        if (codeFormWrap) codeFormWrap.style.display = 'none';
+        formWrap.style.display = 'block';
+        loading.style.display = 'block';
+
+        var tokenFormData = new FormData();
+        tokenFormData.append('token', tgToken);
+
+        fetch('{% url "accounts:telegram_token_auth" %}', {
+            method: 'POST',
+            body: tokenFormData,
+            credentials: 'same-origin',
+            headers: { 'X-Requested-With': 'XMLHttpRequest' }
+        })
+        .then(function(r) {
+            return r.json().then(function(data) {
+                return {
+                    ok: data.ok,
+                    redirect: data.redirect,
+                    status: r.status,
+                    error: data.error
+                };
+            });
+        })
+        .then(function(result) {
+            if (result.ok && result.redirect) {
+                window.location.href = result.redirect;
+            } else {
+                loading.style.display = 'none';
+                if (miniappError) {
+                    miniappError.style.display = 'block';
+                    var textEl = miniappError.querySelector('p');
+                    if (textEl) {
+                        if (result.error === 'invalid_or_used_token' || result.error === 'no_token') {
+                            textEl.innerText = "Sessiya muddati tugagan yoki token noto'g'ri. Botda /start yuboring va «Chiqimlarni ochish» tugmasini qayta bosing.";
+                        } else if (result.error === 'rate_limited') {
+                            textEl.innerText = "Juda ko'p urinish. Bir necha soniyadan so'ng qayta urinib ko'ring.";
+                        } else if (result.error === 'subscription_required') {
+                            textEl.innerText = "Majburiy Telegram kanal(lar)iga obuna bo'lmagansiz. Bot chatida kanallar ro'yxatini ko'rasiz — ularga obuna bo'ling va so'ngra /start yuborib «Chiqimlarni ochish» tugmasi orqali qayta kiring.";
+                        } else if (result.error === 'forbidden_origin') {
+                            textEl.innerText = "Xavfsizlik cheklovi tufayli ushbu sahifadan kirish mumkin emas. Botdagi rasmiy «Chiqimlarni ochish» tugmasi orqali ilovani oching.";
+                        }
+                    }
+                }
+            }
+        })
+        .catch(function() {
+            loading.style.display = 'none';
+            if (miniappError) miniappError.style.display = 'block';
+        });
+
+        return;
+    }
+
+    // Oddiy brauzer: initData ham, tg_token ham yo'q — foydalanuvchi faqat /start bo'yicha instruktsiyani ko'radi
 })();
 </script>
 {% endblock %}

@@ -29,13 +29,29 @@ def _send_message(chat_id: int, text: str, reply_markup: dict | None = None) -> 
         return False
 
 
-def _web_app_keyboard() -> dict | None:
-    """Mini App ochish tugmasi."""
+def _web_app_keyboard(telegram_id: int) -> dict | None:
+    """
+    Mini App ochish tugmasi.
+    Har bir foydalanuvchi uchun alohida URL (bir martalik login token bilan) yaratiladi.
+    """
     if not WEBAPP_URL:
         return None
+    try:
+        from accounts.services import generate_telegram_login_token
+    except Exception:
+        # Agar accounts importida muammo bo'lsa, zaxira sifatida oddiy URL'dan foydalanamiz.
+        url = WEBAPP_URL
+    else:
+        try:
+            token = generate_telegram_login_token(telegram_id)
+            separator = "&" if "?" in WEBAPP_URL else "?"
+            url = f"{WEBAPP_URL}{separator}tg_token={token}"
+        except Exception:
+            url = WEBAPP_URL
+
     return {
         "keyboard": [
-            [{"text": "💰 Chiqimlarni ochish", "web_app": {"url": WEBAPP_URL}}]
+            [{"text": "💰 Chiqimlarni ochish", "web_app": {"url": url}}]
         ],
         "resize_keyboard": True,
     }
@@ -94,7 +110,7 @@ def handle_start(chat_id: int, first_name: str = "") -> bool:
             "✅ Obunangiz tasdiqlandi.\n\n"
             + text
         )
-    _send_message(chat_id, text, reply_markup=_web_app_keyboard())
+    _send_message(chat_id, text, reply_markup=_web_app_keyboard(chat_id))
     return True
 
 

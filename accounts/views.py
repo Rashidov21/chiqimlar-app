@@ -14,7 +14,12 @@ from django.http import JsonResponse
 from django.conf import settings
 
 from core.rate_limit import rate_limit_ip
-from .services import get_or_create_user_by_telegram, check_rate_limit
+from .services import (
+    check_rate_limit,
+    consume_telegram_login_token,
+    generate_telegram_login_token,  # noqa: F401 imported for bot-side usage
+    get_or_create_user_by_telegram,
+)
 from telegram_bot.services import required_channels_ok_for_telegram_id
 from .telegram_auth import validate_telegram_init_data
 
@@ -125,4 +130,53 @@ def telegram_webapp_auth(request):
     )
     login(request, user, backend="django.contrib.auth.backends.ModelBackend")
     logger.info("tg_webapp_auth: ok telegram_id=%s user_id=%s", telegram_id, user.pk)
+    return JsonResponse({"ok": True, "redirect": "/"})
+
+
+@csrf_exempt
+@require_POST
+@rate_limit_ip("telegram_token_auth", window=60, max_requests=60)
+def telegram_token_auth(request):
+    """
+    Telegram Mini App: bir martalik token orqali login.
+    POST: token=<random>, bot tomonidan yaratilgan.
+    """
+    if not _is_allowed_auth_origin(request):
+        logger.warning("tg_token_auth: forbidden_origin")
+        return JsonResponse({"ok": False, "error": "forbidden_origin"}, status=403)
+
+    token = request.POST.get("token", "").strip()
+    if not token and request.body:
+        try:
+            import json as _json
+
+            data = _json.loads(request.body)
+            token = (data.get("token") or "").strip()
+        except Exception:
+            pass
+    if not token:
+        logger.warning("tg_token_auth: no_token")
+        return JsonResponse({"ok": False, "error": "no_token"}, status=400)
+
+    telegram_id = consume_telegram_login_token(token)
+    if not telegram_id:
+        logger.warning("tg_token_auth: invalid_or_used_token")
+        return JsonResponse({"ok": False, "error": "invalid_or_used_token"}, status=400)
+
+    if not required_channels_ok_for_telegram_id(telegram_id):
+        logger.warning("tg_token_auth: subscription_required telegram_id=%s", telegram_id)
+        return JsonResponse({"ok": False, "error": "subscription_required"}, status=403)
+
+    if not check_rate_limit(f"tg_token_auth_{telegram_id}"):
+        logger.warning("tg_token_auth: rate_limited telegram_id=%s", telegram_id)
+        return JsonResponse(
+            {"ok": False, "error": "rate_limited"},
+            status=429,
+        )
+
+    user = get_or_create_user_by_telegram(
+        telegram_id=telegram_id,
+    )
+    login(request, user, backend="django.contrib.auth.backends.ModelBackend")
+    logger.info("tg_token_auth: ok telegram_id=%s user_id=%s", telegram_id, user.pk)
     return JsonResponse({"ok": True, "redirect": "/"})

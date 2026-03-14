@@ -8,4 +8,5 @@ urlpatterns = [
     path("register/", views.register_view, name="register"),
     path("logout/", views.logout_view, name="logout"),
     path("api/telegram-auth/", views.telegram_webapp_auth, name="telegram_webapp_auth"),
+    path("api/telegram-token-auth/", views.telegram_token_auth, name="telegram_token_auth"),
 ]
