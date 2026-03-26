@@ -434,8 +434,16 @@ def expense_add(request):
             invalidate_monthly_totals_cache(request.user, year=expense.date.year, month=expense.date.month)
             maybe_send_limit_warning_after_expense(request.user)
             maybe_send_expense_confirmation_after_expense(request.user, expense)
-            messages.success(request, "Xarajat qo'shildi.")
+            add_another = request.POST.get("add_another") == "1"
+            messages.success(
+                request,
+                "Xarajat qo'shildi. Yana bittasini tezda qo'shishingiz mumkin."
+                if add_another
+                else "Xarajat qo'shildi.",
+            )
             logger.info("expense_add user_id=%s amount=%s date=%s", request.user.pk, expense.amount, expense.date)
+            if add_another:
+                return redirect("expenses:add")
             return redirect(_safe_next_url(request))
         except Exception as e:
             logger.exception("expense_add save user_id=%s: %s", request.user.pk, e)
@@ -473,13 +481,32 @@ def expense_delete(request, pk):
 
 @login_required
 def expense_list(request):
-    """Barcha xarajatlar (pagination, ixtiyoriy oy/yil filtri)."""
+    """Barcha xarajatlar (pagination, oy filtri, tez oraliq filtri va qidiruv)."""
     today = timezone.now().date()
     qs = Expense.objects.filter(user=request.user).select_related("category").order_by("-date", "-created_at")
 
+    # Matnli qidiruv: izoh va turkum nomi bo'yicha
+    q = (request.GET.get("q") or "").strip()
+    if q:
+        from django.db.models import Q
+
+        qs = qs.filter(
+            Q(note__icontains=q) | Q(category__name__icontains=q)
+        )
+
+    # Tez vaqt oralig'i filtri (month/year filtridan oldin qo'llanadi)
+    range_key = (request.GET.get("range") or "").strip().lower()
+    if range_key == "today":
+        qs = qs.filter(date=today)
+    elif range_key == "7d":
+        start_7d = today - timezone.timedelta(days=6)
+        qs = qs.filter(date__gte=start_7d, date__lte=today)
+    elif range_key == "month":
+        qs = qs.filter(date__year=today.year, date__month=today.month)
+
     year_str = request.GET.get("year")
     month_str = request.GET.get("month")
-    if year_str and month_str:
+    if year_str and month_str and range_key not in {"today", "7d", "month"}:
         try:
             year = int(year_str)
             month = int(month_str)
@@ -528,6 +555,8 @@ def expense_list(request):
             "period_choices": period_choices,
             "selected_year": year,
             "selected_month": month,
+            "selected_range": range_key,
+            "query_text": q,
             "base_query": base_query,
         },
     )
@@ -665,7 +694,7 @@ def export_excel_to_telegram(request):
 @rate_limit_action("settings_save", max_requests=30)
 def settings_view(request):
     """Sozlamalar - oylik limit, kategoriyalar, eksport, donat/supporter."""
-    from accounts.models import DonationMethod
+    from accounts.models import Donation, DonationMethod
 
     user = request.user
     if request.method == "POST":
@@ -693,8 +722,15 @@ def settings_view(request):
             messages.success(request, "Sozlamalar saqlandi.")
         return redirect("expenses:settings")
     donation_methods = DonationMethod.objects.filter(is_active=True).order_by("sort_order", "id")
+    pending_donation_exists = Donation.objects.filter(user=user, confirmed=False).exists()
+    confirmed_donations_count = Donation.objects.filter(user=user, confirmed=True).count()
     return render(
         request,
         "expenses/settings.html",
-        {"user": user, "donation_methods": donation_methods},
+        {
+            "user": user,
+            "donation_methods": donation_methods,
+            "pending_donation_exists": pending_donation_exists,
+            "confirmed_donations_count": confirmed_donations_count,
+        },
     )

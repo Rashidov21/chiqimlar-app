@@ -118,10 +118,12 @@
 {% endif %}
 
 {% if achievements %}
-<div class="card card-compact" style="margin-bottom: 16px;">
+<details class="card card-compact ux-collapsible" data-collapse-id="dash-achievements" style="margin-bottom: 16px;" open>
+    <summary style="list-style:none;cursor:pointer;">
     <h2 style="font-weight: 600; margin-bottom: 8px; font-size: 0.95rem; display: flex; align-items: center; gap: 6px;">
         <i class="bi bi-trophy"></i> Yutuqlar
     </h2>
+    </summary>
     <ul style="list-style: none; padding: 0; margin: 0;">
         {% for ua in achievements %}
         <li style="font-size: 0.85rem; margin-bottom: 4px;">
@@ -130,14 +132,16 @@
         </li>
         {% endfor %}
     </ul>
-</div>
+</details>
 {% endif %}
 
 {% if upcoming_recurring %}
-<div class="card card-compact" style="margin-bottom: 16px;">
+<details class="card card-compact ux-collapsible" data-collapse-id="dash-recurring" style="margin-bottom: 16px;">
+    <summary style="list-style:none;cursor:pointer;">
     <h2 style="font-weight: 600; margin-bottom: 8px; font-size: 0.95rem; display: flex; align-items: center; gap: 6px;">
         <i class="bi bi-calendar-event"></i> Yaqin qayta takrorlanuvchi to'lovlar
     </h2>
+    </summary>
     <ul style="list-style: none; padding: 0; margin: 0;">
         {% for r in upcoming_recurring %}
         <li class="list-row list-row--stack-sm">
@@ -153,14 +157,16 @@
         </li>
         {% endfor %}
     </ul>
-</div>
+</details>
 {% endif %}
 
 {% if active_goals %}
-<div class="card card-compact" style="margin-bottom: 16px;">
+<details class="card card-compact ux-collapsible" data-collapse-id="dash-goals" style="margin-bottom: 16px;">
+    <summary style="list-style:none;cursor:pointer;">
     <h2 style="font-weight: 600; margin-bottom: 8px; font-size: 0.95rem; display: flex; align-items: center; gap: 6px;">
         <i class="bi bi-bullseye"></i> Maqsadlar bo'yicha holat
     </h2>
+    </summary>
     <ul style="list-style: none; padding: 0; margin: 0;">
         {% for g in active_goals %}
         <li style="border-bottom: 1px solid var(--border-soft); padding-bottom: 12px; margin-bottom: 12px;">
@@ -182,14 +188,16 @@
     <a href="{% url 'expenses:saving_goal_list' %}" style="display: inline-block; margin-top: 4px; font-size: 0.85rem; color: var(--primary); font-weight: 500; text-decoration: none;">
         Barcha maqsadlar →
     </a>
-</div>
+</details>
 {% endif %}
 
 {% if net_debt is not None %}
-<div class="card card-compact" style="margin-bottom: 16px;">
+<details class="card card-compact ux-collapsible" data-collapse-id="dash-debt" style="margin-bottom: 16px;">
+    <summary style="list-style:none;cursor:pointer;">
     <h2 style="font-weight: 600; margin-bottom: 8px; font-size: 0.95rem; display: flex; align-items: center; gap: 6px;">
         <i class="bi bi-people"></i> Qarz holati
     </h2>
+    </summary>
     <p style="font-size: 0.9rem; margin-bottom: 4px;">
         Olingan ochiq qarzlar: <strong>{{ taken_debt_total|intcomma }}</strong> so'm ·
         Bergan ochiq qarzlar: <strong>{{ given_debt_total|intcomma }}</strong> so'm
@@ -206,14 +214,16 @@
     <a href="{% url 'expenses:debt_list' %}" style="font-size: 0.85rem; color: var(--primary); font-weight: 500; text-decoration: none;">
         Barcha qarzlarni ko'rish →
     </a>
-</div>
+</details>
 {% endif %}
 
 {% if top_categories %}
-<div class="card card-compact" style="margin-bottom: 16px;">
+<details class="card card-compact ux-collapsible" data-collapse-id="dash-top-categories" style="margin-bottom: 16px;">
+    <summary style="list-style:none;cursor:pointer;">
     <h2 style="font-weight: 600; margin-bottom: 8px; font-size: 0.95rem; display: flex; align-items: center; gap: 6px;">
         <i class="bi bi-star"></i> Eng ko'p sarflangan 3 turkum
     </h2>
+    </summary>
     <ul style="list-style: none; padding: 0; margin: 0;">
         {% for item in top_categories %}
         <li class="list-row list-row--stack-sm">
@@ -222,7 +232,7 @@
         </li>
         {% endfor %}
     </ul>
-</div>
+</details>
 {% endif %}
 
 <h2 style="font-weight: 700; font-size: 1rem; margin-bottom: 10px; color: var(--text-main);">So'ngi chiqimlar</h2>
@@ -241,7 +251,7 @@
             <div style="display: flex; align-items: center; gap: 8px; white-space: nowrap;">
                 <span style="font-weight: 600; font-size: 0.95rem;">{{ e.amount|intcomma }}</span>
                 <a href="{% url 'expenses:edit' e.pk %}" style="color: var(--text-muted); text-decoration: none;"><i class="bi bi-pencil"></i></a>
-                <form method="post" action="{% url 'expenses:delete' e.pk %}" style="display: inline;" onsubmit="return confirm('Ushbu xarajatni o\u2018chirishni xohlaysizmi?');">{% csrf_token %}<input type="hidden" name="next" value="{{ request.path }}"><button type="submit" style="background: none; border: none; color: var(--danger); cursor: pointer;" title="O'chirish"><i class="bi bi-trash"></i></button></form>
+                <form method="post" action="{% url 'expenses:delete' e.pk %}" style="display: inline;" class="delete-expense-form" data-expense-title="{{ e.category.name|default:'Xarajat' }} · {{ e.amount|intcomma }} so'm">{% csrf_token %}<input type="hidden" name="next" value="{{ request.path }}"><button type="submit" style="background: none; border: none; color: var(--danger); cursor: pointer;" title="O'chirish"><i class="bi bi-trash"></i></button></form>
             </div>
         </li>
         {% endfor %}
@@ -289,6 +299,63 @@
         url.searchParams.set('date', this.value);
         window.location.href = url.toString();
     });
+
+    // Dashboard ikkilamchi bo'limlari (details) holatini saqlaymiz.
+    var collapsibles = document.querySelectorAll('.ux-collapsible[data-collapse-id]');
+    collapsibles.forEach(function(el) {
+        var key = 'collapse:' + el.getAttribute('data-collapse-id');
+        var saved = localStorage.getItem(key);
+        if (saved === 'open') el.open = true;
+        if (saved === 'closed') el.open = false;
+        el.addEventListener('toggle', function() {
+            localStorage.setItem(key, el.open ? 'open' : 'closed');
+        });
+    });
+
+    // O'chirish uchun custom tasdiqlash modal.
+    var forms = document.querySelectorAll('.delete-expense-form');
+    if (forms.length) {
+        var modal = document.createElement('div');
+        modal.id = 'delete-confirm-modal';
+        modal.style.cssText = 'position:fixed;inset:0;z-index:120;display:none;background:rgba(17,24,39,0.38);padding:20px;align-items:flex-end;justify-content:center;';
+        modal.innerHTML = '' +
+            '<div style="width:100%;max-width:440px;background:#fff;border-radius:18px;padding:16px;border:1px solid var(--border-soft);box-shadow:0 18px 42px rgba(15,23,42,.22);">' +
+            '<p style="font-size:.95rem;font-weight:600;margin-bottom:6px;">Xarajatni o\\\'chirishni tasdiqlang</p>' +
+            '<p id="delete-confirm-text" style="font-size:.85rem;color:var(--text-muted);margin-bottom:14px;"></p>' +
+            '<div style="display:flex;gap:8px;justify-content:flex-end;">' +
+            '<button type="button" id="delete-cancel-btn" class="btn-secondary btn-sm">Bekor qilish</button>' +
+            '<button type="button" id="delete-yes-btn" class="btn-primary btn-sm" style="background:var(--danger);box-shadow:none;">Ha, o\\\'chirish</button>' +
+            '</div>' +
+            '</div>';
+        document.body.appendChild(modal);
+
+        var currentForm = null;
+        var textEl = document.getElementById('delete-confirm-text');
+        var cancelBtn = document.getElementById('delete-cancel-btn');
+        var yesBtn = document.getElementById('delete-yes-btn');
+
+        forms.forEach(function(form) {
+            form.addEventListener('submit', function(e) {
+                e.preventDefault();
+                currentForm = form;
+                if (textEl) textEl.textContent = (form.getAttribute('data-expense-title') || 'Tanlangan yozuv') + ' o‘chirilsinmi?';
+                modal.style.display = 'flex';
+            });
+        });
+        cancelBtn.addEventListener('click', function() {
+            modal.style.display = 'none';
+            currentForm = null;
+        });
+        yesBtn.addEventListener('click', function() {
+            if (currentForm) currentForm.submit();
+        });
+        modal.addEventListener('click', function(e) {
+            if (e.target === modal) {
+                modal.style.display = 'none';
+                currentForm = null;
+            }
+        });
+    }
 })();
 </script>
 {% endblock %}
