@@ -6,6 +6,7 @@ import os
 from datetime import datetime
 from tempfile import NamedTemporaryFile
 
+import requests
 from django.conf import settings
 
 logger = logging.getLogger(__name__)
@@ -14,6 +15,7 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
 from django.shortcuts import render, redirect
+from django.http import HttpResponse
 from django.utils import timezone
 from django.utils.http import url_has_allowed_host_and_scheme
 from django.views.decorators.http import require_http_methods
@@ -811,9 +813,25 @@ def donation_moderation_view(request):
     if status_filter not in {Donation.Status.PENDING, Donation.Status.APPROVED, Donation.Status.REJECTED, "all"}:
         status_filter = Donation.Status.PENDING
 
+    q = (request.GET.get("q") or "").strip()
     qs = Donation.objects.select_related("user", "method").order_by("status", "-created_at")
+    if q:
+        from django.db.models import Q
+        qs = qs.filter(
+            Q(user__username__icontains=q)
+            | Q(user__first_name__icontains=q)
+            | Q(user__telegram_id__icontains=q)
+            | Q(telegram_username_snapshot__icontains=q)
+            | Q(note__icontains=q)
+        )
     if status_filter != "all":
         qs = qs.filter(status=status_filter)
+
+    status_counts = {
+        "pending": Donation.objects.filter(status=Donation.Status.PENDING).count(),
+        "approved": Donation.objects.filter(status=Donation.Status.APPROVED).count(),
+        "rejected": Donation.objects.filter(status=Donation.Status.REJECTED).count(),
+    }
 
     paginator = Paginator(qs, 20)
     page_obj = paginator.get_page(request.GET.get("page", 1))
@@ -823,6 +841,8 @@ def donation_moderation_view(request):
         {
             "page_obj": page_obj,
             "status_filter": status_filter,
+            "q": q,
+            "status_counts": status_counts,
             "status_choices": [
                 ("pending", "Tekshiruvda"),
                 ("approved", "Tasdiqlangan"),
@@ -831,3 +851,43 @@ def donation_moderation_view(request):
             ],
         },
     )
+
+
+@login_required
+@require_http_methods(["GET"])
+def donation_moderation_photo(request, donation_id: int):
+    """
+    Staff uchun donation screenshot preview (Telegram file API orqali proxy).
+    Bot token va file URL ni frontendga oshkor qilmaydi.
+    """
+    if not request.user.is_staff:
+        return HttpResponse(status=403)
+
+    from accounts.models import Donation
+
+    donation = Donation.objects.filter(pk=donation_id).first()
+    if not donation or not donation.screenshot_file_id:
+        return HttpResponse("Rasm topilmadi", status=404)
+
+    token = getattr(settings, "TELEGRAM_BOT_TOKEN", "")
+    if not token:
+        return HttpResponse("Bot token sozlanmagan", status=503)
+
+    try:
+        get_file_url = f"https://api.telegram.org/bot{token}/getFile"
+        meta_resp = requests.get(get_file_url, params={"file_id": donation.screenshot_file_id}, timeout=10)
+        meta_resp.raise_for_status()
+        meta_data = meta_resp.json()
+        file_path = ((meta_data or {}).get("result") or {}).get("file_path")
+        if not file_path:
+            return HttpResponse("Telegram fayl yo'li topilmadi", status=404)
+
+        file_url = f"https://api.telegram.org/file/bot{token}/{file_path}"
+        file_resp = requests.get(file_url, timeout=15)
+        file_resp.raise_for_status()
+
+        content_type = file_resp.headers.get("Content-Type", "image/jpeg")
+        return HttpResponse(file_resp.content, content_type=content_type)
+    except Exception as e:
+        logger.warning("donation_moderation_photo error donation_id=%s: %s", donation_id, e)
+        return HttpResponse("Rasmni yuklab bo'lmadi", status=502)

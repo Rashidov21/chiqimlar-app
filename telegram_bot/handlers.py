@@ -232,6 +232,7 @@ def process_update(update_dict: dict) -> None:
                             first_name=first_name,
                         )
                         caption = (message.get("caption") or "").strip()
+                        telegram_username = (user.get("username") or "").strip()
                         # Eng katta sifatdagi rasmni olamiz (oxirgisi)
                         best_photo = photos[-1]
                         file_id = best_photo.get("file_id", "")
@@ -265,11 +266,24 @@ def process_update(update_dict: dict) -> None:
                         )
                         if pending:
                             pending.note = note_text
+                            if telegram_username:
+                                pending.telegram_username_snapshot = telegram_username
+                            if file_id:
+                                pending.screenshot_file_id = file_id
                             if parsed_amount > 0:
                                 pending.amount = parsed_amount
                             if parsed_method and pending.method_id is None:
                                 pending.method = parsed_method
-                            pending.save(update_fields=["note", "amount", "method", "confirmed"])
+                            pending.save(
+                                update_fields=[
+                                    "note",
+                                    "telegram_username_snapshot",
+                                    "screenshot_file_id",
+                                    "amount",
+                                    "method",
+                                    "confirmed",
+                                ]
+                            )
                             donation = pending
                             confirm_text = (
                                 "Chek screenshotingiz yangilandi ✅\n\n"
@@ -288,6 +302,8 @@ def process_update(update_dict: dict) -> None:
                                 amount=parsed_amount or 0,
                                 note=note_text,
                                 status=Donation.Status.PENDING,
+                                telegram_username_snapshot=telegram_username,
+                                screenshot_file_id=file_id,
                             )
                             logger.info(
                                 "donation_photo: created donation_id=%s for telegram_id=%s",

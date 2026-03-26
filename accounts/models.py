@@ -193,6 +193,16 @@ class Donation(models.Model):
         blank=True,
         help_text="Rad etish sababi (ixtiyoriy).",
     )
+    telegram_username_snapshot = models.CharField(
+        max_length=64,
+        blank=True,
+        help_text="Screenshot yuborilgan paytdagi Telegram username.",
+    )
+    screenshot_file_id = models.CharField(
+        max_length=255,
+        blank=True,
+        help_text="Telegram photo file_id (admin preview uchun).",
+    )
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
