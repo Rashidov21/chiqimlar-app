@@ -724,6 +724,9 @@ def settings_view(request):
     donation_methods = DonationMethod.objects.filter(is_active=True).order_by("sort_order", "id")
     pending_donation_exists = Donation.objects.filter(user=user, confirmed=False).exists()
     confirmed_donations_count = Donation.objects.filter(user=user, confirmed=True).count()
+    bot_username = (getattr(settings, "TELEGRAM_BOT_USERNAME", "") or "").strip().lstrip("@")
+    bot_link = f"https://t.me/{bot_username}" if bot_username else ""
+    bot_donate_link = f"https://t.me/{bot_username}?start=donat" if bot_username else ""
     return render(
         request,
         "expenses/settings.html",
@@ -732,5 +735,8 @@ def settings_view(request):
             "donation_methods": donation_methods,
             "pending_donation_exists": pending_donation_exists,
             "confirmed_donations_count": confirmed_donations_count,
+            "bot_username": bot_username,
+            "bot_link": bot_link,
+            "bot_donate_link": bot_donate_link,
         },
     )

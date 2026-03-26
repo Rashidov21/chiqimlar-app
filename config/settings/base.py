@@ -139,6 +139,7 @@ CSRF_COOKIE_SAMESITE = "Lax"
 TELEGRAM_BOT_TOKEN = env("TELEGRAM_BOT_TOKEN", default="")
 TELEGRAM_WEBHOOK_SECRET = env("TELEGRAM_WEBHOOK_SECRET", default="")
 TELEGRAM_WEBAPP_URL = env("TELEGRAM_WEBAPP_URL", default="https://budget.pyblog.uz/")
+TELEGRAM_BOT_USERNAME = env("TELEGRAM_BOT_USERNAME", default="")
 # initData qabul qilinadigan maksimal yoshi (soniya). 7 kun = 604800
 TELEGRAM_INITDATA_MAX_AGE = int(env("TELEGRAM_INITDATA_MAX_AGE", default="604800"))
 

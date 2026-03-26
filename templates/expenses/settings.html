@@ -146,6 +146,17 @@
                 <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 12px;">
                     Ilovani rivojlantirishga yordam bering — donat qilsangiz to'liq moliyaviy tushunchalar va 12 oylik statistikaga ega bo'lasiz.
                 </p>
+                <div class="card card-compact" style="margin-bottom: 10px; border-style: dashed;">
+                    <p style="font-size: 0.82rem; color: var(--text-muted); margin-bottom: 8px; font-weight: 600;">
+                        Donat flow (2 qadam):
+                    </p>
+                    <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 6px;">
+                        1) Pastdagi donat tugmalaridan birini bosib to'lov qiling.
+                    </p>
+                    <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 0;">
+                        2) To'lovdan keyin chek screenshotini botga yuboring (captionda summa va usulni yozing).
+                    </p>
+                </div>
                 {% if pending_donation_exists %}
                     <p style="font-size: 0.83rem; color: #b45309; margin-bottom: 10px;">
                         <i class="bi bi-hourglass-split"></i> Donat chekingiz tekshiruvda. Admin tasdiqlagach, donater statusi avtomatik beriladi.
@@ -160,10 +171,23 @@
                         {% for m in donation_methods %}
                             {% if m.payment_link %}
                                 <a href="{{ m.payment_link }}" target="_blank" rel="noopener noreferrer" class="btn-secondary btn-sm" style="text-decoration: none;">
-                                    <i class="bi bi-heart"></i> {{ m.title }}
+                                    <i class="bi bi-heart"></i> Donat: {{ m.title }}
                                 </a>
                             {% endif %}
                         {% endfor %}
+                    </div>
+                    <div style="display: flex; flex-wrap: wrap; gap: 10px; margin-top: 10px;">
+                        {% if bot_donate_link %}
+                            <a href="{{ bot_donate_link }}" target="_blank" rel="noopener noreferrer" class="btn-primary btn-sm" style="text-decoration: none;">
+                                <i class="bi bi-telegram"></i> Chekni botga yuborish
+                            </a>
+                        {% elif bot_link %}
+                            <a href="{{ bot_link }}" target="_blank" rel="noopener noreferrer" class="btn-primary btn-sm" style="text-decoration: none;">
+                                <i class="bi bi-telegram"></i> Botga o'tish va chek yuborish
+                            </a>
+                        {% else %}
+                            <span style="font-size: 0.8rem; color: var(--text-muted);">Bot username sozlanmagan. Bot chatiga qo'lda o'tib /donat yuboring.</span>
+                        {% endif %}
                     </div>
                 {% else %}
                     <p style="font-size: 0.82rem; color: var(--text-muted);">Hozircha to'lov usullari qo'shilmagan.</p>
