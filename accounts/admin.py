@@ -50,7 +50,7 @@ class DonationMethodAdmin(admin.ModelAdmin):
 
 @admin.register(Donation)
 class DonationAdmin(admin.ModelAdmin):
-    list_display = ["user", "amount", "method", "confirmed", "created_at"]
+    list_display = ["user", "amount", "method", "confirmed", "short_note", "created_at"]
     list_filter = ["confirmed", "method"]
     search_fields = ["user__username", "user__telegram_id"]
     readonly_fields = ["created_at"]
@@ -70,3 +70,11 @@ class DonationAdmin(admin.ModelAdmin):
         self.message_user(request, f"{updated} ta donat tasdiqlandi va foydalanuvchilar donater sifatida belgilandi.")
 
     mark_as_confirmed.short_description = "Tanlangan donatlarni tasdiqlash va foydalanuvchilarni donater qilish"
+
+    def short_note(self, obj):
+        text = (obj.note or "").strip()
+        if len(text) > 40:
+            return text[:39] + "…"
+        return text or "-"
+
+    short_note.short_description = "Izoh"

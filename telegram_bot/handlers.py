@@ -2,6 +2,7 @@
 Telegram bot - Webhook orqali komandalar (sinxron).
 """
 import logging
+import re
 import requests
 from django.conf import settings
 from django.core.cache import cache
@@ -11,6 +12,42 @@ from .models import RequiredChannel
 
 logger = logging.getLogger(__name__)
 WEBAPP_URL = getattr(settings, "TELEGRAM_WEBAPP_URL", "").rstrip("/")
+DONATION_NOTE_MAX_LEN = 255
+
+
+def _shorten_note(text: str, max_len: int = DONATION_NOTE_MAX_LEN) -> str:
+    """Donation.note uzunligini xavfsiz chegarada saqlaydi."""
+    text = (text or "").strip()
+    if len(text) <= max_len:
+        return text
+    if max_len <= 1:
+        return text[:max_len]
+    return text[: max_len - 1] + "…"
+
+
+def _extract_amount_from_caption(caption: str) -> int:
+    """
+    Caption ichidan birinchi yirik sonni topishga urinadi.
+    Misol: "50 000", "50000", "120,000 so'm".
+    """
+    raw = (caption or "").strip()
+    if not raw:
+        return 0
+    candidates = re.findall(r"[\d][\d\s,\.]{1,}", raw)
+    if not candidates:
+        return 0
+    for item in candidates:
+        digits = re.sub(r"[^\d]", "", item)
+        if not digits:
+            continue
+        try:
+            amount = int(digits)
+        except ValueError:
+            continue
+        # Juda kichik raqamlarni (masalan sana kuni) olib tashlashga urinib ko'ramiz.
+        if amount >= 1000:
+            return amount
+    return 0
 
 
 def _send_message(chat_id: int, text: str, reply_markup: dict | None = None) -> bool:
@@ -169,7 +206,7 @@ def process_update(update_dict: dict) -> None:
         if chat_type == "private":
             try:
                 from accounts.services import get_or_create_user_by_telegram
-                from accounts.models import Donation
+                from accounts.models import Donation, DonationMethod
             except Exception as e:  # pragma: no cover - import xatolari loglanadi
                 logger.warning("donation_photo: import error: %s", e)
             else:
@@ -186,7 +223,18 @@ def process_update(update_dict: dict) -> None:
                         file_id = best_photo.get("file_id", "")
                         msg_id = message.get("message_id")
 
-                        note_parts = []
+                        parsed_amount = _extract_amount_from_caption(caption)
+                        parsed_method = None
+                        if caption:
+                            c_low = caption.lower()
+                            active_methods = DonationMethod.objects.filter(is_active=True)
+                            for method in active_methods:
+                                title = (method.title or "").strip()
+                                if title and title.lower() in c_low:
+                                    parsed_method = method
+                                    break
+
+                        note_parts: list[str] = []
                         if caption:
                             note_parts.append(f"Foydalanuvchi yozuvi: {caption}")
                         if msg_id:
@@ -194,26 +242,50 @@ def process_update(update_dict: dict) -> None:
                         if file_id:
                             note_parts.append(f"photo_file_id={file_id}")
                         note_text = " | ".join(note_parts) if note_parts else "Telegram chek screenshot (detalsiz)."
+                        note_text = _shorten_note(note_text)
 
-                        # Summani caption ichidan avtomatik aniq ajratish qiyin, admin keyin o'zi to'g'rilaydi.
-                        donation = Donation.objects.create(
-                            user=app_user,
-                            method=None,
-                            amount=0,
-                            note=note_text,
-                            confirmed=False,
+                        pending = (
+                            Donation.objects.filter(user=app_user, confirmed=False)
+                            .order_by("-created_at")
+                            .first()
                         )
-                        logger.info(
-                            "donation_photo: created donation_id=%s for telegram_id=%s",
-                            donation.pk,
-                            telegram_id,
-                        )
-                        confirm_text = (
-                            "Rahmat! Donat chek screenshotini qabul qildik.\n\n"
-                            "Admin to'lovni tekshirib, tasdiqlagandan so'ng sizga donater statusi beriladi. "
-                            "Agar captionga donat summasini va qaysi usul (karta/Click/Payme) bo'lganini yozsangiz, "
-                            "tekshiruv tezroq bo'ladi."
-                        )
+                        if pending:
+                            pending.note = note_text
+                            if parsed_amount > 0:
+                                pending.amount = parsed_amount
+                            if parsed_method and pending.method_id is None:
+                                pending.method = parsed_method
+                            pending.save(update_fields=["note", "amount", "method"])
+                            donation = pending
+                            confirm_text = (
+                                "Chek screenshotingiz yangilandi ✅\n\n"
+                                "Sizda allaqachon tekshiruvdagi donat bor edi. Biz eng oxirgi yuborgan chek ma'lumotini saqladik. "
+                                "Admin tekshiruvni tugatgach donater statusi beriladi."
+                            )
+                            logger.info(
+                                "donation_photo: updated pending donation_id=%s for telegram_id=%s",
+                                donation.pk,
+                                telegram_id,
+                            )
+                        else:
+                            donation = Donation.objects.create(
+                                user=app_user,
+                                method=parsed_method,
+                                amount=parsed_amount or 0,
+                                note=note_text,
+                                confirmed=False,
+                            )
+                            logger.info(
+                                "donation_photo: created donation_id=%s for telegram_id=%s",
+                                donation.pk,
+                                telegram_id,
+                            )
+                            confirm_text = (
+                                "Rahmat! Donat chek screenshotini qabul qildik ✅\n\n"
+                                "Admin to'lovni tekshirib, tasdiqlagandan so'ng sizga donater statusi beriladi. "
+                                "Agar captionga donat summasini va qaysi usul (karta/Click/Payme) bo'lganini yozsangiz, "
+                                "tekshiruv tezroq bo'ladi."
+                            )
                         _send_message(chat_id, confirm_text)
                         return
                 except Exception as e:  # pragma: no cover - istalgan xato loglanadi, lekin bot yiqilmaydi
