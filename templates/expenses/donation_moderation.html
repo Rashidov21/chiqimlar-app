@@ -11,7 +11,7 @@
             <p class="page-subtitle">Screenshot yuborgan userlarni tekshirish va status berish</p>
         </div>
     </div>
-    <a href="{% url 'expenses:settings' %}" class="btn-secondary btn-sm" style="text-decoration: none;">
+    <a href="{% url 'expenses:settings' %}" class="btn-secondary btn-sm" style="text-decoration: none; padding: 7px 10px; min-height: 38px;">
         <i class="bi bi-arrow-left"></i> Sozlamalar
     </a>
 </div>
@@ -34,15 +34,15 @@
 
     <form method="get" style="margin-bottom: 10px;">
         <div style="display:flex; gap:8px; align-items:center;">
-            <input type="text" name="q" value="{{ q }}" class="input-field" placeholder="Qidiruv: telegram_id, username, izoh" style="padding-top:8px;padding-bottom:8px;">
+            <input type="text" name="q" value="{{ q }}" class="input-field" placeholder="Qidiruv: telegram_id, username, izoh" style="padding-top:8px;padding-bottom:8px; font-size: 0.82rem;">
             <input type="hidden" name="status" value="{{ status_filter }}">
-            <button class="btn-secondary btn-sm" type="submit"><i class="bi bi-search"></i> Izlash</button>
+            <button class="btn-secondary btn-sm" type="submit" style="padding: 7px 10px; min-height: 38px;"><i class="bi bi-search"></i> Izlash</button>
         </div>
     </form>
     <p style="font-size: 0.82rem; color: var(--text-muted); margin-bottom: 8px;">Holat bo'yicha filtr</p>
     <div style="display: flex; flex-wrap: wrap; gap: 8px;">
         {% for key, label in status_choices %}
-        <a href="{% url 'expenses:donation_moderation' %}?status={{ key }}{% if q %}&q={{ q|urlencode }}{% endif %}" class="btn-secondary btn-sm" style="text-decoration: none; {% if status_filter == key %}background: var(--primary); color:#fff; border-color: var(--primary);{% endif %}">
+        <a href="{% url 'expenses:donation_moderation' %}?status={{ key }}{% if q %}&q={{ q|urlencode }}{% endif %}" class="btn-secondary btn-sm" style="text-decoration: none; padding: 7px 10px; min-height: 36px; {% if status_filter == key %}background: var(--primary); color:#fff; border-color: var(--primary);{% endif %}">
             {{ label }}
         </a>
         {% endfor %}
@@ -53,26 +53,26 @@
     {% if page_obj %}
         <div style="display: flex; flex-direction: column; gap: 10px;">
             {% for d in page_obj %}
-            <div class="card card-compact" style="border: 1px solid var(--border-soft);">
-                <div style="display:grid; grid-template-columns: 112px 1fr; gap: 10px; align-items: start;">
+            <div class="card card-compact" style="border: 1px solid var(--border-soft); padding: 10px;">
+                <div style="display:grid; grid-template-columns: 98px 1fr; gap: 9px; align-items: start;">
                     <div>
                         {% if d.screenshot_file_id %}
                             <a href="{% url 'expenses:donation_moderation_photo' d.pk %}" target="_blank" rel="noopener noreferrer" style="display:block;text-decoration:none;">
-                                <img src="{% url 'expenses:donation_moderation_photo' d.pk %}" alt="donat screenshot" style="width:100%;height:112px;object-fit:cover;border-radius:10px;border:1px solid var(--border-soft);background:#f8f8fc;">
+                                <img src="{% url 'expenses:donation_moderation_photo' d.pk %}" alt="donat screenshot" style="width:100%;height:98px;object-fit:cover;border-radius:10px;border:1px solid var(--border-soft);background:#f8f8fc;">
                             </a>
                         {% else %}
-                            <div style="width:100%;height:112px;border-radius:10px;border:1px dashed var(--border-soft);display:flex;align-items:center;justify-content:center;color:var(--text-muted);font-size:.75rem;text-align:center;padding:6px;">Screenshot yo'q</div>
+                            <div style="width:100%;height:98px;border-radius:10px;border:1px dashed var(--border-soft);display:flex;align-items:center;justify-content:center;color:var(--text-muted);font-size:.75rem;text-align:center;padding:6px;">Screenshot yo'q</div>
                         {% endif %}
                     </div>
                     <div style="min-width: 0;">
-                        <p style="font-size: 0.9rem; font-weight: 600; margin-bottom: 2px;">
+                        <p style="font-size: 0.86rem; font-weight: 600; margin-bottom: 2px;">
                             {{ d.user.get_display_name }}
                         </p>
                         <p style="font-size: 0.78rem; color: var(--text-muted); margin-bottom: 3px;">
                             Telegram ID: <strong>{{ d.user.telegram_id|default:"-" }}</strong>
                             {% if d.telegram_username_snapshot %}<br>Username: <strong>@{{ d.telegram_username_snapshot }}</strong>{% endif %}
                         </p>
-                        <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 4px;">
+                        <p style="font-size: 0.78rem; color: var(--text-muted); margin-bottom: 4px;">
                             {% if d.method %}{{ d.method.title }}{% else %}Usul aniqlanmagan{% endif %} · {{ d.amount|intcomma }} so'm
                         </p>
                         <p style="font-size: 0.78rem; color: var(--text-muted); margin-bottom: 4px;">
@@ -87,39 +87,39 @@
                             · {{ d.created_at|date:"d.m.Y H:i" }}
                         </p>
                         {% if d.note %}
-                        <p style="font-size: 0.8rem; color: var(--text-main); margin-bottom: 4px; word-break: break-word;">
+                        <p style="font-size: 0.78rem; color: var(--text-main); margin-bottom: 4px; word-break: break-word;">
                             <strong>Izoh:</strong> {{ d.note }}
                         </p>
                         {% endif %}
                         {% if d.rejection_reason %}
-                        <p style="font-size: 0.8rem; color: #b91c1c; margin-bottom: 2px;">
+                        <p style="font-size: 0.78rem; color: #b91c1c; margin-bottom: 2px;">
                             <strong>Rad etish sababi:</strong> {{ d.rejection_reason }}
                         </p>
                         {% endif %}
                     </div>
                 </div>
 
-                <div style="display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px;">
+                <div style="display: flex; flex-wrap: wrap; gap: 6px; margin-top: 7px;">
                     <form method="post" action="{% url 'expenses:donation_moderation' %}" style="display: inline;">
                         {% csrf_token %}
                         <input type="hidden" name="donation_id" value="{{ d.pk }}">
                         <input type="hidden" name="action" value="approve">
-                        <button type="submit" class="btn-primary btn-sm"><i class="bi bi-check2-circle"></i> Tasdiqlash</button>
+                        <button type="submit" class="btn-primary btn-sm" style="padding: 7px 10px; min-height: 36px;"><i class="bi bi-check2-circle"></i> Tasdiqlash</button>
                     </form>
 
-                    <form method="post" action="{% url 'expenses:donation_moderation' %}" style="display: inline-flex; gap: 6px; align-items: center;">
+                    <form method="post" action="{% url 'expenses:donation_moderation' %}" style="display: inline-flex; gap: 6px; align-items: center; flex-wrap: wrap;">
                         {% csrf_token %}
                         <input type="hidden" name="donation_id" value="{{ d.pk }}">
                         <input type="hidden" name="action" value="reject">
-                        <input type="text" name="rejection_reason" placeholder="Rad etish sababi (ixtiyoriy)" class="input-field" style="max-width: 240px; padding-top: 8px; padding-bottom: 8px;">
-                        <button type="submit" class="btn-secondary btn-sm" style="border-color:#fecaca;color:#b91c1c;"><i class="bi bi-x-circle"></i> Rad etish</button>
+                        <input type="text" name="rejection_reason" placeholder="Rad etish sababi (ixtiyoriy)" class="input-field" style="max-width: 220px; padding-top: 7px; padding-bottom: 7px; font-size: 0.78rem;">
+                        <button type="submit" class="btn-secondary btn-sm" style="border-color:#fecaca;color:#b91c1c; padding: 7px 10px; min-height: 36px;"><i class="bi bi-x-circle"></i> Rad etish</button>
                     </form>
 
                     <form method="post" action="{% url 'expenses:donation_moderation' %}" style="display: inline;">
                         {% csrf_token %}
                         <input type="hidden" name="donation_id" value="{{ d.pk }}">
                         <input type="hidden" name="action" value="pending">
-                        <button type="submit" class="btn-secondary btn-sm"><i class="bi bi-arrow-counterclockwise"></i> Tekshiruvga qaytarish</button>
+                        <button type="submit" class="btn-secondary btn-sm" style="padding: 7px 10px; min-height: 36px;"><i class="bi bi-arrow-counterclockwise"></i> Tekshiruvga qaytarish</button>
                     </form>
                 </div>
             </div>
