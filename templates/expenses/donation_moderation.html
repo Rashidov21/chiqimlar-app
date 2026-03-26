@@ -1,0 +1,109 @@
+{% extends "base.html" %}
+{% load humanize %}
+{% block title %}Donat moderatsiya{% endblock %}
+
+{% block content %}
+<div class="page-header" style="justify-content: space-between;">
+    <div style="display: flex; align-items: center; gap: 10px;">
+        <i class="bi bi-shield-check" style="font-size: 1.3rem; color: var(--primary);"></i>
+        <div>
+            <h1 class="page-title" style="margin-bottom: 0;">Donat moderatsiya</h1>
+            <p class="page-subtitle">Screenshot yuborgan userlarni tekshirish va status berish</p>
+        </div>
+    </div>
+    <a href="{% url 'expenses:settings' %}" class="btn-secondary btn-sm" style="text-decoration: none;">
+        <i class="bi bi-arrow-left"></i> Sozlamalar
+    </a>
+</div>
+
+<div class="card card-compact" style="margin-bottom: 14px;">
+    <p style="font-size: 0.82rem; color: var(--text-muted); margin-bottom: 8px;">Holat bo'yicha filtr</p>
+    <div style="display: flex; flex-wrap: wrap; gap: 8px;">
+        {% for key, label in status_choices %}
+        <a href="{% url 'expenses:donation_moderation' %}?status={{ key }}" class="btn-secondary btn-sm" style="text-decoration: none; {% if status_filter == key %}background: var(--primary); color:#fff; border-color: var(--primary);{% endif %}">
+            {{ label }}
+        </a>
+        {% endfor %}
+    </div>
+</div>
+
+<div class="card">
+    {% if page_obj %}
+        <div style="display: flex; flex-direction: column; gap: 10px;">
+            {% for d in page_obj %}
+            <div class="card card-compact" style="border: 1px solid var(--border-soft);">
+                <div style="display: flex; justify-content: space-between; gap: 10px; align-items: flex-start;">
+                    <div style="min-width: 0;">
+                        <p style="font-size: 0.9rem; font-weight: 600; margin-bottom: 2px;">
+                            {{ d.user.get_display_name }}{% if d.user.telegram_id %} · TG: {{ d.user.telegram_id }}{% endif %}
+                        </p>
+                        <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 4px;">
+                            {% if d.method %}{{ d.method.title }}{% else %}Usul aniqlanmagan{% endif %} · {{ d.amount|intcomma }} so'm
+                        </p>
+                        <p style="font-size: 0.78rem; color: var(--text-muted); margin-bottom: 4px;">
+                            Holat:
+                            {% if d.status == 'pending' %}
+                                <span style="color:#b45309;font-weight:600;">Tekshiruvda</span>
+                            {% elif d.status == 'approved' %}
+                                <span style="color:#15803d;font-weight:600;">Tasdiqlangan</span>
+                            {% else %}
+                                <span style="color:#b91c1c;font-weight:600;">Rad etilgan</span>
+                            {% endif %}
+                            · {{ d.created_at|date:"d.m.Y H:i" }}
+                        </p>
+                        {% if d.note %}
+                        <p style="font-size: 0.8rem; color: var(--text-main); margin-bottom: 4px; word-break: break-word;">
+                            <strong>Izoh:</strong> {{ d.note }}
+                        </p>
+                        {% endif %}
+                        {% if d.rejection_reason %}
+                        <p style="font-size: 0.8rem; color: #b91c1c; margin-bottom: 2px;">
+                            <strong>Rad etish sababi:</strong> {{ d.rejection_reason }}
+                        </p>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div style="display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px;">
+                    <form method="post" action="{% url 'expenses:donation_moderation' %}" style="display: inline;">
+                        {% csrf_token %}
+                        <input type="hidden" name="donation_id" value="{{ d.pk }}">
+                        <input type="hidden" name="action" value="approve">
+                        <button type="submit" class="btn-primary btn-sm"><i class="bi bi-check2-circle"></i> Tasdiqlash</button>
+                    </form>
+
+                    <form method="post" action="{% url 'expenses:donation_moderation' %}" style="display: inline-flex; gap: 6px; align-items: center;">
+                        {% csrf_token %}
+                        <input type="hidden" name="donation_id" value="{{ d.pk }}">
+                        <input type="hidden" name="action" value="reject">
+                        <input type="text" name="rejection_reason" placeholder="Rad etish sababi (ixtiyoriy)" class="input-field" style="max-width: 240px; padding-top: 8px; padding-bottom: 8px;">
+                        <button type="submit" class="btn-secondary btn-sm" style="border-color:#fecaca;color:#b91c1c;"><i class="bi bi-x-circle"></i> Rad etish</button>
+                    </form>
+
+                    <form method="post" action="{% url 'expenses:donation_moderation' %}" style="display: inline;">
+                        {% csrf_token %}
+                        <input type="hidden" name="donation_id" value="{{ d.pk }}">
+                        <input type="hidden" name="action" value="pending">
+                        <button type="submit" class="btn-secondary btn-sm"><i class="bi bi-arrow-counterclockwise"></i> Tekshiruvga qaytarish</button>
+                    </form>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        {% if page_obj.has_other_pages %}
+        <div style="display:flex;justify-content:center;align-items:center;gap:10px;margin-top:14px;">
+            {% if page_obj.has_previous %}
+                <a href="?status={{ status_filter }}&page={{ page_obj.previous_page_number }}" class="btn-secondary btn-sm">← Oldingi</a>
+            {% endif %}
+            <span style="font-size: 0.82rem; color: var(--text-muted);">{{ page_obj.number }} / {{ page_obj.paginator.num_pages }}</span>
+            {% if page_obj.has_next %}
+                <a href="?status={{ status_filter }}&page={{ page_obj.next_page_number }}" class="btn-secondary btn-sm">Keyingi →</a>
+            {% endif %}
+        </div>
+        {% endif %}
+    {% else %}
+        <p style="text-align:center; color: var(--text-muted); padding: 18px 8px;">Tanlangan filtr bo'yicha donatlar topilmadi.</p>
+    {% endif %}
+</div>
+{% endblock %}

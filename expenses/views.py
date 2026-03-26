@@ -31,6 +31,7 @@ from analytics.services import get_insights_for_user, get_user_achievements
 from notifications.services import (
     maybe_send_limit_warning_after_expense,
     maybe_send_expense_confirmation_after_expense,
+    send_telegram_message,
     send_telegram_document,
 )
 
@@ -744,5 +745,89 @@ def settings_view(request):
             "bot_username": bot_username,
             "bot_link": bot_link,
             "bot_donate_link": bot_donate_link,
+        },
+    )
+
+
+@login_required
+@require_http_methods(["GET", "POST"])
+@rate_limit_action("donation_moderation", max_requests=120, window=60)
+def donation_moderation_view(request):
+    """
+    Staff uchun donat moderatsiya sahifasi (Web UI).
+    """
+    if not request.user.is_staff:
+        messages.error(request, "Ushbu bo'lim faqat adminlar uchun.")
+        return redirect("expenses:settings")
+
+    from accounts.models import Donation
+
+    if request.method == "POST":
+        donation_id = request.POST.get("donation_id")
+        action = (request.POST.get("action") or "").strip().lower()
+        reason = (request.POST.get("rejection_reason") or "").strip()
+        if not donation_id:
+            messages.error(request, "Donat ID topilmadi.")
+            return redirect("expenses:donation_moderation")
+        try:
+            donation = Donation.objects.select_related("user", "method").get(pk=donation_id)
+        except Donation.DoesNotExist:
+            messages.error(request, "Donat topilmadi.")
+            return redirect("expenses:donation_moderation")
+
+        if action == "approve":
+            donation.status = Donation.Status.APPROVED
+            donation.rejection_reason = ""
+            donation.save(update_fields=["status", "rejection_reason", "confirmed"])
+            if donation.user and not donation.user.is_supporter:
+                donation.user.is_supporter = True
+                donation.user.save(update_fields=["is_supporter"])
+            if donation.user and donation.user.telegram_id:
+                send_telegram_message(
+                    donation.user.telegram_id,
+                    "🎉 Donatingiz tasdiqlandi! Sizga Donater statusi berildi. Rahmat!",
+                )
+            messages.success(request, "Donat tasdiqlandi, foydalanuvchiga Donater status berildi.")
+        elif action == "reject":
+            donation.status = Donation.Status.REJECTED
+            donation.rejection_reason = reason or "Chek bo'yicha ma'lumot aniqlashtirish talab qilindi."
+            donation.save(update_fields=["status", "rejection_reason", "confirmed"])
+            if donation.user and donation.user.telegram_id:
+                send_telegram_message(
+                    donation.user.telegram_id,
+                    "❌ Donat tekshiruv natijasi: hozircha tasdiqlanmadi. Iltimos, chek screenshotini aniqroq ma'lumot bilan qayta yuboring.",
+                )
+            messages.info(request, "Donat rad etildi va foydalanuvchiga xabar yuborildi.")
+        elif action == "pending":
+            donation.status = Donation.Status.PENDING
+            donation.rejection_reason = ""
+            donation.save(update_fields=["status", "rejection_reason", "confirmed"])
+            messages.success(request, "Donat qayta tekshiruvga o'tkazildi.")
+        else:
+            messages.error(request, "Noma'lum amal.")
+        return redirect("expenses:donation_moderation")
+
+    status_filter = (request.GET.get("status") or Donation.Status.PENDING).strip().lower()
+    if status_filter not in {Donation.Status.PENDING, Donation.Status.APPROVED, Donation.Status.REJECTED, "all"}:
+        status_filter = Donation.Status.PENDING
+
+    qs = Donation.objects.select_related("user", "method").order_by("status", "-created_at")
+    if status_filter != "all":
+        qs = qs.filter(status=status_filter)
+
+    paginator = Paginator(qs, 20)
+    page_obj = paginator.get_page(request.GET.get("page", 1))
+    return render(
+        request,
+        "expenses/donation_moderation.html",
+        {
+            "page_obj": page_obj,
+            "status_filter": status_filter,
+            "status_choices": [
+                ("pending", "Tekshiruvda"),
+                ("approved", "Tasdiqlangan"),
+                ("rejected", "Rad etilgan"),
+                ("all", "Barchasi"),
+            ],
         },
     )

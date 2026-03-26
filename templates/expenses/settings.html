@@ -72,6 +72,15 @@
                 <a href="{% url 'categories:list' %}" style="color: var(--primary); font-weight: 500; font-size: 0.9rem; text-decoration: none;">Barcha turkumlarni boshqarish →</a>
             </div>
         </div>
+        {% if user.is_staff %}
+        <div style="display: flex; align-items: flex-start; gap: 12px;">
+            <span style="font-size: 1.4rem;">🛡️</span>
+            <div>
+                <p style="font-weight: 500; color: var(--text-main); margin-bottom: 2px;">Donat moderatsiya</p>
+                <a href="{% url 'expenses:donation_moderation' %}" style="color: var(--primary); font-weight: 500; font-size: 0.9rem; text-decoration: none;">Admin sahifasini ochish →</a>
+            </div>
+        </div>
+        {% endif %}
 
         <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 8px; font-weight: 500;">Ilova bo'limlari</p>
         <div style="display: grid; gap: 10px;">

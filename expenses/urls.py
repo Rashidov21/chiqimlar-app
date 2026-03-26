@@ -23,6 +23,7 @@ urlpatterns = [
     path("expenses/<int:pk>/edit/", views.expense_edit, name="edit"),
     path("expenses/<int:pk>/delete/", views.expense_delete, name="delete"),
     path("settings/", views.settings_view, name="settings"),
+    path("settings/donation-moderation/", views.donation_moderation_view, name="donation_moderation"),
     path("export/", views.export_view, name="export"),
     path("export/excel-to-telegram/", views.export_excel_to_telegram, name="export_excel_to_telegram"),
 ]
