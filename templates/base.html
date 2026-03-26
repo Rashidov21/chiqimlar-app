@@ -25,15 +25,15 @@
     <style>
         /* Tailwind CDN @apply ni qo'llamaydi — oddiy CSS. Ranglar: docs/COLOR_PALETTE.md */
         :root {
-            --color-bg-page: #f5f5ff;
+            --color-bg-page: #f7f8fc;
             --color-bg-card: #ffffff;
-            --color-border-subtle: #e8e6ff;
-            --color-border-soft: #f3f3ff;
-            --color-text: #121331;
-            --color-text-muted: #6b6b8a;
-            --color-primary: #5a3fff;
-            --color-primary-hover: #4c33e6;
-            --color-primary-soft: #ebe6ff;
+            --color-border-subtle: #ebeafa;
+            --color-border-soft: #f3f2fd;
+            --color-text: #1c1b36;
+            --color-text-muted: #747091;
+            --color-primary: #6a63d9;
+            --color-primary-hover: #5d56ca;
+            --color-primary-soft: #f1efff;
             --color-success: #16a34a;
             --color-warning: #b45309;
             --color-danger: #dc2626;
@@ -58,17 +58,20 @@
         .input-field {
             width: 100%;
             border-radius: 16px;
-            border: none;
+            border: 1px solid rgba(140, 132, 221, 0.18);
             padding: 14px 16px;
             font-size: 0.95rem;
             outline: none;
-            transition: box-shadow 0.2s, background-color 0.2s;
+            transition: box-shadow 0.2s, background-color 0.2s, border-color 0.2s;
             box-sizing: border-box;
-            background: #f8f8fc;
-            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.04);
+            background: rgba(255, 255, 255, 0.82);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            box-shadow: 0 8px 20px rgba(42, 36, 86, 0.05);
         }
         .input-field:focus {
-            box-shadow: 0 4px 20px rgba(90, 63, 255, 0.15), 0 0 0 2px rgba(90, 63, 255, 0.2);
+            border-color: rgba(106, 99, 217, 0.38);
+            box-shadow: 0 10px 22px rgba(106, 99, 217, 0.12), 0 0 0 2px rgba(106, 99, 217, 0.14);
             background: #fff;
         }
         .input-label {
@@ -98,25 +101,29 @@
             text-decoration: none;
             cursor: pointer;
             border: none;
-            transition: background 0.15s, color 0.15s, border-color 0.15s, box-shadow 0.15s;
+            transition: background 0.15s, color 0.15s, border-color 0.15s, box-shadow 0.15s, transform 0.15s;
             white-space: nowrap;
         }
         .btn-primary {
-            background: var(--primary);
+            background: linear-gradient(180deg, #7b74e5 0%, var(--primary) 100%);
             color: #fff;
-            box-shadow: 0 6px 20px rgba(90, 63, 255, 0.3);
+            box-shadow: 0 8px 22px rgba(106, 99, 217, 0.24), inset 0 1px 0 rgba(255, 255, 255, 0.22);
         }
         .btn-primary:hover {
             background: var(--color-primary-hover);
-            box-shadow: 0 8px 24px rgba(90, 63, 255, 0.35);
+            box-shadow: 0 10px 24px rgba(106, 99, 217, 0.28);
+            transform: translateY(-1px);
         }
         .btn-secondary {
-            background: #fff;
-            color: #374151;
-            border: 1px solid var(--border-subtle);
+            background: rgba(255, 255, 255, 0.72);
+            color: #3b3b53;
+            border: 1px solid rgba(141, 132, 221, 0.26);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            box-shadow: 0 8px 20px rgba(43, 38, 87, 0.06), inset 0 1px 0 rgba(255, 255, 255, 0.65);
         }
         .btn-secondary:hover {
-            background: #f9fafb;
+            background: rgba(255, 255, 255, 0.9);
         }
         .btn-sm {
             padding: 8px 12px;
@@ -158,11 +165,13 @@
 
         /* Kartalar va sahifa layout */
         .card {
-            background: var(--bg-card);
+            background: rgba(255, 255, 255, 0.72);
             border-radius: 20px;
             padding: 14px 14px 12px;
-            box-shadow: 0 14px 30px rgba(0, 0, 0, 0.06);
-            border: 1px solid rgba(255, 255, 255, 0.9);
+            box-shadow: 0 16px 32px rgba(35, 33, 68, 0.07), inset 0 1px 0 rgba(255, 255, 255, 0.72);
+            border: 1px solid rgba(137, 129, 216, 0.2);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
         }
         .card-compact {
             padding: 12px 13px;
@@ -239,8 +248,8 @@
             align-items: center;
             padding: 10px 0;
             padding-bottom: calc(10px + env(safe-area-inset-bottom, 0px));
-            background: #fff;
-            border-top: 1px solid var(--border-soft);
+            background: rgba(255, 255, 255, 0.76);
+            border-top: 1px solid rgba(137, 129, 216, 0.16);
             position: fixed;
             bottom: 0;
             left: 50%;
@@ -249,6 +258,8 @@
             max-width: 480px;
             box-sizing: border-box;
             z-index: 50;
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
         }
         .bottom-nav a {
             display: flex;
@@ -309,11 +320,23 @@
             left: 0;
             right: 0;
             z-index: 40;
-            background: var(--bg-card);
+            background: rgba(247, 248, 252, 0.82);
             padding: 14px 0;
             padding-bottom: calc(14px + env(safe-area-inset-bottom, 0px));
             margin-top: 8px;
             box-shadow: 0 -2px 12px rgba(15, 23, 42, 0.06);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+        }
+
+        @supports not ((backdrop-filter: blur(8px))) {
+            .card,
+            .btn-secondary,
+            .input-field,
+            .bottom-nav,
+            .form-actions-sticky {
+                background: #ffffff;
+            }
         }
     </style>
     {% block extra_head %}{% endblock %}
@@ -396,13 +419,22 @@
             if (tg) {
                 tg.ready();
                 tg.expand();
-                if (tg.setHeaderColor) tg.setHeaderColor('#5a3fff');
-                if (tg.setBackgroundColor) tg.setBackgroundColor('#f5f5ff');
+                if (tg.setHeaderColor) tg.setHeaderColor('#6a63d9');
+                if (tg.setBackgroundColor) tg.setBackgroundColor('#f7f8fc');
                 if (tg.BackButton && window.history.length > 1) {
                     tg.BackButton.show();
                     tg.BackButton.onClick(function() { window.history.back(); });
                 }
             }
+            // Sana inputlari bo'sh qolsa, joriy sana bilan to'ldiramiz.
+            var now = new Date();
+            var month = String(now.getMonth() + 1).padStart(2, '0');
+            var day = String(now.getDate()).padStart(2, '0');
+            var today = now.getFullYear() + '-' + month + '-' + day;
+            var dateInputs = document.querySelectorAll('input[type="date"]');
+            dateInputs.forEach(function(el) {
+                if (!el.value) el.value = today;
+            });
             var toast = document.getElementById('message-toast');
             if (toast && tg && tg.showPopup) {
                 var first = toast.querySelector('.msg-item');
