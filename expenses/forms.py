@@ -1,4 +1,5 @@
 from django import forms
+import re
 from django.utils import timezone
 from .models import Expense, SavingGoal, RecurringExpense, Debt
 from categories.models import Category
@@ -10,6 +11,16 @@ class ExpenseForm(forms.ModelForm):
         fields = ("category", "amount", "note", "date")
 
     def __init__(self, *args, user=None, **kwargs):
+        # Frontenddagi minglik format (masalan: "1 200 000") kelganida ham backend qabul qilsin.
+        data = kwargs.get("data")
+        if data is not None:
+            mutable = data.copy()
+            raw_amount = (mutable.get("amount") or "").strip()
+            if raw_amount:
+                normalized = re.sub(r"[^\d]", "", raw_amount)
+                if normalized:
+                    mutable["amount"] = normalized
+            kwargs["data"] = mutable
         super().__init__(*args, **kwargs)
         self.user = user
         if user:
@@ -22,6 +33,8 @@ class ExpenseForm(forms.ModelForm):
         self.fields["amount"].widget.attrs["inputmode"] = "numeric"
         self.fields["amount"].widget.attrs["min"] = "0"
         self.fields["amount"].widget.attrs["step"] = "1000"
+        self.fields["amount"].widget.attrs["type"] = "text"
+        self.fields["amount"].widget.attrs["autocomplete"] = "off"
         self.fields["amount"].widget.attrs["autofocus"] = "autofocus"
         self.fields["note"].widget.attrs["class"] = "input-field"
         self.fields["note"].widget.attrs["placeholder"] = "Izoh (to'ldirish shart emas)"

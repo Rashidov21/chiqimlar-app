@@ -139,12 +139,13 @@ def onboarding_view(request):
 
         if monthly_budget is not None and monthly_budget.strip() != "":
             try:
-                user.monthly_budget = int(monthly_budget.strip())
+                normalized_budget = "".join(ch for ch in monthly_budget if ch.isdigit())
+                user.monthly_budget = int(normalized_budget) if normalized_budget else 0
             except (ValueError, TypeError):
                 pass
             user.save(update_fields=["monthly_budget"])
         else:
-            user.monthly_budget = None
+            user.monthly_budget = 0
             user.save(update_fields=["monthly_budget"])
 
         profile.primary_goal = primary_goal
@@ -705,7 +706,8 @@ def settings_view(request):
         budget_ok = True
         if monthly_budget_raw is not None and monthly_budget_raw.strip() != "":
             try:
-                val = int(monthly_budget_raw.strip())
+                normalized_budget = "".join(ch for ch in monthly_budget_raw if ch.isdigit())
+                val = int(normalized_budget) if normalized_budget else 0
                 if val < 0:
                     messages.error(request, "Oylik byudjet manfiy bo‘lmasligi kerak.")
                     budget_ok = False
@@ -715,7 +717,7 @@ def settings_view(request):
                 messages.error(request, "Oylik byudjet uchun to‘g‘ri son kiriting.")
                 budget_ok = False
         else:
-            user.monthly_budget = None
+            user.monthly_budget = 0
         user.telegram_notifications = request.POST.get("telegram_notifications") == "on"
         user.daily_reminder = request.POST.get("daily_reminder") == "on"
         user.weekly_summary = request.POST.get("weekly_summary") == "on"
