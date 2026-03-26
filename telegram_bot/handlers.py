@@ -88,7 +88,18 @@ def _web_app_keyboard(telegram_id: int) -> dict | None:
 
     return {
         "keyboard": [
-            [{"text": "💰 Chiqimlarni ochish", "web_app": {"url": url}}]
+            [{"text": "💰 Chiqimlarni ochish", "web_app": {"url": url}}],
+            [{"text": "❤️ Donat qilish"}],
+        ],
+        "resize_keyboard": True,
+    }
+
+
+def _subscription_keyboard() -> dict:
+    """Obuna flow uchun tez tugmalar."""
+    return {
+        "keyboard": [
+            [{"text": "✅ Obuna bo'ldim"}, {"text": "❤️ Donat qilish"}],
         ],
         "resize_keyboard": True,
     }
@@ -132,7 +143,10 @@ def handle_start(chat_id: int, first_name: str = "") -> bool:
     cache.set(prev_key, now_ok, 3600)
     if not now_ok:
         text = _required_channels_text()
-        _send_message(chat_id, text)
+        text += (
+            "\n\nObuna bo'lgach <b>✅ Obuna bo'ldim</b> tugmasini bosing — biz darhol tekshirib beramiz."
+        )
+        _send_message(chat_id, text, reply_markup=_subscription_keyboard())
         return True
 
     safe_name = first_name or "do'st"
@@ -245,7 +259,7 @@ def process_update(update_dict: dict) -> None:
                         note_text = _shorten_note(note_text)
 
                         pending = (
-                            Donation.objects.filter(user=app_user, confirmed=False)
+                            Donation.objects.filter(user=app_user, status=Donation.Status.PENDING)
                             .order_by("-created_at")
                             .first()
                         )
@@ -255,7 +269,7 @@ def process_update(update_dict: dict) -> None:
                                 pending.amount = parsed_amount
                             if parsed_method and pending.method_id is None:
                                 pending.method = parsed_method
-                            pending.save(update_fields=["note", "amount", "method"])
+                            pending.save(update_fields=["note", "amount", "method", "confirmed"])
                             donation = pending
                             confirm_text = (
                                 "Chek screenshotingiz yangilandi ✅\n\n"
@@ -273,7 +287,7 @@ def process_update(update_dict: dict) -> None:
                                 method=parsed_method,
                                 amount=parsed_amount or 0,
                                 note=note_text,
-                                confirmed=False,
+                                status=Donation.Status.PENDING,
                             )
                             logger.info(
                                 "donation_photo: created donation_id=%s for telegram_id=%s",
@@ -294,6 +308,10 @@ def process_update(update_dict: dict) -> None:
     # 2) Matnli komandalar
     if text == "/start":
         handle_start(chat_id, first_name)
+    elif text == "✅ Obuna bo'ldim":
+        handle_start(chat_id, first_name)
+    elif text == "❤️ Donat qilish":
+        handle_donate(chat_id)
     elif text == "/help":
         handle_help(chat_id)
     elif text == "/donat":

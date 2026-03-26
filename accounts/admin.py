@@ -2,6 +2,7 @@ from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 from telegram_bot.services import clear_subscription_cache_for_user
 from .models import User, VerificationCode, DonationMethod, Donation
+from notifications.services import send_telegram_message
 
 
 @admin.register(User)
@@ -50,26 +51,66 @@ class DonationMethodAdmin(admin.ModelAdmin):
 
 @admin.register(Donation)
 class DonationAdmin(admin.ModelAdmin):
-    list_display = ["user", "amount", "method", "confirmed", "short_note", "created_at"]
-    list_filter = ["confirmed", "method"]
+    list_display = ["user", "amount", "method", "status", "confirmed", "short_note", "created_at"]
+    list_filter = ["status", "confirmed", "method"]
     search_fields = ["user__username", "user__telegram_id"]
     readonly_fields = ["created_at"]
 
-    actions = ["mark_as_confirmed"]
+    actions = ["mark_as_confirmed", "mark_as_rejected", "mark_as_pending"]
+
+    def get_queryset(self, request):
+        qs = super().get_queryset(request)
+        return qs.order_by("status", "-created_at")
 
     def mark_as_confirmed(self, request, queryset):
         updated = 0
         for donation in queryset:
-            if not donation.confirmed:
-                donation.confirmed = True
-                donation.save(update_fields=["confirmed"])
+            if donation.status != Donation.Status.APPROVED:
+                donation.status = Donation.Status.APPROVED
+                donation.rejection_reason = ""
+                donation.save(update_fields=["status", "rejection_reason", "confirmed"])
                 if donation.user and not donation.user.is_supporter:
                     donation.user.is_supporter = True
                     donation.user.save(update_fields=["is_supporter"])
+                if donation.user and donation.user.telegram_id:
+                    send_telegram_message(
+                        donation.user.telegram_id,
+                        "🎉 Donatingiz tasdiqlandi! Sizga Donater statusi berildi. Rahmat!",
+                    )
                 updated += 1
         self.message_user(request, f"{updated} ta donat tasdiqlandi va foydalanuvchilar donater sifatida belgilandi.")
 
     mark_as_confirmed.short_description = "Tanlangan donatlarni tasdiqlash va foydalanuvchilarni donater qilish"
+
+    def mark_as_rejected(self, request, queryset):
+        updated = 0
+        for donation in queryset:
+            if donation.status != Donation.Status.REJECTED:
+                donation.status = Donation.Status.REJECTED
+                if not donation.rejection_reason:
+                    donation.rejection_reason = "Chek bo'yicha ma'lumot aniqlashtirish talab qilindi."
+                donation.save(update_fields=["status", "rejection_reason", "confirmed"])
+                if donation.user and donation.user.telegram_id:
+                    send_telegram_message(
+                        donation.user.telegram_id,
+                        "❌ Donat tekshiruv natijasi: hozircha tasdiqlanmadi. Iltimos, chek screenshotini aniqroq ma'lumot bilan qayta yuboring.",
+                    )
+                updated += 1
+        self.message_user(request, f"{updated} ta donat rad etildi.")
+
+    mark_as_rejected.short_description = "Tanlangan donatlarni rad etish (qayta screenshot so'rash)"
+
+    def mark_as_pending(self, request, queryset):
+        updated = 0
+        for donation in queryset:
+            if donation.status != Donation.Status.PENDING:
+                donation.status = Donation.Status.PENDING
+                donation.rejection_reason = ""
+                donation.save(update_fields=["status", "rejection_reason", "confirmed"])
+                updated += 1
+        self.message_user(request, f"{updated} ta donat qayta tekshiruvga yuborildi.")
+
+    mark_as_pending.short_description = "Tanlangan donatlarni qayta tekshiruvga o'tkazish"
 
     def short_note(self, obj):
         text = (obj.note or "").strip()

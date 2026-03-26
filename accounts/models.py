@@ -155,6 +155,10 @@ class DonationMethod(models.Model):
 
 class Donation(models.Model):
     """Foydalanuvchi donatlari (supporter uchun)."""
+    class Status(models.TextChoices):
+        PENDING = "pending", "Tekshiruvda"
+        APPROVED = "approved", "Tasdiqlangan"
+        REJECTED = "rejected", "Rad etilgan"
 
     user = models.ForeignKey(
         User,
@@ -178,6 +182,17 @@ class Donation(models.Model):
         default=False,
         help_text="Tasdiqlangan donat (supporter statusini beradi).",
     )
+    status = models.CharField(
+        max_length=16,
+        choices=Status.choices,
+        default=Status.PENDING,
+        db_index=True,
+    )
+    rejection_reason = models.CharField(
+        max_length=255,
+        blank=True,
+        help_text="Rad etish sababi (ixtiyoriy).",
+    )
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
@@ -187,3 +202,11 @@ class Donation(models.Model):
 
     def __str__(self):
         return f"{self.user} — {self.amount}"
+
+    def save(self, *args, **kwargs):
+        # Legacy confirmed maydonini yangi status bilan mos ushlab turamiz.
+        if self.status == self.Status.APPROVED:
+            self.confirmed = True
+        elif self.status in {self.Status.PENDING, self.Status.REJECTED}:
+            self.confirmed = False
+        super().save(*args, **kwargs)

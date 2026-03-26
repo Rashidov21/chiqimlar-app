@@ -161,6 +161,11 @@
                     <p style="font-size: 0.83rem; color: #b45309; margin-bottom: 10px;">
                         <i class="bi bi-hourglass-split"></i> Donat chekingiz tekshiruvda. Admin tasdiqlagach, donater statusi avtomatik beriladi.
                     </p>
+                {% elif latest_rejected_donation %}
+                    <p style="font-size: 0.83rem; color: #b91c1c; margin-bottom: 10px;">
+                        <i class="bi bi-x-circle"></i> Oxirgi donat tekshiruvda tasdiqlanmadi.
+                        {% if latest_rejected_donation.rejection_reason %}Sabab: {{ latest_rejected_donation.rejection_reason }}{% endif %}
+                    </p>
                 {% else %}
                     <p style="font-size: 0.82rem; color: var(--text-muted); margin-bottom: 10px;">
                         Donatdan keyin chek screenshotini botga yuboring — admin tekshiradi va keyin donater statusini beradi.
