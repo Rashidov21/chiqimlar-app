@@ -28,14 +28,16 @@ class ExpenseForm(forms.ModelForm):
         self.fields["category"].required = False
         self.fields["category"].empty_label = "Chiqim turkumi"
         self.fields["date"].initial = timezone.now().date()
-        self.fields["amount"].widget.attrs["class"] = "input-field"
-        self.fields["amount"].widget.attrs["placeholder"] = "Masalan: 1 000 000"
-        self.fields["amount"].widget.attrs["inputmode"] = "numeric"
-        self.fields["amount"].widget.attrs["min"] = "0"
-        self.fields["amount"].widget.attrs["step"] = "1000"
-        self.fields["amount"].widget.attrs["type"] = "text"
-        self.fields["amount"].widget.attrs["autocomplete"] = "off"
-        self.fields["amount"].widget.attrs["autofocus"] = "autofocus"
+        # NumberInput + "1 000" format konflikti sababli to'liq TextInput ishlatamiz.
+        self.fields["amount"].widget = forms.TextInput(
+            attrs={
+                "class": "input-field",
+                "placeholder": "Masalan: 1 000 000",
+                "inputmode": "numeric",
+                "autocomplete": "off",
+                "autofocus": "autofocus",
+            }
+        )
         self.fields["note"].widget.attrs["class"] = "input-field"
         self.fields["note"].widget.attrs["placeholder"] = "Izoh (to'ldirish shart emas)"
         self.fields["note"].widget.attrs["maxlength"] = "255"
