@@ -4,7 +4,19 @@
 {% block content %}
 <h1 class="page-title" style="text-align: center; margin: 24px 0 20px; font-size: 1.35rem;">Chiqim qo'shish</h1>
 <div class="card" style="max-width: 480px; margin: 0 auto;">
-    <form method="post" style="display: flex; flex-direction: column; gap: 18px;">
+    {% if recent_templates %}
+    <div style="margin-bottom: 10px;">
+        <p style="font-size: .8rem; color: var(--text-muted); margin-bottom: 6px;">Tez shablonlar</p>
+        <div style="display:flex; gap:8px; flex-wrap:wrap;">
+            {% for t in recent_templates %}
+            <a href="{% url 'expenses:add' %}?tpl={{ t.pk }}" class="btn-secondary btn-sm" style="text-decoration:none;">
+                {{ t.original_amount|floatformat:0 }} {{ t.currency }}{% if t.category %} · {{ t.category.name }}{% endif %}
+            </a>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+    <form method="post" data-submit-loading="1" style="display: flex; flex-direction: column; gap: 18px;">
         {% csrf_token %}
         {% if request.GET.next %}<input type="hidden" name="next" value="{{ request.GET.next }}">{% endif %}
         {% include "partials/form_errors.html" with form=form %}
@@ -31,7 +43,7 @@
             {% if form.date.errors %}<p class="field-error">{{ form.date.errors.0 }}</p>{% endif %}
         </div>
         <div class="form-actions-sticky" style="margin-top: 8px;">
-            <button type="submit" class="btn-primary btn-block" id="expense-submit-btn" style="box-shadow: 0 8px 24px rgba(90, 63, 255, 0.35);">
+            <button type="submit" class="btn-primary btn-block" id="expense-submit-btn" data-loading-text="Saqlanmoqda..." style="box-shadow: 0 8px 24px rgba(90, 63, 255, 0.35);">
                 <span class="btn-text">Saqlash</span>
             </button>
             <button type="submit" name="add_another" value="1" class="btn-secondary btn-block" id="expense-submit-add-another-btn" style="margin-top: 8px;">
@@ -70,14 +82,11 @@
         });
     }
 
-    if (form && btn) {
+    if (form) {
         form.addEventListener('submit', function() {
             if (amountInput && amountInput.value) {
                 amountInput.value = String(amountInput.value).replace(/[^\d]/g, '');
             }
-            btn.disabled = true;
-            var t = btn.querySelector('.btn-text');
-            if (t) t.textContent = 'Saqlanmoqda…';
             if (btnAddAnother) btnAddAnother.disabled = true;
             if (window.haptic) window.haptic();
         });

@@ -444,6 +444,27 @@
                     if (msg) { tg.showPopup({ title: title, message: msg }); toast.style.display = 'none'; }
                 }
             }
+
+            // Global submit loading pattern:
+            // form[data-submit-loading] yoki button[data-loading-text] bo'lsa avtomatik ishlaydi.
+            document.querySelectorAll('form[data-submit-loading]').forEach(function(form) {
+                form.addEventListener('submit', function() {
+                    var btn = form.querySelector('button[type="submit"]:not([disabled])');
+                    if (!btn) return;
+                    if (btn.dataset.loadingApplied === '1') return;
+                    btn.dataset.loadingApplied = '1';
+                    btn.disabled = true;
+                    var loadingText = btn.getAttribute('data-loading-text') || 'Yuborilmoqda...';
+                    var textEl = btn.querySelector('.btn-text');
+                    if (textEl) {
+                        textEl.textContent = loadingText;
+                    } else {
+                        btn.textContent = loadingText;
+                    }
+                    var icon = btn.querySelector('i');
+                    if (icon) icon.className = 'bi bi-hourglass-split';
+                });
+            });
         })();
         window.haptic = function(style) {
             var tg = window.Telegram && window.Telegram.WebApp;

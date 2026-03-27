@@ -538,7 +538,23 @@ def debt_delete(request, pk):
 @require_http_methods(["GET", "POST"])
 @rate_limit_action("expense_add", max_requests=25)
 def expense_add(request):
-    form = ExpenseForm(request.POST or None, user=request.user)
+    template_id_raw = (request.GET.get("tpl") or "").strip()
+    initial_data = None
+    if request.method == "GET" and template_id_raw.isdigit():
+        tpl_obj = (
+            Expense.objects.filter(user=request.user, pk=int(template_id_raw))
+            .select_related("category")
+            .first()
+        )
+        if tpl_obj:
+            initial_data = {
+                "category": tpl_obj.category_id,
+                "amount": int(tpl_obj.original_amount or tpl_obj.amount or 0),
+                "currency": tpl_obj.currency or "UZS",
+                "note": tpl_obj.note or "",
+                "date": timezone.now().date(),
+            }
+    form = ExpenseForm(request.POST or None, user=request.user, initial=initial_data)
     if form.is_valid():
         try:
             expense = form.save()
@@ -559,7 +575,16 @@ def expense_add(request):
         except Exception as e:
             logger.exception("expense_add save user_id=%s: %s", request.user.pk, e)
             messages.error(request, "Xarajatni saqlashda xatolik. Qaytadan urinib ko'ring.")
-    return render(request, "expenses/expense_form.html", {"form": form, "title": "Xarajat qo'shish"})
+    recent_templates = (
+        Expense.objects.filter(user=request.user)
+        .select_related("category")
+        .order_by("-created_at")[:5]
+    )
+    return render(
+        request,
+        "expenses/expense_form.html",
+        {"form": form, "title": "Xarajat qo'shish", "recent_templates": recent_templates},
+    )
 
 
 @login_required

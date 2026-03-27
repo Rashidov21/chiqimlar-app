@@ -41,6 +41,11 @@
     <a href="{% url 'expenses:list' %}?scope=my{% if query_text %}&q={{ query_text|urlencode }}{% endif %}" style="display:inline-block;padding:8px 14px;border-radius:9999px;font-size:.85rem;font-weight:500;text-decoration:none;background:#fff;color:var(--text-main);border:1px solid var(--border-soft);{% if scope == 'my' %}background: var(--primary); color:#fff; border-color:var(--primary);{% endif %}">Mening xarajatlarim</a>
     <a href="{% url 'expenses:list' %}?scope=household{% if query_text %}&q={{ query_text|urlencode }}{% endif %}" style="display:inline-block;padding:8px 14px;border-radius:9999px;font-size:.85rem;font-weight:500;text-decoration:none;background:#fff;color:var(--text-main);border:1px solid var(--border-soft);{% if scope == 'household' %}background: var(--primary); color:#fff; border-color:var(--primary);{% endif %}">Household</a>
 </div>
+{% if scope == 'household' %}
+<p style="font-size:0.78rem; color:var(--text-muted); margin: -4px 0 10px;">
+    Household ko'rinishida faqat ulashilgan memberlar xarajatlari ko'rsatiladi.
+</p>
+{% endif %}
 
 <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 8px;">Tez filtr</p>
 <div style="display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 14px;">
@@ -94,7 +99,7 @@
     {% else %}
     <p style="text-align: center; color: var(--text-muted); padding: 48px 24px;">
         <i class="bi bi-inbox" style="font-size: 3rem; display: block; margin-bottom: 16px; color: var(--border-subtle);"></i>
-        Xarajatlar yo'q.<br>
+        Hali yozuv topilmadi.<br>
         <a href="{% url 'expenses:add' %}" class="btn-primary" style="margin-top: 16px;">Birinchi xarajatni qo'shing</a>
     </p>
     {% endif %}

@@ -12,7 +12,7 @@
 </div>
 
 <div class="card" style="max-width: 560px;">
-    <form method="post" action="{% url 'expenses:settings' %}" style="display: flex; flex-direction: column; gap: 16px;">
+    <form method="post" action="{% url 'expenses:settings' %}" data-submit-loading="1" style="display: flex; flex-direction: column; gap: 16px;">
         {% csrf_token %}
         <div>
             <label for="monthly_budget" class="input-label">💰 Oylik byudjet (so'm)</label>
@@ -57,15 +57,11 @@
         </div>
         <input type="hidden" name="action" value="save_settings">
         <div class="form-actions-sticky">
-            <button type="submit" class="btn-primary" id="settings-submit-btn">
+            <button type="submit" class="btn-primary" id="settings-submit-btn" data-loading-text="Saqlanmoqda...">
                 <i class="bi bi-check-lg"></i> <span class="btn-text">Saqlash</span>
             </button>
         </div>
     </form>
-    <script>
-    (function(){ var f=document.querySelector('form'); var b=document.getElementById('settings-submit-btn');
-    if(f&&b){ f.addEventListener('submit',function(){ b.disabled=true; var t=b.querySelector('.btn-text'); if(t)t.textContent='Saqlanmoqda…'; if(window.haptic)window.haptic(); }); } })();
-    </script>
 
     <div style="margin-top: 20px; display: flex; flex-direction: column; gap: 16px;">
         <div style="display: flex; align-items: flex-start; gap: 12px;">
@@ -174,6 +170,9 @@
             {% elif user.household %}
                 <p style="font-size:0.84rem; color:var(--text-muted); margin-bottom:6px;">
                     Ulangan household: <strong>{{ user.household.name }}</strong> (kod: <code>{{ user.household.invite_code }}</code>)
+                </p>
+                <p style="font-size:0.8rem; color:var(--text-muted); margin-bottom:8px;">
+                    Imkoniyatlar: umumiy sarf ko'rsatkichlari, household list ko'rinishi, oilaviy trendlarni kuzatish.
                 </p>
                 {% if household_members %}
                 <p style="font-size:0.8rem; color:var(--text-muted); margin-bottom:8px;">

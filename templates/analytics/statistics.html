@@ -88,6 +88,16 @@
     min-width: 0;
     overflow: hidden;
 }
+.stats-card-safe .list-row span,
+.stats-card-safe p,
+.stats-card-safe h2 {
+    overflow-wrap: anywhere;
+    word-break: break-word;
+}
+.stats-card-safe .chart-shell,
+.stats-card-safe .chart-bars {
+    min-width: 0;
+}
 @media (min-width: 760px) {
     .stats-two-col { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
