@@ -131,6 +131,23 @@
             min-height: 44px;
             min-width: 44px;
         }
+        .icon-action-btn {
+            width: 44px;
+            height: 44px;
+            border-radius: 9999px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            text-decoration: none;
+            border: 1px solid var(--border-soft);
+            background: #fff;
+            color: var(--text-muted);
+        }
+        .icon-action-btn.btn-danger {
+            color: var(--danger);
+            border-color: #fecaca;
+            background: #fff7f7;
+        }
         .btn-lg {
             padding: 11px 18px;
             font-size: 0.9rem;
@@ -301,6 +318,50 @@
         }
 
         .top-nav-links { display: none !important; }
+        .app-top-nav {
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            background: rgba(255, 255, 255, 0.84);
+            position: sticky;
+            top: 0;
+            transition: transform 0.2s ease;
+            will-change: transform;
+        }
+        .app-top-nav--hidden {
+            transform: translateY(calc(-100% - 2px));
+        }
+        .app-brand {
+            font-size: 1rem;
+            font-weight: 700;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            color: var(--primary);
+            text-decoration: none;
+            min-width: 0;
+        }
+        .app-brand-text {
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 132px;
+        }
+        .back-btn-compact {
+            min-width: 36px !important;
+            min-height: 36px !important;
+            padding: 6px 8px !important;
+        }
+        .donater-badge-compact {
+            font-size: 0.78rem !important;
+            gap: 0 !important;
+            margin-left: 2px;
+        }
+        .donater-badge-compact .label-text {
+            display: none;
+        }
+        @media (max-width: 360px) {
+            .app-brand-text { max-width: 104px; }
+        }
 
         main {
             padding-bottom: calc(120px + env(safe-area-inset-bottom, 0px));
@@ -354,19 +415,19 @@
 
     {% block nav %}
     {% if user.is_authenticated %}
-    <nav class="bg-white border-b border-gray-100 shadow-sm z-40" style="padding-top: env(safe-area-inset-top, 0px);">
-        <div class="mx-auto px-4 py-2 flex items-center justify-between" style="max-width: 480px;">
+    <nav id="app-top-nav" class="app-top-nav border-b border-gray-100 shadow-sm z-40" style="padding-top: env(safe-area-inset-top, 0px);">
+        <div class="mx-auto px-3 py-1.5 flex items-center justify-between" style="max-width: 480px;">
             <div style="display:flex; align-items:center; gap:8px; min-width:0;">
                 {% if request.resolver_match and request.resolver_match.url_name != 'dashboard' %}
-                <a href="#" onclick="if (window.history.length > 1) { window.history.back(); } else { window.location.href='{% url 'expenses:dashboard' %}'; } return false;" class="btn-secondary btn-sm" style="text-decoration:none; min-width:44px; min-height:44px; padding:8px 10px;">
+                <a href="#" onclick="if (window.history.length > 1) { window.history.back(); } else { window.location.href='{% url 'expenses:dashboard' %}'; } return false;" class="btn-secondary btn-sm back-btn-compact" style="text-decoration:none;">
                     <i class="bi bi-arrow-left"></i>
                 </a>
                 {% endif %}
-                <a href="{% url 'expenses:dashboard' %}" class="text-lg font-semibold flex items-center gap-2" style="color: var(--primary); min-width:0;">
-                    <i class="bi bi-wallet2"></i> Chiqimlar
+                <a href="{% url 'expenses:dashboard' %}" class="app-brand">
+                    <i class="bi bi-wallet2"></i> <span class="app-brand-text">Chiqimlar</span>
                     {% if user.is_authenticated and user.is_supporter %}
-                    <span style="font-size: 0.8rem; color: #facc15; display: inline-flex; align-items: center; gap: 4px;">
-                        <i class="bi bi-star-fill"></i> Donater
+                    <span class="donater-badge-compact" style="color: #facc15; display: inline-flex; align-items: center;">
+                        <i class="bi bi-star-fill"></i><span class="label-text">Donater</span>
                     </span>
                     {% endif %}
                 </a>
@@ -472,6 +533,28 @@
                     if (icon) icon.className = 'bi bi-hourglass-split';
                 });
             });
+
+            // Mobile'da yuqori navbar: pastga scrollda yashirish, yuqoriga scrollda ko'rsatish.
+            var topNav = document.getElementById('app-top-nav');
+            if (topNav && window.matchMedia('(max-width: 768px)').matches) {
+                var lastScrollY = window.scrollY || 0;
+                var delta = 8;
+                window.addEventListener('scroll', function() {
+                    var currentY = window.scrollY || 0;
+                    if (currentY <= 4) {
+                        topNav.classList.remove('app-top-nav--hidden');
+                        lastScrollY = currentY;
+                        return;
+                    }
+                    if (Math.abs(currentY - lastScrollY) < delta) return;
+                    if (currentY > lastScrollY) {
+                        topNav.classList.add('app-top-nav--hidden');
+                    } else {
+                        topNav.classList.remove('app-top-nav--hidden');
+                    }
+                    lastScrollY = currentY;
+                }, { passive: true });
+            }
         })();
         window.haptic = function(style) {
             var tg = window.Telegram && window.Telegram.WebApp;

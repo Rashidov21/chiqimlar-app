@@ -130,7 +130,12 @@
                     </div>
                 </div>
 
-                <div style="display: flex; flex-wrap: wrap; gap: 6px; margin-top: 7px;">
+                <details style="margin-top: 7px;">
+                    <summary style="list-style:none;cursor:pointer;display:flex;align-items:center;justify-content:space-between;border:1px solid var(--border-soft);border-radius:10px;padding:8px 10px;">
+                        <span style="font-size:0.8rem;font-weight:600;">Moderatsiya amallari</span>
+                        <i class="bi bi-chevron-down" style="color: var(--text-muted);"></i>
+                    </summary>
+                <div style="display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px;">
                     <form method="post" action="{% url 'expenses:donation_moderation' %}" style="display: inline;">
                         {% csrf_token %}
                         <input type="hidden" name="donation_id" value="{{ d.pk }}">
@@ -179,6 +184,7 @@
                         <button type="submit" class="btn-secondary btn-sm" style="padding: 7px 10px; min-height: 36px;"><i class="bi bi-arrow-counterclockwise"></i> Tekshiruvga qaytarish</button>
                     </form>
                 </div>
+                </details>
             </div>
             {% endfor %}
         </div>

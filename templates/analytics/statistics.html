@@ -134,8 +134,11 @@
     </div>
 
     {% if view_type == 'day' %}
-    <details style="margin-top: 10px;" open>
-        <summary style="font-size: 0.82rem; color: var(--text-muted); cursor: pointer;">Kunni tanlash</summary>
+    <details style="margin-top: 10px;">
+        <summary style="font-size: 0.82rem; color: var(--text-muted); cursor: pointer; display:flex; align-items:center; justify-content:space-between;">
+            <span>Kunni tanlash</span>
+            <i class="bi bi-chevron-down"></i>
+        </summary>
         <div class="day-chip-row" style="padding-top: 8px;">
             {% for d in day_choices %}
             <a href="{% url 'analytics:statistics' %}?view=day&year={{ selected_year }}&month={{ selected_month }}&day={{ d }}" class="day-chip {% if selected_day == d %}active{% endif %}">{{ d }}</a>
@@ -253,10 +256,11 @@
     {% endif %}
 </div>
 <details class="card card-compact" style="margin-bottom: 16px;">
-    <summary style="list-style:none;cursor:pointer;">
+    <summary style="list-style:none;cursor:pointer; display:flex; align-items:center; justify-content:space-between;">
     <h2 style="font-weight: 600; margin-bottom: 8px; display: flex; align-items: center; gap: 6px;">
         <i class="bi bi-pie-chart"></i> Turkumlar bo'yicha (tanlangan kun)
     </h2>
+    <i class="bi bi-chevron-down" style="color: var(--text-muted);"></i>
     </summary>
     {% if day_breakdown %}
     <ul style="list-style: none; padding: 0; margin: 0;">
@@ -326,10 +330,13 @@
 </div>
 {% endif %}
 
-<div class="card card-compact">
+<details class="card card-compact" open>
+    <summary style="list-style:none;cursor:pointer; display:flex; align-items:center; justify-content:space-between;">
     <h2 style="font-weight: 600; margin-bottom: 8px; display: flex; align-items: center; gap: 6px;">
         <i class="bi bi-graph-up-arrow"></i> Oylik trend (oxirgi 6 oy)
     </h2>
+    <i class="bi bi-chevron-down" style="color: var(--text-muted);"></i>
+    </summary>
     {% if trend %}
     <div class="chart-shell" style="height: 180px;">
         <div class="chart-y-axis">
@@ -355,7 +362,7 @@
     {% else %}
     <p style="color: var(--text-muted); font-size: 0.85rem; text-align: center; padding: 18px 8px;">Ma'lumot yo'q</p>
     {% endif %}
-</div>
+</details>
 
 {% if can_see_advanced_statistics and trend_12 %}
 <div class="card card-compact" style="margin: 12px 0; background: #f8fafc;">
@@ -414,7 +421,7 @@
         {% for t in trend_12 %}
         <div style="flex: 1; display: flex; flex-direction: column; align-items: center; min-width: 0;">
             <div class="stat-bar" role="button" tabindex="0" aria-label="{{ t.label }} {{ t.total|floatformat:0 }} so'm" data-label="{{ t.label }}" data-value="{{ t.total|floatformat:0 }}" style="width: 100%; min-width: 8px; background: var(--primary); border-radius: 4px 4px 0 0; min-height: 6px; transition: background 0.2s, opacity 0.2s; height: {% widthratio t.total trend_12_max 80 %}%; opacity: {% if t.total > 0 %}1{% else %}.35{% endif %}; cursor: pointer;" title="{{ t.label }}: {{ t.total|floatformat:0 }} so'm"></div>
-            <span style="font-size: 0.65rem; color: var(--text-muted); margin-top: 4px; text-align: center; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 100%;">{{ t.label }}</span>
+            <span style="font-size: 0.72rem; color: var(--text-muted); margin-top: 4px; text-align: center; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 100%;">{{ t.label }}</span>
         </div>
         {% endfor %}
         </div>

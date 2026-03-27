@@ -310,8 +310,8 @@
             </div>
             <div style="display: flex; align-items: center; gap: 8px; white-space: nowrap;">
                 <span style="font-weight: 600; font-size: 0.95rem;">{{ e.amount|intcomma }}</span>
-                <a href="{% url 'expenses:edit' e.pk %}" style="color: var(--text-muted); text-decoration: none;"><i class="bi bi-pencil"></i></a>
-                <form method="post" action="{% url 'expenses:delete' e.pk %}" style="display: inline;" class="delete-expense-form" data-expense-title="{{ e.category.name|default:'Xarajat' }} · {{ e.amount|intcomma }} so'm">{% csrf_token %}<input type="hidden" name="next" value="{{ request.path }}"><button type="submit" style="background: none; border: none; color: var(--danger); cursor: pointer;" title="O'chirish"><i class="bi bi-trash"></i></button></form>
+                <a href="{% url 'expenses:edit' e.pk %}" class="icon-action-btn" title="Tahrir"><i class="bi bi-pencil"></i></a>
+                <form method="post" action="{% url 'expenses:delete' e.pk %}" style="display: inline;" class="delete-expense-form" data-expense-title="{{ e.category.name|default:'Xarajat' }} · {{ e.amount|intcomma }} so'm">{% csrf_token %}<input type="hidden" name="next" value="{{ request.path }}"><button type="submit" class="icon-action-btn btn-danger" style="cursor: pointer;" title="O'chirish"><i class="bi bi-trash"></i></button></form>
             </div>
         </li>
         {% endfor %}
