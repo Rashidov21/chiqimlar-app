@@ -155,7 +155,7 @@
                 </form>
                 {% if user.is_supporter %}
                 <a href="{% url 'expenses:export_supporter_report' %}" class="btn-secondary btn-sm" style="margin-top:8px; display:inline-flex; text-decoration:none;">
-                    <i class="bi bi-stars"></i> Donater Pro hisobot (CSV)
+                    <i class="bi bi-stars"></i> Donater Pro hisobot (Excel)
                 </a>
                 {% endif %}
             </div>
@@ -163,7 +163,15 @@
 
         <div class="card card-compact" style="margin-top: 8px;">
             <p style="font-weight: 600; margin-bottom: 8px;">👨‍👩‍👧‍👦 Family / Household</p>
-            {% if user.household %}
+            {% if not user.is_supporter %}
+                <p style="font-size:0.84rem; color:var(--text-muted); margin-bottom:8px;">
+                    Bu premium imkoniyat donaterlar uchun: oilaviy/byudjet guruhini ochish, a'zolar bilan sarf ko'rsatkichlarini ulashish,
+                    household bo'yicha umumiy trendlarni ko'rish.
+                </p>
+                <a href="{% url 'expenses:settings' %}" class="btn-primary btn-sm" style="text-decoration:none;">
+                    <i class="bi bi-heart"></i> Donater bo'lib ochish
+                </a>
+            {% elif user.household %}
                 <p style="font-size:0.84rem; color:var(--text-muted); margin-bottom:6px;">
                     Ulangan household: <strong>{{ user.household.name }}</strong> (kod: <code>{{ user.household.invite_code }}</code>)
                 </p>

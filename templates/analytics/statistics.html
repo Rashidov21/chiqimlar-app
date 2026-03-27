@@ -78,6 +78,19 @@
     border-radius: 12px;
     padding: 8px 10px;
 }
+.stats-two-col {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 16px;
+    margin-bottom: 12px;
+}
+.stats-card-safe {
+    min-width: 0;
+    overflow: hidden;
+}
+@media (min-width: 760px) {
+    .stats-two-col { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
 </style>
 
 <div style="display: flex; gap: 0; margin-bottom: 16px; background: #eee; border-radius: 9999px; padding: 4px; max-width: 280px;">
@@ -249,8 +262,8 @@
     {% endif %}
 </details>
 {% else %}
-<div class="section-grid section-grid--two" style="gap: 16px; margin-bottom: 12px;">
-    <div class="card card-compact">
+<div class="stats-two-col">
+    <div class="card card-compact stats-card-safe">
         <h2 style="font-weight: 600; margin-bottom: 8px; display: flex; align-items: center; gap: 6px;">
             <i class="bi bi-pie-chart"></i> Turkumlar bo'yicha (bu oy)
         </h2>
@@ -270,7 +283,7 @@
         </p>
         {% endif %}
     </div>
-    <div class="card card-compact">
+    <div class="card card-compact stats-card-safe">
         <h2 style="font-weight: 600; margin-bottom: 8px; display: flex; align-items: center; gap: 6px;">
             <i class="bi bi-graph-up"></i> Kunlik xarajat
         </h2>

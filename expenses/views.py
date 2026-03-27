@@ -192,7 +192,7 @@ def dashboard(request):
     except Exception:
         context["achievements"] = []
     context["household_summary"] = None
-    if request.user.household_id and request.user.household_share_data:
+    if request.user.household_id and request.user.household_share_data and request.user.is_supporter:
         month_start = context["totals"]["month_start"]
         month_end = context["totals"]["month_end"]
         household_qs = Expense.objects.filter(
@@ -600,6 +600,7 @@ def expense_list(request):
     if (
         scope == "household"
         and request.user.household_id
+        and request.user.is_supporter
         and request.user.household_share_data
     ):
         qs = Expense.objects.filter(
@@ -828,6 +829,9 @@ def settings_view(request):
         action = (request.POST.get("action") or "save_settings").strip()
         if action == "household_create":
             from accounts.models import Household
+            if not user.is_supporter:
+                messages.error(request, "Family/Household funksiyasi faqat Donater foydalanuvchilar uchun.")
+                return redirect("expenses:settings")
 
             name = (request.POST.get("household_name") or "").strip()
             if not name:
@@ -847,6 +851,9 @@ def settings_view(request):
             return redirect("expenses:settings")
         if action == "household_join":
             from accounts.models import Household
+            if not user.is_supporter:
+                messages.error(request, "Family/Household funksiyasi faqat Donater foydalanuvchilar uchun.")
+                return redirect("expenses:settings")
 
             code = (request.POST.get("invite_code") or "").strip().upper()
             if not code:
@@ -862,6 +869,9 @@ def settings_view(request):
             messages.success(request, f"Householdga qo'shildingiz: {h.name}")
             return redirect("expenses:settings")
         if action == "household_leave":
+            if not user.is_supporter:
+                messages.error(request, "Family/Household funksiyasi faqat Donater foydalanuvchilar uchun.")
+                return redirect("expenses:settings")
             if user.household_id:
                 user.household = None
                 user.household_share_data = False
@@ -925,7 +935,7 @@ def settings_view(request):
     bot_link = f"https://t.me/{bot_username}" if bot_username else ""
     bot_donate_link = f"https://t.me/{bot_username}?start=donat" if bot_username else ""
     household_members = []
-    if user.household_id:
+    if user.household_id and user.is_supporter:
         household_members = list(
             user.household.members.order_by("date_joined").values_list("username", flat=True)
         )
@@ -1121,35 +1131,33 @@ def donation_moderation_view(request):
 @require_http_methods(["GET"])
 @rate_limit_action("export_supporter_report", max_requests=5, window=3600)
 def export_supporter_report(request):
-    """Donaterlar uchun kengaytirilgan CSV hisobot (oxirgi 12 oy)."""
-    import csv
+    """Donaterlar uchun kengaytirilgan Excel hisobot (oxirgi 12 oy)."""
     if not getattr(request.user, "is_supporter", False):
         messages.error(request, "Bu hisobot faqat Donater foydalanuvchilar uchun.")
         return redirect("expenses:settings")
     today = timezone.now().date()
     cutoff = today - timezone.timedelta(days=365)
-    response = HttpResponse(content_type="text/csv; charset=utf-8")
-    response["Content-Disposition"] = 'attachment; filename="donater-report.csv"'
-    response.write("\ufeff")
-    writer = csv.writer(response)
-    writer.writerow(["Sana", "Kategoriya", "Asl summa", "Valyuta", "UZS summa", "Izoh", "User"])
+    from openpyxl import Workbook
+
+    response = HttpResponse(
+        content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    )
+    response["Content-Disposition"] = 'attachment; filename="donater-report.xlsx"'
+
+    wb = Workbook()
+    ws = wb.active
+    ws.title = "Donater Report"
+    ws.append(["Sana", "Kategoriya", "Asl summa", "Valyuta", "UZS summa", "Izoh", "User"])
     qs = (
         Expense.objects.filter(user=request.user, date__gte=cutoff)
         .select_related("category", "user")
         .order_by("-date", "-created_at")
     )
     for e in qs:
-        writer.writerow(
-            [
-                e.date,
-                e.category.name if e.category else "",
-                e.original_amount,
-                e.currency,
-                e.amount,
-                e.note or "",
-                e.user.get_display_name(),
-            ]
+        ws.append(
+            [e.date, e.category.name if e.category else "", float(e.original_amount), e.currency, int(e.amount), e.note or "", e.user.get_display_name()]
         )
+    wb.save(response)
     return response
 
 
