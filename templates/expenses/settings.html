@@ -150,9 +150,12 @@
                     </button>
                 </form>
                 {% if user.is_supporter %}
-                <a href="{% url 'expenses:export_supporter_report' %}" class="btn-secondary btn-sm" style="margin-top:8px; display:inline-flex; text-decoration:none;">
-                    <i class="bi bi-stars"></i> Donater Pro hisobot (Excel)
-                </a>
+                <form method="post" action="{% url 'expenses:export_supporter_report' %}" data-submit-loading="1" style="margin-top:8px;">
+                    {% csrf_token %}
+                    <button type="submit" class="btn-secondary btn-sm" data-loading-text="Botga yuborilmoqda...">
+                        <i class="bi bi-stars"></i> <span class="btn-text">Donater Pro hisobotni botga yuborish</span>
+                    </button>
+                </form>
                 {% endif %}
             </div>
         </div>

@@ -30,6 +30,7 @@ from categories.services import create_default_categories
 from core.permissions import get_user_object_or_404
 from core.rate_limit import rate_limit_action
 from .models import Expense, SavingGoal, RecurringExpense, Debt
+from .currency import get_currency_rates_to_uzs
 from .forms import ExpenseForm, SavingGoalForm, RecurringExpenseForm, DebtForm
 from .services import advance_next_payment, get_dashboard_context, get_monthly_totals, invalidate_monthly_totals_cache
 from analytics.services import get_insights_for_user, get_user_achievements, get_month_end_forecast
@@ -220,6 +221,17 @@ def dashboard(request):
         )
     except Exception:
         context["month_forecast"] = None
+    try:
+        rates = get_currency_rates_to_uzs()
+        usd_rate = rates.get("USD")
+        context["usd_rate_uzs"] = int(usd_rate) if usd_rate else None
+        from .models import ExchangeRate
+
+        latest_rate_date = ExchangeRate.objects.order_by("-date").values_list("date", flat=True).first()
+        context["usd_rate_date"] = latest_rate_date
+    except Exception:
+        context["usd_rate_uzs"] = None
+        context["usd_rate_date"] = None
     return render(request, "expenses/dashboard.html", context)
 
 
@@ -1153,37 +1165,60 @@ def donation_moderation_view(request):
 
 
 @login_required
-@require_http_methods(["GET"])
+@require_http_methods(["POST"])
 @rate_limit_action("export_supporter_report", max_requests=5, window=3600)
 def export_supporter_report(request):
-    """Donaterlar uchun kengaytirilgan Excel hisobot (oxirgi 12 oy)."""
+    """Donaterlar uchun Pro hisobotni Telegram botga yuboradi."""
     if not getattr(request.user, "is_supporter", False):
         messages.error(request, "Bu hisobot faqat Donater foydalanuvchilar uchun.")
+        return redirect("expenses:settings")
+    if not request.user.telegram_id:
+        messages.error(request, "Telegram hisob topilmadi. Botda /start yuborib qayta urinib ko'ring.")
         return redirect("expenses:settings")
     today = timezone.now().date()
     cutoff = today - timezone.timedelta(days=365)
     from openpyxl import Workbook
-
-    response = HttpResponse(
-        content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-    )
-    response["Content-Disposition"] = 'attachment; filename="donater-report.xlsx"'
-
-    wb = Workbook()
-    ws = wb.active
-    ws.title = "Donater Report"
-    ws.append(["Sana", "Kategoriya", "Asl summa", "Valyuta", "UZS summa", "Izoh", "User"])
-    qs = (
-        Expense.objects.filter(user=request.user, date__gte=cutoff)
-        .select_related("category", "user")
-        .order_by("-date", "-created_at")
-    )
-    for e in qs:
-        ws.append(
-            [e.date, e.category.name if e.category else "", float(e.original_amount), e.currency, int(e.amount), e.note or "", e.user.get_display_name()]
+    tmp_file_path = ""
+    try:
+        wb = Workbook(write_only=True)
+        ws = wb.create_sheet(title="Donater Report")
+        ws.append(["Sana", "Kategoriya", "Asl summa", "Valyuta", "UZS summa", "Izoh", "User"])
+        qs = (
+            Expense.objects.filter(user=request.user, date__gte=cutoff)
+            .select_related("category", "user")
+            .order_by("-date", "-created_at")
         )
-    wb.save(response)
-    return response
+        for e in qs.iterator(chunk_size=500):
+            ws.append(
+                [
+                    str(e.date),
+                    e.category.name if e.category else "",
+                    float(e.original_amount),
+                    e.currency,
+                    int(e.amount),
+                    e.note or "",
+                    e.user.get_display_name(),
+                ]
+            )
+        with NamedTemporaryFile(prefix=f"donater_report_{request.user.pk}_", suffix=".xlsx", delete=False) as tmp:
+            tmp_file_path = tmp.name
+        wb.save(tmp_file_path)
+        caption = f"📊 Donater Pro hisobot ({today})"
+        ok = send_telegram_document(request.user.telegram_id, tmp_file_path, caption=caption)
+        if ok:
+            messages.success(request, "Donater Pro hisobot Telegram botga yuborildi.")
+        else:
+            messages.error(request, "Hisobot botga yuborilmadi. Iltimos keyinroq qayta urinib ko'ring.")
+    except Exception as e:
+        logger.exception("export_supporter_report user_id=%s: %s", getattr(request.user, "pk", None), e)
+        messages.error(request, "Donater Pro hisobotni tayyorlashda xatolik yuz berdi.")
+    finally:
+        if tmp_file_path and os.path.exists(tmp_file_path):
+            try:
+                os.remove(tmp_file_path)
+            except OSError:
+                pass
+    return redirect("expenses:settings")
 
 
 @login_required

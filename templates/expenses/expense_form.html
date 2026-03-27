@@ -5,16 +5,18 @@
 <h1 class="page-title" style="text-align: center; margin: 24px 0 20px; font-size: 1.35rem;">Chiqim qo'shish</h1>
 <div class="card" style="max-width: 480px; margin: 0 auto;">
     {% if recent_templates %}
-    <div style="margin-bottom: 10px;">
-        <p style="font-size: .8rem; color: var(--text-muted); margin-bottom: 6px;">Tez shablonlar</p>
-        <div style="display:flex; gap:8px; flex-wrap:wrap;">
+    <details style="margin-bottom: 10px;">
+        <summary style="font-size:.85rem; color:var(--text-muted); cursor:pointer; font-weight:500;">
+            Tez shablonlar (ochish/yopish)
+        </summary>
+        <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:8px;">
             {% for t in recent_templates %}
             <a href="{% url 'expenses:add' %}?tpl={{ t.pk }}" class="btn-secondary btn-sm" style="text-decoration:none;">
                 {{ t.original_amount|floatformat:0 }} {{ t.currency }}{% if t.category %} · {{ t.category.name }}{% endif %}
             </a>
             {% endfor %}
         </div>
-    </div>
+    </details>
     {% endif %}
     <form method="post" data-submit-loading="1" style="display: flex; flex-direction: column; gap: 18px;">
         {% csrf_token %}
