@@ -358,7 +358,7 @@
 </div>
 
 {% if can_see_advanced_statistics and trend_12 %}
-<div class="card card-compact" style="margin-bottom: 12px; background: #f8fafc;">
+<div class="card card-compact" style="margin: 12px 0; background: #f8fafc;">
     <h2 style="font-weight: 600; margin-bottom: 8px; display: flex; align-items: center; gap: 6px;">
         <i class="bi bi-stars"></i> Donater deep insights
     </h2>
@@ -393,10 +393,11 @@
     {% endif %}
 </div>
 <details class="card card-compact">
-    <summary style="list-style:none;cursor:pointer;">
+    <summary style="list-style:none;cursor:pointer; display:flex; align-items:center; justify-content:space-between;">
     <h2 style="font-weight: 600; margin-bottom: 8px; display: flex; align-items: center; gap: 6px;">
         <i class="bi bi-graph-up-arrow"></i> Oylik trend (oxirgi 12 oy) — Donater
     </h2>
+    <i class="bi bi-chevron-down" style="color: var(--text-muted);"></i>
     </summary>
     <div class="chart-shell" style="height: 180px;">
         <div class="chart-y-axis">

@@ -229,9 +229,11 @@ def dashboard(request):
 
         latest_rate_date = ExchangeRate.objects.order_by("-date").values_list("date", flat=True).first()
         context["usd_rate_date"] = latest_rate_date
+        context["usd_rate_source"] = "db" if latest_rate_date else "env"
     except Exception:
         context["usd_rate_uzs"] = None
         context["usd_rate_date"] = None
+        context["usd_rate_source"] = "env"
     return render(request, "expenses/dashboard.html", context)
 
 

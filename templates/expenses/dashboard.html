@@ -132,9 +132,15 @@
     <p style="font-size: 0.85rem; margin-bottom: 4px;">
         <strong>1 USD = {{ usd_rate_uzs|intcomma }} UZS</strong>
     </p>
+    {% if usd_rate_source == "db" and usd_rate_date %}
     <p style="font-size: 0.78rem; color: var(--text-muted); margin: 0;">
-        Manba sanasi: {{ usd_rate_date|default:"env fallback" }}
+        Manba sanasi: {{ usd_rate_date }}
     </p>
+    {% else %}
+    <p style="font-size: 0.78rem; color: #b45309; margin: 0;">
+        Kurs jadvaldan hali yangilanmagan (vaqtinchalik konfiguratsiya kursi ko'rsatilmoqda).
+    </p>
+    {% endif %}
 </div>
 {% endif %}
 
@@ -272,10 +278,11 @@
 
 {% if top_categories %}
 <details class="card card-compact ux-collapsible" data-collapse-id="dash-top-categories" style="margin-bottom: 16px;">
-    <summary style="list-style:none;cursor:pointer;">
+    <summary style="list-style:none;cursor:pointer; display:flex; align-items:center; justify-content:space-between;">
     <h2 style="font-weight: 600; margin-bottom: 8px; font-size: 0.95rem; display: flex; align-items: center; gap: 6px;">
         <i class="bi bi-star"></i> Eng ko'p sarflangan 3 turkum
     </h2>
+    <i class="bi bi-chevron-down" style="color: var(--text-muted);"></i>
     </summary>
     <ul style="list-style: none; padding: 0; margin: 0;">
         {% for item in top_categories %}

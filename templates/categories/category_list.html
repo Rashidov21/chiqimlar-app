@@ -25,8 +25,13 @@
     {% if totals.budget and totals.budget > 0 %}
     {% widthratio totals.total_spent totals.budget 100 as pct %}
     <div style="height: 10px; border-radius: 9999px; background: #eee; overflow: hidden;">
-        <div style="height: 100%; border-radius: 9999px; width: min(100%, {{ pct }}%); background: linear-gradient(90deg, #f97316, #38bdf8, var(--primary));"></div>
+        <div style="height: 100%; border-radius: 9999px; width: min(100%, {{ pct }}%); {% if pct < 60 %}background:#16a34a;{% elif pct < 85 %}background:#f59e0b;{% elif pct < 100 %}background:#ef4444;{% else %}background:#b91c1c;{% endif %}"></div>
     </div>
+    {% if pct >= 90 and pct < 100 %}
+    <p style="font-size: 0.8rem; color: #b45309; margin-top: 8px;"><i class="bi bi-exclamation-triangle"></i> Limitga yaqinlashmoqda.</p>
+    {% elif pct >= 100 %}
+    <p style="font-size: 0.8rem; color: #b91c1c; margin-top: 8px;"><i class="bi bi-exclamation-triangle-fill"></i> Limitdan oshib ketgan.</p>
+    {% endif %}
     {% endif %}
 </div>
 {% endif %}
