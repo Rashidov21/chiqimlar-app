@@ -114,6 +114,9 @@ Kunlik eslatma va haftalik xulosa **cron** orqali ishga tushadi. Batafsil: [docs
 
 # Har hafta dushanba 09:00 da haftalik xulosa (oxirgi 7 kun)
 0 9 * * 1 cd /path/to/chiqimlar-app && .venv/bin/python manage.py send_weekly_summaries
+
+# Har 3 kunda 06:00 da valyuta kurslarini yangilash (USD/EUR/RUB -> UZS)
+0 6 */3 * * cd /path/to/chiqimlar-app && .venv/bin/python manage.py update_currency_rates
 ```
 
 `/path/to/chiqimlar-app` o‘rniga loyiha papkasining to‘liq yo‘lini yozing (masalan `/var/www/chiqimlar-app`). Byudjet ogohlantirishi xarajat qo‘shilganda yoki tahrirlanganda avtomatik yuboriladi (byudjetning 90% dan ortiq sarflangan bo‘lsa, 24 soat ichida ko‘pi bilan 1 marta).
@@ -124,6 +127,7 @@ Kunlik eslatma va haftalik xulosa **cron** orqali ishga tushadi. Batafsil: [docs
 # Qo‘lda ishga tushirib Telegram’da xabar kelishini tekshiring
 python manage.py send_daily_reminders
 python manage.py send_weekly_summaries
+python manage.py update_currency_rates
 ```
 
 Foydalanuvchida `telegram_id` bo‘lishi va Sozlamalarda bildirishnomalar yoqilgan bo‘lishi kerak.

@@ -174,3 +174,23 @@ class Debt(models.Model):
     def __str__(self):
         direction = "Oldim" if self.kind == self.Kind.TAKEN else "Berdim"
         return f"{direction} — {self.counterparty} — {self.amount}"
+
+
+class ExchangeRate(models.Model):
+    """Valyuta kurslari (1 birlik -> UZS)."""
+
+    date = models.DateField(db_index=True)
+    currency = models.CharField(max_length=8, db_index=True)
+    rate_to_uzs = models.DecimalField(max_digits=18, decimal_places=6)
+    source = models.CharField(max_length=32, default="manual")
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = "Valyuta kursi"
+        verbose_name_plural = "Valyuta kurslari"
+        ordering = ["-date", "currency"]
+        unique_together = ("date", "currency")
+        indexes = [models.Index(fields=["date", "currency"])]
+
+    def __str__(self):
+        return f"{self.date} {self.currency}={self.rate_to_uzs}"
