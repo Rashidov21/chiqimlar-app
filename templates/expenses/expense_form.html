@@ -18,6 +18,10 @@
             {% if form.amount.errors %}<p class="field-error">{{ form.amount.errors.0 }}</p>{% endif %}
         </div>
         <div>
+            <label for="id_currency" class="input-label">Valyuta</label>
+            {{ form.currency }}
+        </div>
+        <div>
             <label for="id_note" class="input-label">Izoh (to'ldirish shart emas)</label>
             {{ form.note }}
         </div>

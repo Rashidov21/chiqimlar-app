@@ -3,11 +3,14 @@ Xarajatlar - Dashboard, CRUD, sozlamalar.
 """
 import logging
 import os
+import re
+import secrets
 from datetime import datetime
 from tempfile import NamedTemporaryFile
 
 import requests
 from django.conf import settings
+from django.core.cache import cache
 
 logger = logging.getLogger(__name__)
 
@@ -29,7 +32,7 @@ from core.rate_limit import rate_limit_action
 from .models import Expense, SavingGoal, RecurringExpense, Debt
 from .forms import ExpenseForm, SavingGoalForm, RecurringExpenseForm, DebtForm
 from .services import advance_next_payment, get_dashboard_context, get_monthly_totals, invalidate_monthly_totals_cache
-from analytics.services import get_insights_for_user, get_user_achievements
+from analytics.services import get_insights_for_user, get_user_achievements, get_month_end_forecast
 from notifications.services import (
     maybe_send_limit_warning_after_expense,
     maybe_send_expense_confirmation_after_expense,
@@ -42,6 +45,81 @@ MONTH_NAMES = [
     "", "Yanvar", "Fevral", "Mart", "Aprel", "May", "Iyun",
     "Iyul", "Avgust", "Sentabr", "Oktabr", "Noyabr", "Dekabr",
 ]
+OCR_SUGGESTION_CACHE_KEY = "ocr_suggestion:{user_id}:{donation_id}"
+
+
+def _extract_amount_from_ocr_text(text: str) -> int:
+    """OCR matnidan eng ehtimoliy donat summani topadi."""
+    raw = (text or "").strip()
+    if not raw:
+        return 0
+    candidates = re.findall(r"[\d][\d\s,\.]{2,}", raw)
+    best = 0
+    for item in candidates:
+        digits = re.sub(r"[^\d]", "", item)
+        if not digits:
+            continue
+        try:
+            val = int(digits)
+        except ValueError:
+            continue
+        if 1000 <= val <= 500_000_000:
+            best = max(best, val)
+    return best
+
+
+def _ocr_extract_amount_for_donation(donation) -> tuple[int, str]:
+    """
+    Telegram screenshot + OCR.Space API orqali summani aniqlashga urinadi.
+    OCRSPACE_API_KEY bo'lmasa xatolik qaytaradi.
+    """
+    token = getattr(settings, "TELEGRAM_BOT_TOKEN", "")
+    api_key = (getattr(settings, "OCRSPACE_API_KEY", "") or "").strip()
+    if not token:
+        return 0, "Bot token sozlanmagan."
+    if not api_key:
+        return 0, "OCRSPACE_API_KEY sozlanmagan."
+    if not donation or not donation.screenshot_file_id:
+        return 0, "Screenshot topilmadi."
+
+    try:
+        get_file_url = f"https://api.telegram.org/bot{token}/getFile"
+        meta_resp = requests.get(get_file_url, params={"file_id": donation.screenshot_file_id}, timeout=10)
+        meta_resp.raise_for_status()
+        file_path = ((meta_resp.json() or {}).get("result") or {}).get("file_path")
+        if not file_path:
+            return 0, "Telegram fayl yo'li topilmadi."
+        file_url = f"https://api.telegram.org/file/bot{token}/{file_path}"
+        img_resp = requests.get(file_url, timeout=20)
+        img_resp.raise_for_status()
+
+        ocr_resp = requests.post(
+            "https://api.ocr.space/parse/image",
+            data={
+                "apikey": api_key,
+                "language": "eng",
+                "OCREngine": "2",
+                "isOverlayRequired": "false",
+                "scale": "true",
+            },
+            files={"filename": ("donation.jpg", img_resp.content)},
+            timeout=30,
+        )
+        ocr_resp.raise_for_status()
+        payload = ocr_resp.json() or {}
+        parsed_list = payload.get("ParsedResults") or []
+        text = "\n".join((item or {}).get("ParsedText", "") for item in parsed_list).strip()
+        amount = _extract_amount_from_ocr_text(text)
+        if amount <= 0:
+            return 0, "OCR orqali summa aniqlanmadi."
+        return amount, ""
+    except Exception as e:
+        logger.warning("donation OCR failed donation_id=%s: %s", getattr(donation, "pk", None), e)
+        return 0, "OCR xizmati bilan ishlashda xatolik."
+
+
+def _generate_household_invite_code() -> str:
+    return secrets.token_hex(4).upper()
 
 
 def _safe_next_url(request, fallback="expenses:dashboard"):
@@ -113,6 +191,35 @@ def dashboard(request):
         context["achievements"] = get_user_achievements(request.user, limit=3)
     except Exception:
         context["achievements"] = []
+    context["household_summary"] = None
+    if request.user.household_id and request.user.household_share_data:
+        month_start = context["totals"]["month_start"]
+        month_end = context["totals"]["month_end"]
+        household_qs = Expense.objects.filter(
+            user__household_id=request.user.household_id,
+            user__household_share_data=True,
+            date__gte=month_start,
+            date__lte=month_end,
+        )
+        from django.db.models import Sum
+
+        household_total = household_qs.aggregate(s=Sum("amount"))["s"] or 0
+        household_members = (
+            request.user.household.members.filter(household_share_data=True).count()
+        )
+        context["household_summary"] = {
+            "name": request.user.household.name,
+            "total_spent": household_total,
+            "members": household_members,
+        }
+    try:
+        context["month_forecast"] = get_month_end_forecast(
+            request.user,
+            year=selected_date.year,
+            month=selected_date.month,
+        )
+    except Exception:
+        context["month_forecast"] = None
     return render(request, "expenses/dashboard.html", context)
 
 
@@ -487,7 +594,21 @@ def expense_delete(request, pk):
 def expense_list(request):
     """Barcha xarajatlar (pagination, oy filtri, tez oraliq filtri va qidiruv)."""
     today = timezone.now().date()
-    qs = Expense.objects.filter(user=request.user).select_related("category").order_by("-date", "-created_at")
+    scope = (request.GET.get("scope") or "my").strip().lower()
+    if scope not in {"my", "household"}:
+        scope = "my"
+    if (
+        scope == "household"
+        and request.user.household_id
+        and request.user.household_share_data
+    ):
+        qs = Expense.objects.filter(
+            user__household_id=request.user.household_id,
+            user__household_share_data=True,
+        ).select_related("category", "user").order_by("-date", "-created_at")
+    else:
+        scope = "my"
+        qs = Expense.objects.filter(user=request.user).select_related("category").order_by("-date", "-created_at")
 
     # Matnli qidiruv: izoh va turkum nomi bo'yicha
     q = (request.GET.get("q") or "").strip()
@@ -562,6 +683,7 @@ def expense_list(request):
             "selected_range": range_key,
             "query_text": q,
             "base_query": base_query,
+            "scope": scope,
         },
     )
 
@@ -701,7 +823,52 @@ def settings_view(request):
     from accounts.models import Donation, DonationMethod
 
     user = request.user
+    profile, _ = FinanceProfile.objects.get_or_create(user=user)
     if request.method == "POST":
+        action = (request.POST.get("action") or "save_settings").strip()
+        if action == "household_create":
+            from accounts.models import Household
+
+            name = (request.POST.get("household_name") or "").strip()
+            if not name:
+                messages.error(request, "Household nomini kiriting.")
+                return redirect("expenses:settings")
+            if user.household_id:
+                messages.info(request, "Siz allaqachon householdga ulangan ekansiz.")
+                return redirect("expenses:settings")
+            invite_code = _generate_household_invite_code()
+            while Household.objects.filter(invite_code=invite_code).exists():
+                invite_code = _generate_household_invite_code()
+            h = Household.objects.create(name=name, owner=user, invite_code=invite_code)
+            user.household = h
+            user.household_share_data = True
+            user.save(update_fields=["household", "household_share_data"])
+            messages.success(request, f"Household yaratildi. Taklif kodi: {invite_code}")
+            return redirect("expenses:settings")
+        if action == "household_join":
+            from accounts.models import Household
+
+            code = (request.POST.get("invite_code") or "").strip().upper()
+            if not code:
+                messages.error(request, "Taklif kodini kiriting.")
+                return redirect("expenses:settings")
+            h = Household.objects.filter(invite_code=code).first()
+            if not h:
+                messages.error(request, "Taklif kodi topilmadi.")
+                return redirect("expenses:settings")
+            user.household = h
+            user.household_share_data = True
+            user.save(update_fields=["household", "household_share_data"])
+            messages.success(request, f"Householdga qo'shildingiz: {h.name}")
+            return redirect("expenses:settings")
+        if action == "household_leave":
+            if user.household_id:
+                user.household = None
+                user.household_share_data = False
+                user.save(update_fields=["household", "household_share_data"])
+                messages.success(request, "Householddan chiqdingiz.")
+            return redirect("expenses:settings")
+
         monthly_budget_raw = request.POST.get("monthly_budget")
         budget_ok = True
         if monthly_budget_raw is not None and monthly_budget_raw.strip() != "":
@@ -722,8 +889,23 @@ def settings_view(request):
         user.daily_reminder = request.POST.get("daily_reminder") == "on"
         user.weekly_summary = request.POST.get("weekly_summary") == "on"
         user.limit_warning = request.POST.get("limit_warning") == "on"
+        user.household_share_data = request.POST.get("household_share_data") == "on"
+        preferred_currency = (request.POST.get("preferred_currency") or "UZS").strip().upper()
+        if preferred_currency not in {"UZS", "USD", "EUR", "RUB"}:
+            preferred_currency = "UZS"
+        profile.preferred_currency = preferred_currency
+        profile.save(update_fields=["preferred_currency"])
         if budget_ok:
-            user.save(update_fields=["monthly_budget", "telegram_notifications", "daily_reminder", "weekly_summary", "limit_warning"])
+            user.save(
+                update_fields=[
+                    "monthly_budget",
+                    "telegram_notifications",
+                    "daily_reminder",
+                    "weekly_summary",
+                    "limit_warning",
+                    "household_share_data",
+                ]
+            )
             messages.success(request, "Sozlamalar saqlandi.")
         return redirect("expenses:settings")
     donation_methods = DonationMethod.objects.filter(is_active=True).order_by("sort_order", "id")
@@ -734,9 +916,19 @@ def settings_view(request):
         .order_by("-created_at")
         .first()
     )
+    donation_timeline = list(
+        Donation.objects.filter(user=user)
+        .select_related("method")
+        .order_by("-created_at")[:5]
+    )
     bot_username = (getattr(settings, "TELEGRAM_BOT_USERNAME", "") or "").strip().lstrip("@")
     bot_link = f"https://t.me/{bot_username}" if bot_username else ""
     bot_donate_link = f"https://t.me/{bot_username}?start=donat" if bot_username else ""
+    household_members = []
+    if user.household_id:
+        household_members = list(
+            user.household.members.order_by("date_joined").values_list("username", flat=True)
+        )
     return render(
         request,
         "expenses/settings.html",
@@ -746,9 +938,12 @@ def settings_view(request):
             "pending_donation_exists": pending_donation_exists,
             "confirmed_donations_count": confirmed_donations_count,
             "latest_rejected_donation": latest_rejected_donation,
+            "donation_timeline": donation_timeline,
             "bot_username": bot_username,
             "bot_link": bot_link,
             "bot_donate_link": bot_donate_link,
+            "profile": profile,
+            "household_members": household_members,
         },
     )
 
@@ -768,45 +963,98 @@ def donation_moderation_view(request):
 
     if request.method == "POST":
         donation_id = request.POST.get("donation_id")
+        donation_ids_raw = (request.POST.get("donation_ids") or "").strip()
         action = (request.POST.get("action") or "").strip().lower()
         reason = (request.POST.get("rejection_reason") or "").strip()
-        if not donation_id:
+        ids = []
+        if donation_ids_raw:
+            for item in donation_ids_raw.split(","):
+                item = item.strip()
+                if item.isdigit():
+                    ids.append(int(item))
+        if donation_id and str(donation_id).isdigit():
+            ids.append(int(donation_id))
+        ids = sorted(set(ids))
+        if not ids:
             messages.error(request, "Donat ID topilmadi.")
             return redirect("expenses:donation_moderation")
-        try:
-            donation = Donation.objects.select_related("user", "method").get(pk=donation_id)
-        except Donation.DoesNotExist:
+        donations = list(Donation.objects.select_related("user", "method").filter(pk__in=ids))
+        if not donations:
             messages.error(request, "Donat topilmadi.")
             return redirect("expenses:donation_moderation")
-
+        updated_count = 0
         if action == "approve":
-            donation.status = Donation.Status.APPROVED
-            donation.rejection_reason = ""
-            donation.save(update_fields=["status", "rejection_reason", "confirmed"])
-            if donation.user and not donation.user.is_supporter:
-                donation.user.is_supporter = True
-                donation.user.save(update_fields=["is_supporter"])
-            if donation.user and donation.user.telegram_id:
-                send_telegram_message(
-                    donation.user.telegram_id,
-                    "🎉 Donatingiz tasdiqlandi! Sizga Donater statusi berildi. Rahmat!",
-                )
-            messages.success(request, "Donat tasdiqlandi, foydalanuvchiga Donater status berildi.")
+            for donation in donations:
+                donation.status = Donation.Status.APPROVED
+                donation.rejection_reason = ""
+                donation.save(update_fields=["status", "rejection_reason", "confirmed"])
+                if donation.user and not donation.user.is_supporter:
+                    donation.user.is_supporter = True
+                    donation.user.save(update_fields=["is_supporter"])
+                if donation.user and donation.user.telegram_id:
+                    send_telegram_message(
+                        donation.user.telegram_id,
+                        "🎉 Donatingiz tasdiqlandi! Sizga Donater statusi berildi. Rahmat!",
+                    )
+                updated_count += 1
+            messages.success(request, f"{updated_count} ta donat tasdiqlandi.")
         elif action == "reject":
-            donation.status = Donation.Status.REJECTED
-            donation.rejection_reason = reason or "Chek bo'yicha ma'lumot aniqlashtirish talab qilindi."
-            donation.save(update_fields=["status", "rejection_reason", "confirmed"])
-            if donation.user and donation.user.telegram_id:
-                send_telegram_message(
-                    donation.user.telegram_id,
-                    "❌ Donat tekshiruv natijasi: hozircha tasdiqlanmadi. Iltimos, chek screenshotini aniqroq ma'lumot bilan qayta yuboring.",
-                )
-            messages.info(request, "Donat rad etildi va foydalanuvchiga xabar yuborildi.")
+            reject_reason = reason or "Chek bo'yicha ma'lumot aniqlashtirish talab qilindi."
+            for donation in donations:
+                donation.status = Donation.Status.REJECTED
+                donation.rejection_reason = reject_reason
+                donation.save(update_fields=["status", "rejection_reason", "confirmed"])
+                if donation.user and donation.user.telegram_id:
+                    send_telegram_message(
+                        donation.user.telegram_id,
+                        "❌ Donat tekshiruv natijasi: hozircha tasdiqlanmadi. Iltimos, chek screenshotini aniqroq ma'lumot bilan qayta yuboring.",
+                    )
+                updated_count += 1
+            messages.info(request, f"{updated_count} ta donat rad etildi.")
         elif action == "pending":
-            donation.status = Donation.Status.PENDING
-            donation.rejection_reason = ""
-            donation.save(update_fields=["status", "rejection_reason", "confirmed"])
-            messages.success(request, "Donat qayta tekshiruvga o'tkazildi.")
+            for donation in donations:
+                donation.status = Donation.Status.PENDING
+                donation.rejection_reason = ""
+                donation.save(update_fields=["status", "rejection_reason", "confirmed"])
+                updated_count += 1
+            messages.success(request, f"{updated_count} ta donat qayta tekshiruvga o'tkazildi.")
+        elif action == "ocr_extract":
+            if len(donations) > 1:
+                messages.error(request, "OCR faqat bitta donat uchun ishlaydi.")
+                return redirect("expenses:donation_moderation")
+            donation = donations[0]
+            amount, err = _ocr_extract_amount_for_donation(donation)
+            if err:
+                messages.error(request, err)
+                return redirect("expenses:donation_moderation")
+            suggestion_key = OCR_SUGGESTION_CACHE_KEY.format(user_id=request.user.pk, donation_id=donation.pk)
+            cache.set(suggestion_key, amount, timeout=3600)
+            messages.success(request, f"OCR: summa {amount:,} so'm deb topildi. Tasdiqlashni bosing.")
+        elif action == "ocr_apply":
+            if len(donations) != 1:
+                messages.error(request, "OCR apply uchun bitta donat tanlang.")
+                return redirect("expenses:donation_moderation")
+            donation = donations[0]
+            suggestion_key = OCR_SUGGESTION_CACHE_KEY.format(user_id=request.user.pk, donation_id=donation.pk)
+            amount = cache.get(suggestion_key) or 0
+            if not amount:
+                messages.error(request, "OCR taklif topilmadi yoki eskirgan.")
+                return redirect("expenses:donation_moderation")
+            donation.amount = amount
+            note_tail = f"OCR amount={amount}"
+            if note_tail not in (donation.note or ""):
+                donation.note = f"{(donation.note or '').strip()} | {note_tail}".strip(" |")
+            donation.save(update_fields=["amount", "note"])
+            cache.delete(suggestion_key)
+            messages.success(request, f"OCR summasi qo'llandi: {amount:,} so'm.")
+        elif action == "ocr_discard":
+            if len(donations) != 1:
+                messages.error(request, "OCR discard uchun bitta donat tanlang.")
+                return redirect("expenses:donation_moderation")
+            donation = donations[0]
+            suggestion_key = OCR_SUGGESTION_CACHE_KEY.format(user_id=request.user.pk, donation_id=donation.pk)
+            cache.delete(suggestion_key)
+            messages.info(request, "OCR taklifi bekor qilindi.")
         else:
             messages.error(request, "Noma'lum amal.")
         return redirect("expenses:donation_moderation")
@@ -834,9 +1082,20 @@ def donation_moderation_view(request):
         "approved": Donation.objects.filter(status=Donation.Status.APPROVED).count(),
         "rejected": Donation.objects.filter(status=Donation.Status.REJECTED).count(),
     }
+    pending_sla_threshold = timezone.now() - timezone.timedelta(hours=24)
+    pending_over_sla_count = Donation.objects.filter(
+        status=Donation.Status.PENDING,
+        created_at__lt=pending_sla_threshold,
+    ).count()
 
     paginator = Paginator(qs, 20)
     page_obj = paginator.get_page(request.GET.get("page", 1))
+    ocr_suggestions = {}
+    for d in page_obj:
+        key = OCR_SUGGESTION_CACHE_KEY.format(user_id=request.user.pk, donation_id=d.pk)
+        val = cache.get(key)
+        if val:
+            ocr_suggestions[d.pk] = val
     return render(
         request,
         "expenses/donation_moderation.html",
@@ -845,6 +1104,9 @@ def donation_moderation_view(request):
             "status_filter": status_filter,
             "q": q,
             "status_counts": status_counts,
+            "pending_over_sla_count": pending_over_sla_count,
+            "ocr_suggestions": ocr_suggestions,
+            "ocr_suggestion_ids": list(ocr_suggestions.keys()),
             "status_choices": [
                 ("pending", "Tekshiruvda"),
                 ("approved", "Tasdiqlangan"),
@@ -853,6 +1115,42 @@ def donation_moderation_view(request):
             ],
         },
     )
+
+
+@login_required
+@require_http_methods(["GET"])
+@rate_limit_action("export_supporter_report", max_requests=5, window=3600)
+def export_supporter_report(request):
+    """Donaterlar uchun kengaytirilgan CSV hisobot (oxirgi 12 oy)."""
+    import csv
+    if not getattr(request.user, "is_supporter", False):
+        messages.error(request, "Bu hisobot faqat Donater foydalanuvchilar uchun.")
+        return redirect("expenses:settings")
+    today = timezone.now().date()
+    cutoff = today - timezone.timedelta(days=365)
+    response = HttpResponse(content_type="text/csv; charset=utf-8")
+    response["Content-Disposition"] = 'attachment; filename="donater-report.csv"'
+    response.write("\ufeff")
+    writer = csv.writer(response)
+    writer.writerow(["Sana", "Kategoriya", "Asl summa", "Valyuta", "UZS summa", "Izoh", "User"])
+    qs = (
+        Expense.objects.filter(user=request.user, date__gte=cutoff)
+        .select_related("category", "user")
+        .order_by("-date", "-created_at")
+    )
+    for e in qs:
+        writer.writerow(
+            [
+                e.date,
+                e.category.name if e.category else "",
+                e.original_amount,
+                e.currency,
+                e.amount,
+                e.note or "",
+                e.user.get_display_name(),
+            ]
+        )
+    return response
 
 
 @login_required

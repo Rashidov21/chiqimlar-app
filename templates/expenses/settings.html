@@ -16,8 +16,17 @@
         {% csrf_token %}
         <div>
             <label for="monthly_budget" class="input-label">💰 Oylik byudjet (so'm)</label>
-            <input type="number" name="monthly_budget" id="monthly_budget" value="{{ user.monthly_budget }}" min="0" step="1000" class="input-field" placeholder="1 000 000" inputmode="numeric">
+            <input type="text" name="monthly_budget" id="monthly_budget" value="{{ user.monthly_budget }}" class="input-field" placeholder="1 000 000" inputmode="numeric" autocomplete="off">
             <p style="margin-top: 4px; font-size: 0.8rem; color: var(--text-muted);">Masalan: 2 000 000</p>
+        </div>
+        <div>
+            <label for="preferred_currency" class="input-label">Asosiy valyuta</label>
+            <select name="preferred_currency" id="preferred_currency" class="input-field">
+                <option value="UZS" {% if profile.preferred_currency == 'UZS' %}selected{% endif %}>So'm (UZS)</option>
+                <option value="USD" {% if profile.preferred_currency == 'USD' %}selected{% endif %}>Dollar (USD)</option>
+                <option value="EUR" {% if profile.preferred_currency == 'EUR' %}selected{% endif %}>Euro (EUR)</option>
+                <option value="RUB" {% if profile.preferred_currency == 'RUB' %}selected{% endif %}>Rubl (RUB)</option>
+            </select>
         </div>
         <div>
             <p class="input-label" style="margin-bottom: 6px; display: flex; align-items: center; gap: 6px;">
@@ -40,8 +49,13 @@
                     <input type="checkbox" name="limit_warning" {% if user.limit_warning %}checked{% endif %} style="width: 18px; height: 18px; accent-color: var(--primary);">
                     Byudjet ogohlantirishi
                 </label>
+                <label style="display: flex; align-items: center; gap: 10px; cursor: pointer; font-size: 0.9rem;">
+                    <input type="checkbox" name="household_share_data" {% if user.household_share_data %}checked{% endif %} style="width: 18px; height: 18px; accent-color: var(--primary);">
+                    Household bilan ma'lumot ulashish
+                </label>
             </div>
         </div>
+        <input type="hidden" name="action" value="save_settings">
         <div class="form-actions-sticky">
             <button type="submit" class="btn-primary" id="settings-submit-btn">
                 <i class="bi bi-check-lg"></i> <span class="btn-text">Saqlash</span>
@@ -139,7 +153,44 @@
                         <i class="bi bi-file-earmark-excel"></i> <span id="excel-export-btn-text">Excelni botga yuborish</span>
                     </button>
                 </form>
+                {% if user.is_supporter %}
+                <a href="{% url 'expenses:export_supporter_report' %}" class="btn-secondary btn-sm" style="margin-top:8px; display:inline-flex; text-decoration:none;">
+                    <i class="bi bi-stars"></i> Donater Pro hisobot (CSV)
+                </a>
+                {% endif %}
             </div>
+        </div>
+
+        <div class="card card-compact" style="margin-top: 8px;">
+            <p style="font-weight: 600; margin-bottom: 8px;">👨‍👩‍👧‍👦 Family / Household</p>
+            {% if user.household %}
+                <p style="font-size:0.84rem; color:var(--text-muted); margin-bottom:6px;">
+                    Ulangan household: <strong>{{ user.household.name }}</strong> (kod: <code>{{ user.household.invite_code }}</code>)
+                </p>
+                {% if household_members %}
+                <p style="font-size:0.8rem; color:var(--text-muted); margin-bottom:8px;">
+                    A'zolar: {{ household_members|join:", " }}
+                </p>
+                {% endif %}
+                <form method="post" action="{% url 'expenses:settings' %}">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="household_leave">
+                    <button type="submit" class="btn-secondary btn-sm" style="border-color:#fecaca;color:#b91c1c;">Householddan chiqish</button>
+                </form>
+            {% else %}
+                <form method="post" action="{% url 'expenses:settings' %}" style="display:flex; gap:8px; align-items:center; flex-wrap:wrap; margin-bottom:8px;">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="household_create">
+                    <input type="text" name="household_name" class="input-field" placeholder="Yangi household nomi" style="max-width:240px;">
+                    <button type="submit" class="btn-primary btn-sm">Yaratish</button>
+                </form>
+                <form method="post" action="{% url 'expenses:settings' %}" style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="household_join">
+                    <input type="text" name="invite_code" class="input-field" placeholder="Taklif kodi" style="max-width:200px; text-transform:uppercase;">
+                    <button type="submit" class="btn-secondary btn-sm">Qo'shilish</button>
+                </form>
+            {% endif %}
         </div>
 
         <div class="card card-compact" style="margin-top: 8px; padding: 16px; background: linear-gradient(135deg, rgba(var(--primary-rgb, 59, 130, 246), 0.08), rgba(var(--primary-rgb, 59, 130, 246), 0.02)); border: 1px solid rgba(var(--primary-rgb, 59, 130, 246), 0.2);">
@@ -208,6 +259,36 @@
                 {% endif %}
             {% endif %}
         </div>
+        {% if donation_timeline %}
+        <div class="card card-compact" style="padding: 14px;">
+            <p style="font-weight: 600; margin-bottom: 8px; font-size: 0.9rem;">
+                <i class="bi bi-clock-history"></i> Donat holati tarixi
+            </p>
+            <ul style="list-style:none; padding:0; margin:0; display:flex; flex-direction:column; gap:8px;">
+                {% for item in donation_timeline %}
+                <li style="display:flex; justify-content:space-between; gap:10px; border-bottom:1px solid var(--border-soft); padding-bottom:8px;">
+                    <div style="min-width:0;">
+                        <p style="margin:0; font-size:0.82rem; color:var(--text-main);">
+                            {{ item.amount|intcomma }} so'm {% if item.method %}· {{ item.method.title }}{% endif %}
+                        </p>
+                        <p style="margin:2px 0 0; font-size:0.76rem; color:var(--text-muted);">
+                            {{ item.created_at|date:"d.m.Y H:i" }}
+                        </p>
+                    </div>
+                    <div style="font-size:0.78rem; white-space:nowrap;">
+                        {% if item.status == 'pending' %}
+                            <span style="color:#b45309; font-weight:600;">Tekshiruvda</span>
+                        {% elif item.status == 'approved' %}
+                            <span style="color:#15803d; font-weight:600;">Tasdiqlangan</span>
+                        {% else %}
+                            <span style="color:#b91c1c; font-weight:600;">Rad etilgan</span>
+                        {% endif %}
+                    </div>
+                </li>
+                {% endfor %}
+            </ul>
+        </div>
+        {% endif %}
     </div>
 </div>
 <script>

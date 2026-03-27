@@ -32,8 +32,15 @@
     {% if selected_range %}
     <input type="hidden" name="range" value="{{ selected_range }}">
     {% endif %}
+    <input type="hidden" name="scope" value="{{ scope }}">
     <button type="submit" class="btn-secondary btn-sm"><i class="bi bi-search"></i> Izlash</button>
 </form>
+
+<p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 8px;">Ko'rinish</p>
+<div style="display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 14px;">
+    <a href="{% url 'expenses:list' %}?scope=my{% if query_text %}&q={{ query_text|urlencode }}{% endif %}" style="display:inline-block;padding:8px 14px;border-radius:9999px;font-size:.85rem;font-weight:500;text-decoration:none;background:#fff;color:var(--text-main);border:1px solid var(--border-soft);{% if scope == 'my' %}background: var(--primary); color:#fff; border-color:var(--primary);{% endif %}">Mening xarajatlarim</a>
+    <a href="{% url 'expenses:list' %}?scope=household{% if query_text %}&q={{ query_text|urlencode }}{% endif %}" style="display:inline-block;padding:8px 14px;border-radius:9999px;font-size:.85rem;font-weight:500;text-decoration:none;background:#fff;color:var(--text-main);border:1px solid var(--border-soft);{% if scope == 'household' %}background: var(--primary); color:#fff; border-color:var(--primary);{% endif %}">Household</a>
+</div>
 
 <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 8px;">Tez filtr</p>
 <div style="display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 14px;">
@@ -59,10 +66,18 @@
             <div style="flex: 1; min-width: 0;">
                 <span style="font-weight: 500;">{{ e.category.emoji|default:"📌" }} {{ e.category.name|default:"Boshqa" }}</span>
                 {% if e.note %}<p style="font-size: 0.875rem; color: var(--text-muted); margin-top: 2px;">{{ e.note }}</p>{% endif %}
-                <p style="font-size: 0.75rem; color: var(--text-muted); margin-top: 4px;">{{ e.date }}</p>
+                <p style="font-size: 0.75rem; color: var(--text-muted); margin-top: 4px;">
+                    {{ e.date }}
+                    {% if scope == 'household' and e.user %} · {{ e.user.get_display_name }}{% endif %}
+                </p>
             </div>
             <div style="display: flex; align-items: center; gap: 12px;">
-                <span style="font-weight: 600;">{{ e.amount|intcomma }} so'm</span>
+                <span style="font-weight: 600;">
+                    {{ e.amount|intcomma }} so'm
+                    {% if e.currency and e.currency != "UZS" %}
+                        <span style="font-size:.75rem; color:var(--text-muted);">({{ e.original_amount|floatformat:0|intcomma }} {{ e.currency }})</span>
+                    {% endif %}
+                </span>
                 <a href="{% url 'expenses:edit' e.pk %}?next={{ request.get_full_path|urlencode }}" style="color: var(--text-muted); text-decoration: none;" title="Tahrir"><i class="bi bi-pencil"></i></a>
                 <form method="post" action="{% url 'expenses:delete' e.pk %}" style="display: inline;" class="delete-expense-form" data-expense-title="{{ e.category.name|default:'Xarajat' }} · {{ e.amount|intcomma }} so'm">{% csrf_token %}<input type="hidden" name="next" value="{{ request.get_full_path }}"><button type="submit" style="background: none; border: none; color: var(--danger); cursor: pointer;" title="O'chirish"><i class="bi bi-trash"></i></button></form>
             </div>

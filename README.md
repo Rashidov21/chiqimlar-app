@@ -162,5 +162,6 @@ Foydalanuvchida `telegram_id` bo‘lishi va Sozlamalarda bildirishnomalar yoqilg
 
 - [Implementatsiya rejasi (sprintlar)](docs/IMPLEMENTATION_PLAN.md) — performance, security, UI/UX va keyingi ishlar rejasi.
 - [Multi-currency dizayn](docs/MULTI_CURRENCY_DESIGN.md) — ko‘p valyutali tizim uchun dizayn hujjati.
+- [Go-Live checklist](docs/GO_LIVE_CHECKLIST.md) — production deploy va smoke-test nazorat ro'yxati.
 
 Litsenziya: MIT (yoki loyiha qoidalariga qarab).

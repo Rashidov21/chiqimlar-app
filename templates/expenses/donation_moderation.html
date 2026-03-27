@@ -17,6 +17,11 @@
 </div>
 
 <div class="card card-compact" style="margin-bottom: 14px;">
+    {% if pending_over_sla_count > 0 %}
+    <div style="margin-bottom: 8px; padding: 8px 10px; border-radius: 10px; background: #fff7ed; border: 1px solid #fed7aa; color: #9a3412; font-size: 0.82rem;">
+        <i class="bi bi-alarm"></i> 24 soatdan oshgan tekshiruvdagi donatlar: <strong>{{ pending_over_sla_count }}</strong>
+    </div>
+    {% endif %}
     <div style="display:grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin-bottom: 10px;">
         <div class="card card-compact" style="padding:10px;">
             <p style="font-size:.75rem;color:var(--text-muted);margin:0;">Tekshiruvda</p>
@@ -49,6 +54,23 @@
     </div>
 </div>
 
+<div class="card card-compact" style="margin-bottom: 12px;">
+    <form method="post" id="bulk-action-form" action="{% url 'expenses:donation_moderation' %}" style="display:flex; gap:8px; flex-wrap:wrap; align-items:center;">
+        {% csrf_token %}
+        <input type="hidden" name="donation_ids" id="bulk-donation-ids" value="">
+        <input type="hidden" name="action" id="bulk-action-input" value="">
+        <select name="rejection_reason" class="input-field" style="max-width: 320px; padding-top: 7px; padding-bottom: 7px; font-size: 0.8rem;">
+            <option value="">Rad etish sababi (template)</option>
+            <option value="Chek noaniq: summa yoki tranzaksiya detali ko'rinmadi.">Chek noaniq</option>
+            <option value="To'lov usuli mos kelmadi yoki aniqlanmadi.">To'lov usuli aniqlanmadi</option>
+            <option value="Aynan shu to'lov bo'yicha qo'shimcha screenshot kerak.">Qo'shimcha screenshot kerak</option>
+        </select>
+        <button type="button" class="btn-primary btn-sm bulk-action-btn" data-action="approve"><i class="bi bi-check2-circle"></i> Belgilanganlarni tasdiqlash</button>
+        <button type="button" class="btn-secondary btn-sm bulk-action-btn" data-action="reject" style="border-color:#fecaca;color:#b91c1c;"><i class="bi bi-x-circle"></i> Belgilanganlarni rad etish</button>
+        <button type="button" class="btn-secondary btn-sm bulk-action-btn" data-action="pending"><i class="bi bi-arrow-counterclockwise"></i> Tekshiruvga qaytarish</button>
+    </form>
+</div>
+
 <div class="card">
     {% if page_obj %}
         <div style="display: flex; flex-direction: column; gap: 10px;">
@@ -56,6 +78,10 @@
             <div class="card card-compact" style="border: 1px solid var(--border-soft); padding: 10px;">
                 <div style="display:grid; grid-template-columns: 98px 1fr; gap: 9px; align-items: start;">
                     <div>
+                        <label style="display:flex; align-items:center; gap:6px; margin-bottom:6px; font-size:0.74rem; color:var(--text-muted);">
+                            <input type="checkbox" class="bulk-donation-checkbox" value="{{ d.pk }}">
+                            Tanlash
+                        </label>
                         {% if d.screenshot_file_id %}
                             <a href="{% url 'expenses:donation_moderation_photo' d.pk %}" target="_blank" rel="noopener noreferrer" style="display:block;text-decoration:none;">
                                 <img src="{% url 'expenses:donation_moderation_photo' d.pk %}" alt="donat screenshot" style="width:100%;height:98px;object-fit:cover;border-radius:10px;border:1px solid var(--border-soft);background:#f8f8fc;">
@@ -96,10 +122,41 @@
                             <strong>Rad etish sababi:</strong> {{ d.rejection_reason }}
                         </p>
                         {% endif %}
+                        {% if d.pk in ocr_suggestion_ids %}
+                        <p style="font-size: 0.78rem; color: #1d4ed8; margin-bottom: 2px;">
+                            <strong>OCR taklifi:</strong> yangi summa topilgan, qo'llash mumkin.
+                        </p>
+                        {% endif %}
                     </div>
                 </div>
 
                 <div style="display: flex; flex-wrap: wrap; gap: 6px; margin-top: 7px;">
+                    <form method="post" action="{% url 'expenses:donation_moderation' %}" style="display: inline;">
+                        {% csrf_token %}
+                        <input type="hidden" name="donation_id" value="{{ d.pk }}">
+                        <input type="hidden" name="action" value="ocr_extract">
+                        <button type="submit" class="btn-secondary btn-sm" style="padding: 7px 10px; min-height: 36px;">
+                            <i class="bi bi-camera"></i> OCR summani olish
+                        </button>
+                    </form>
+                    {% if d.pk in ocr_suggestion_ids %}
+                    <form method="post" action="{% url 'expenses:donation_moderation' %}" style="display: inline;">
+                        {% csrf_token %}
+                        <input type="hidden" name="donation_id" value="{{ d.pk }}">
+                        <input type="hidden" name="action" value="ocr_apply">
+                        <button type="submit" class="btn-primary btn-sm" style="padding: 7px 10px; min-height: 36px;">
+                            <i class="bi bi-check2-square"></i> OCR summani qo'llash
+                        </button>
+                    </form>
+                    <form method="post" action="{% url 'expenses:donation_moderation' %}" style="display: inline;">
+                        {% csrf_token %}
+                        <input type="hidden" name="donation_id" value="{{ d.pk }}">
+                        <input type="hidden" name="action" value="ocr_discard">
+                        <button type="submit" class="btn-secondary btn-sm" style="padding: 7px 10px; min-height: 36px;">
+                            <i class="bi bi-x-square"></i> OCRni bekor qilish
+                        </button>
+                    </form>
+                    {% endif %}
                     <form method="post" action="{% url 'expenses:donation_moderation' %}" style="display: inline;">
                         {% csrf_token %}
                         <input type="hidden" name="donation_id" value="{{ d.pk }}">
@@ -141,4 +198,31 @@
         <p style="text-align:center; color: var(--text-muted); padding: 18px 8px;">Tanlangan filtr bo'yicha donatlar topilmadi.</p>
     {% endif %}
 </div>
+<script>
+(function() {
+    var form = document.getElementById('bulk-action-form');
+    var idsInput = document.getElementById('bulk-donation-ids');
+    var actionInput = document.getElementById('bulk-action-input');
+    var buttons = document.querySelectorAll('.bulk-action-btn');
+    if (!form || !idsInput || !actionInput || !buttons.length) return;
+
+    function selectedIds() {
+        return Array.from(document.querySelectorAll('.bulk-donation-checkbox:checked'))
+            .map(function(cb){ return cb.value; });
+    }
+
+    buttons.forEach(function(btn) {
+        btn.addEventListener('click', function() {
+            var ids = selectedIds();
+            if (!ids.length) {
+                alert("Kamida bitta donatni belgilang.");
+                return;
+            }
+            idsInput.value = ids.join(',');
+            actionInput.value = btn.getAttribute('data-action') || '';
+            form.submit();
+        });
+    });
+})();
+</script>
 {% endblock %}

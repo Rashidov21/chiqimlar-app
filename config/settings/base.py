@@ -4,6 +4,7 @@ Muallif: Abdurahmon Rashidov
 Vaqt zonasi: UTC+5 (Asia/Tashkent)
 """
 import os
+import json
 from pathlib import Path
 import environ
 
@@ -140,6 +141,14 @@ TELEGRAM_BOT_TOKEN = env("TELEGRAM_BOT_TOKEN", default="")
 TELEGRAM_WEBHOOK_SECRET = env("TELEGRAM_WEBHOOK_SECRET", default="")
 TELEGRAM_WEBAPP_URL = env("TELEGRAM_WEBAPP_URL", default="")
 TELEGRAM_BOT_USERNAME = env("TELEGRAM_BOT_USERNAME", default="")
+OCRSPACE_API_KEY = env("OCRSPACE_API_KEY", default="")
+# Multi-currency: barcha qiymatlar 1 birlikni UZS ga konvertatsiya qilish kursi.
+CURRENCY_RATES_TO_UZS = json.loads(
+    env(
+        "CURRENCY_RATES_TO_UZS",
+        default='{"UZS": 1, "USD": 12500, "EUR": 13500, "RUB": 140}',
+    )
+)
 # initData qabul qilinadigan maksimal yoshi (soniya). 7 kun = 604800
 TELEGRAM_INITDATA_MAX_AGE = int(env("TELEGRAM_INITDATA_MAX_AGE", default="604800"))
 

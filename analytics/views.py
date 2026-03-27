@@ -12,6 +12,7 @@ from .services import (
     get_daily_totals,
     get_category_totals_for_period,
     get_monthly_trend,
+    get_supporter_deep_insights,
 )
 from expenses.services import get_monthly_totals, get_category_breakdown
 from expenses.models import Expense
@@ -124,6 +125,9 @@ def statistics_view(request):
     user = request.user
     is_supporter = getattr(user, "is_supporter", False)
     can_see_advanced = is_supporter
+    supporter_deep_insights = (
+        get_supporter_deep_insights(user, year=year, month=month) if is_supporter else None
+    )
 
     return render(
         request,
@@ -159,6 +163,7 @@ def statistics_view(request):
             "can_see_advanced_statistics": can_see_advanced,
             "trend_12": trend_12,
             "trend_12_max": trend_12_max,
+            "supporter_deep_insights": supporter_deep_insights,
         },
     )
 

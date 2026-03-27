@@ -335,6 +335,40 @@
 </div>
 
 {% if can_see_advanced_statistics and trend_12 %}
+<div class="card card-compact" style="margin-bottom: 12px; background: #f8fafc;">
+    <h2 style="font-weight: 600; margin-bottom: 8px; display: flex; align-items: center; gap: 6px;">
+        <i class="bi bi-stars"></i> Donater deep insights
+    </h2>
+    {% if supporter_deep_insights %}
+    <div style="display:grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 8px;">
+        <div style="border:1px solid var(--border-soft); border-radius:10px; padding:8px;">
+            <p style="font-size:.72rem; color:var(--text-muted); margin:0;">Xarajat tezligi (oy/oy)</p>
+            <p style="font-size:.95rem; font-weight:700; margin:4px 0 0;">
+                {% if supporter_deep_insights.velocity_pct is not None %}
+                    {% if supporter_deep_insights.velocity_pct > 0 %}+{% endif %}{{ supporter_deep_insights.velocity_pct }}%
+                {% else %}
+                    Ma'lumot yo'q
+                {% endif %}
+            </p>
+        </div>
+        <div style="border:1px solid var(--border-soft); border-radius:10px; padding:8px;">
+            <p style="font-size:.72rem; color:var(--text-muted); margin:0;">Oy yakuni prognozi</p>
+            <p style="font-size:.95rem; font-weight:700; margin:4px 0 0;">{{ supporter_deep_insights.forecast_total|intcomma }} so'm</p>
+        </div>
+    </div>
+    <p style="font-size: 0.78rem; color: var(--text-muted); margin: 8px 0 0;">
+        Risk darajasi:
+        {% if supporter_deep_insights.burn_risk == 'high' %}
+            <strong style="color:#b91c1c;">Yuqori</strong>
+        {% elif supporter_deep_insights.burn_risk == 'medium' %}
+            <strong style="color:#b45309;">O'rtacha</strong>
+        {% else %}
+            <strong style="color:#15803d;">Barqaror</strong>
+        {% endif %}
+        · {{ supporter_deep_insights.elapsed_days }}/{{ supporter_deep_insights.days_in_month }} kun asosida.
+    </p>
+    {% endif %}
+</div>
 <details class="card card-compact">
     <summary style="list-style:none;cursor:pointer;">
     <h2 style="font-weight: 600; margin-bottom: 8px; display: flex; align-items: center; gap: 6px;">

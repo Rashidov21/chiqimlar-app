@@ -3,9 +3,11 @@ Telegram bot - Webhook orqali komandalar (sinxron).
 """
 import logging
 import re
+from decimal import Decimal
 import requests
 from django.conf import settings
 from django.core.cache import cache
+from django.utils import timezone
 
 from .services import required_channels_ok_for_telegram_id
 from .models import RequiredChannel
@@ -13,6 +15,7 @@ from .models import RequiredChannel
 logger = logging.getLogger(__name__)
 WEBAPP_URL = getattr(settings, "TELEGRAM_WEBAPP_URL", "").rstrip("/")
 DONATION_NOTE_MAX_LEN = 255
+QUICK_ADD_MIN_AMOUNT = 100
 
 
 def _shorten_note(text: str, max_len: int = DONATION_NOTE_MAX_LEN) -> str:
@@ -64,6 +67,88 @@ def _send_message(chat_id: int, text: str, reply_markup: dict | None = None) -> 
     except Exception as e:  # pragma: no cover - tarmoq xatolari
         logger.warning("Telegram send_message failed: %s", e)
         return False
+
+
+def _parse_quick_add_text(text: str) -> tuple[int, str]:
+    """
+    Tezkor matnli xarajat formatini parse qiladi.
+    Misollar:
+      + 45000 ovqat
+      120000 taxi
+      1 250 000 supermarket
+    """
+    raw = (text or "").strip()
+    if not raw:
+        return 0, ""
+    m = re.match(r"^\+?\s*([\d][\d\s,\.]{0,20})(?:\s+(.+))?$", raw)
+    if not m:
+        return 0, ""
+    amount_digits = re.sub(r"[^\d]", "", m.group(1) or "")
+    if not amount_digits:
+        return 0, ""
+    try:
+        amount = int(amount_digits)
+    except ValueError:
+        return 0, ""
+    note = (m.group(2) or "").strip()
+    return amount, note
+
+
+def _try_handle_quick_add(chat_id: int, user_data: dict, text: str) -> bool:
+    """
+    Agar matn quick-add formatiga mos bo'lsa, Expense yaratadi.
+    """
+    amount, note = _parse_quick_add_text(text)
+    if amount < QUICK_ADD_MIN_AMOUNT:
+        return False
+    if len(note) > 255:
+        note = note[:255]
+
+    try:
+        from accounts.services import get_or_create_user_by_telegram
+        from expenses.models import Expense
+        from categories.models import Category
+    except Exception as e:  # pragma: no cover
+        logger.warning("quick_add import error: %s", e)
+        return False
+
+    telegram_id = user_data.get("id")
+    if not telegram_id:
+        return False
+    app_user = get_or_create_user_by_telegram(
+        telegram_id=telegram_id,
+        first_name=user_data.get("first_name", ""),
+    )
+    category = None
+    if note:
+        note_lower = note.lower()
+        category = (
+            Category.objects.filter(user=app_user, name__icontains=note_lower)
+            .order_by("order", "name")
+            .first()
+        )
+    expense = Expense.objects.create(
+        user=app_user,
+        category=category,
+        amount=Decimal(amount),
+        note=note,
+        date=timezone.now().date(),
+    )
+    cat_label = (
+        f"{expense.category.emoji} {expense.category.name}"
+        if expense.category
+        else "Boshqa"
+    )
+    _send_message(
+        chat_id,
+        (
+            "✅ Xarajat saqlandi.\n"
+            f"Summa: <b>{amount:,} so'm</b>\n"
+            f"Turkum: <b>{cat_label}</b>\n"
+            "Tez qo'shish format: <code>+ 45000 ovqat</code>"
+        ),
+    )
+    return True
 
 
 def _web_app_keyboard(telegram_id: int) -> dict | None:
@@ -332,4 +417,6 @@ def process_update(update_dict: dict) -> None:
         handle_help(chat_id)
     elif text == "/donat":
         handle_donate(chat_id)
+    elif text and not text.startswith("/") and _try_handle_quick_add(chat_id, user, text):
+        return
 

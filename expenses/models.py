@@ -21,6 +21,9 @@ class Expense(models.Model):
         related_name="expenses",
     )
     amount = models.DecimalField(max_digits=12, decimal_places=0)
+    original_amount = models.DecimalField(max_digits=12, decimal_places=2, default=0)
+    currency = models.CharField(max_length=8, default="UZS", db_index=True)
+    fx_rate_to_uzs = models.DecimalField(max_digits=18, decimal_places=6, default=1)
     note = models.CharField(max_length=255, blank=True)
     date = models.DateField(db_index=True)
     created_at = models.DateTimeField(auto_now_add=True)

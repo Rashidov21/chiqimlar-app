@@ -1,14 +1,18 @@
 from django import forms
 import re
+from decimal import Decimal
 from django.utils import timezone
 from .models import Expense, SavingGoal, RecurringExpense, Debt
+from .currency import SUPPORTED_CURRENCIES, convert_to_uzs, get_currency_rates_to_uzs
 from categories.models import Category
 
 
 class ExpenseForm(forms.ModelForm):
+    currency = forms.ChoiceField(choices=SUPPORTED_CURRENCIES, required=False)
+
     class Meta:
         model = Expense
-        fields = ("category", "amount", "note", "date")
+        fields = ("category", "amount", "currency", "note", "date")
 
     def __init__(self, *args, user=None, **kwargs):
         # Frontenddagi minglik format (masalan: "1 200 000") kelganida ham backend qabul qilsin.
@@ -43,6 +47,13 @@ class ExpenseForm(forms.ModelForm):
         self.fields["note"].widget.attrs["maxlength"] = "255"
         self.fields["date"].widget = forms.DateInput(attrs={"type": "date", "class": "input-field"})
         self.fields["category"].widget.attrs["class"] = "input-field"
+        self.fields["currency"].widget.attrs["class"] = "input-field"
+        initial_currency = "UZS"
+        if user and getattr(getattr(user, "finance_profile", None), "preferred_currency", None):
+            initial_currency = user.finance_profile.preferred_currency
+        if self.instance and self.instance.pk and self.instance.currency:
+            initial_currency = self.instance.currency
+        self.fields["currency"].initial = initial_currency
 
     def clean_amount(self):
         amount = self.cleaned_data.get("amount")
@@ -52,10 +63,25 @@ class ExpenseForm(forms.ModelForm):
             raise forms.ValidationError("Summani musbat qiymat sifatida kiriting.")
         return amount
 
+    def clean_currency(self):
+        currency = (self.cleaned_data.get("currency") or "UZS").upper()
+        rates = get_currency_rates_to_uzs()
+        if currency not in rates:
+            raise forms.ValidationError("Valyuta qo'llab-quvvatlanmaydi.")
+        return currency
+
     def save(self, commit=True):
         obj = super().save(commit=False)
         if self.user:
             obj.user = self.user
+        currency = (self.cleaned_data.get("currency") or "UZS").upper()
+        amount = self.cleaned_data.get("amount") or Decimal("0")
+        rates = get_currency_rates_to_uzs()
+        rate = rates.get(currency, Decimal("1"))
+        obj.currency = currency
+        obj.original_amount = amount
+        obj.fx_rate_to_uzs = rate
+        obj.amount = convert_to_uzs(amount, currency)
         if commit:
             obj.save()
         return obj

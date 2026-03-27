@@ -33,6 +33,8 @@ class TelegramHandlerTest(TestCase):
             handle_start(123, "Test")
             mock_send.assert_called_once()
             args, kwargs = mock_send.call_args
-            # WebApp keyboard yuborilmagan bo'lishi kerak (reply_markup None)
-            self.assertIsNone(kwargs.get("reply_markup"))
+            # Obuna flow keyboardi yuboriladi.
+            reply_markup = kwargs.get("reply_markup") or {}
+            self.assertIn("keyboard", reply_markup)
+            self.assertIn("✅ Obuna bo'ldim", str(reply_markup))
 

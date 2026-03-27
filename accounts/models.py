@@ -6,6 +6,27 @@ from django.db import models
 from django.contrib.auth.models import AbstractUser
 
 
+class Household(models.Model):
+    """Family/shared budget uchun umumiy household."""
+
+    name = models.CharField(max_length=120)
+    invite_code = models.CharField(max_length=12, unique=True, db_index=True)
+    owner = models.ForeignKey(
+        "User",
+        on_delete=models.CASCADE,
+        related_name="owned_households",
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = "Household"
+        verbose_name_plural = "Households"
+        ordering = ["-created_at"]
+
+    def __str__(self):
+        return f"{self.name} ({self.invite_code})"
+
+
 class User(AbstractUser):
     """Telegram bilan bog'langan foydalanuvchi."""
 
@@ -24,6 +45,17 @@ class User(AbstractUser):
     is_supporter = models.BooleanField(
         default=False,
         help_text="Donat qilgan/supporter foydalanuvchi",
+    )
+    household = models.ForeignKey(
+        "Household",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="members",
+    )
+    household_share_data = models.BooleanField(
+        default=False,
+        help_text="Household ichida xarajatlar statistikasi ulashilsinmi.",
     )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now_add=False, auto_now=True)

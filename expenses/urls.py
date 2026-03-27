@@ -31,4 +31,5 @@ urlpatterns = [
     ),
     path("export/", views.export_view, name="export"),
     path("export/excel-to-telegram/", views.export_excel_to_telegram, name="export_excel_to_telegram"),
+    path("export/supporter-report/", views.export_supporter_report, name="export_supporter_report"),
 ]

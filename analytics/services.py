@@ -298,3 +298,99 @@ def get_monthly_trend(user, months=6):
         label = f"{MONTH_NAMES_SHORT[m - 1]} {y}" if 1 <= m <= 12 else f"{y}-{m:02d}"
         result.append({"year": y, "month": m, "total": float(s), "label": label})
     return result
+
+
+def get_month_end_forecast(user, year=None, month=None):
+    """
+    Joriy tanlangan oy bo'yicha oy yakuni xarajat prognozi.
+    Qaytadi:
+      - forecast_total: oy yakunigacha taxminiy jami
+      - expected_remaining: byudjet bo'lsa taxminiy qoldiq
+      - elapsed_days: hisoblangan kunlar
+      - days_in_month: oy kunlari
+      - confidence: simple ("low"|"medium")
+    """
+    from calendar import monthrange
+    from datetime import date
+
+    today = timezone.now().date()
+    year = year or today.year
+    month = month or today.month
+    _, last_day = monthrange(year, month)
+    month_start = date(year, month, 1)
+    month_end = date(year, month, last_day)
+    period_end = min(today, month_end)
+
+    spent_so_far = (
+        user.expenses.filter(date__gte=month_start, date__lte=period_end).aggregate(s=Sum("amount"))["s"]
+        or Decimal("0")
+    )
+    elapsed_days = max((period_end - month_start).days + 1, 1)
+    days_in_month = last_day
+    avg_daily = spent_so_far / Decimal(elapsed_days)
+    forecast_total = (avg_daily * Decimal(days_in_month)).quantize(Decimal("1"))
+
+    budget = user.monthly_budget or Decimal("0")
+    expected_remaining = None
+    if budget > 0:
+        expected_remaining = (budget - forecast_total).quantize(Decimal("1"))
+
+    confidence = "medium" if elapsed_days >= 10 else "low"
+    return {
+        "forecast_total": forecast_total,
+        "expected_remaining": expected_remaining,
+        "elapsed_days": elapsed_days,
+        "days_in_month": days_in_month,
+        "confidence": confidence,
+    }
+
+
+def get_supporter_deep_insights(user, year=None, month=None):
+    """
+    Donater foydalanuvchilar uchun kengaytirilgan statistik signal.
+    """
+    from calendar import monthrange
+    from datetime import date
+
+    today = timezone.now().date()
+    year = year or today.year
+    month = month or today.month
+    _, last_day = monthrange(year, month)
+    month_start = date(year, month, 1)
+    month_end = date(year, month, last_day)
+    period_end = min(today, month_end)
+
+    this_total = (
+        user.expenses.filter(date__gte=month_start, date__lte=period_end).aggregate(s=Sum("amount"))["s"]
+        or Decimal("0")
+    )
+    prev_month = 12 if month == 1 else month - 1
+    prev_year = year - 1 if month == 1 else year
+    prev_last_day = monthrange(prev_year, prev_month)[1]
+    prev_start = date(prev_year, prev_month, 1)
+    prev_end = date(prev_year, prev_month, prev_last_day)
+    prev_total = (
+        user.expenses.filter(date__gte=prev_start, date__lte=prev_end).aggregate(s=Sum("amount"))["s"]
+        or Decimal("0")
+    )
+
+    velocity_pct = None
+    if prev_total > 0:
+        velocity_pct = ((this_total - prev_total) / prev_total * Decimal("100")).quantize(Decimal("1"))
+
+    forecast = get_month_end_forecast(user, year=year, month=month)
+    budget = user.monthly_budget or Decimal("0")
+    burn_risk = "stable"
+    if budget > 0 and forecast["forecast_total"] > budget:
+        burn_risk = "high"
+    elif budget > 0 and forecast["forecast_total"] >= budget * Decimal("0.9"):
+        burn_risk = "medium"
+
+    return {
+        "velocity_pct": velocity_pct,
+        "forecast_total": forecast["forecast_total"],
+        "expected_remaining": forecast["expected_remaining"],
+        "burn_risk": burn_risk,
+        "elapsed_days": forecast["elapsed_days"],
+        "days_in_month": forecast["days_in_month"],
+    }

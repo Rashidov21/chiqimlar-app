@@ -99,6 +99,45 @@
     </div>
 </div>
 
+{% if month_forecast %}
+<div class="card card-compact" style="margin-bottom: 16px; background: #f8fafc;">
+    <h2 style="font-weight: 600; margin-bottom: 8px; font-size: 0.95rem; display: flex; align-items: center; gap: 6px;">
+        <i class="bi bi-graph-up-arrow"></i> Oy yakuni prognozi
+    </h2>
+    <p style="font-size: 0.82rem; color: var(--text-muted); margin-bottom: 4px;">
+        Hozirgi temp bo'yicha taxminiy jami: <strong>{{ month_forecast.forecast_total|intcomma }} so'm</strong>
+    </p>
+    {% if month_forecast.expected_remaining is not None %}
+        {% if month_forecast.expected_remaining >= 0 %}
+        <p style="font-size: 0.82rem; color: #166534; margin-bottom: 4px;">
+            Oy oxirida taxminan <strong>{{ month_forecast.expected_remaining|intcomma }} so'm</strong> qoladi.
+        </p>
+        {% else %}
+        <p style="font-size: 0.82rem; color: var(--danger); margin-bottom: 4px;">
+            Oy oxirida taxminan <strong>{{ month_forecast.expected_remaining|intcomma }}</strong> so'mga ortiq sarflash ehtimoli bor.
+        </p>
+        {% endif %}
+    {% endif %}
+    <p style="font-size: 0.78rem; color: var(--text-muted); margin: 0;">
+        Aniqlik: {{ month_forecast.confidence }} ({{ month_forecast.elapsed_days }}/{{ month_forecast.days_in_month }} kun ma'lumotiga asoslangan).
+    </p>
+</div>
+{% endif %}
+
+{% if household_summary %}
+<div class="card card-compact" style="margin-bottom: 16px; background: #eef6ff;">
+    <h2 style="font-weight: 600; margin-bottom: 8px; font-size: 0.95rem; display: flex; align-items: center; gap: 6px;">
+        <i class="bi bi-people"></i> Household: {{ household_summary.name }}
+    </h2>
+    <p style="font-size: 0.82rem; color: var(--text-muted); margin-bottom: 4px;">
+        Jami (household) sarf: <strong>{{ household_summary.total_spent|intcomma }} so'm</strong>
+    </p>
+    <p style="font-size: 0.78rem; color: var(--text-muted); margin: 0;">
+        Ulashilgan memberlar soni: {{ household_summary.members }}
+    </p>
+</div>
+{% endif %}
+
 {% if insights %}
 <div class="card card-compact" style="margin-bottom: 16px; background: var(--primary-soft); border-color: #c4b5fd;">
     <h2 style="font-weight: 600; margin-bottom: 8px; display: flex; align-items: center; gap: 6px; font-size: 0.95rem;">
