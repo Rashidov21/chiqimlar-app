@@ -436,9 +436,14 @@
     <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 12px;">
         Oxirgi 12 oy trendi va to'liq moliyaviy tushunchalar faqat donater'lar uchun. Donat qiling va Sozlamalarda «Donater bo'ling» orqali to'liq ma'lumotga ega bo'ling.
     </p>
-    <a href="{% url 'expenses:settings' %}" class="btn-primary btn-sm" style="display: inline-flex; align-items: center; gap: 6px; text-decoration: none;">
-        <i class="bi bi-gear"></i> Sozlamalarga o'tish
-    </a>
+    <div style="display:flex; gap:8px; flex-wrap:wrap;">
+        <a href="/donater/" class="btn-primary btn-sm" style="display: inline-flex; align-items: center; gap: 6px; text-decoration: none;">
+            <i class="bi bi-stars"></i> Donater imkoniyatlari
+        </a>
+        <a href="{% url 'expenses:settings' %}" class="btn-secondary btn-sm" style="display: inline-flex; align-items: center; gap: 6px; text-decoration: none;">
+            <i class="bi bi-gear"></i> Sozlamalarga o'tish
+        </a>
+    </div>
 </div>
 {% endif %}
 
