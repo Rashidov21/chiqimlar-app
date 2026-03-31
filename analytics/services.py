@@ -394,3 +394,45 @@ def get_supporter_deep_insights(user, year=None, month=None):
         "elapsed_days": forecast["elapsed_days"],
         "days_in_month": forecast["days_in_month"],
     }
+
+
+def get_monthly_review_card(user, year=None, month=None):
+    """
+    Dashboard uchun oy yakuni razbor (donater value card).
+    """
+    from datetime import date
+    from calendar import monthrange
+    today = timezone.now().date()
+    year = year or today.year
+    month = month or today.month
+    month_start = date(year, month, 1)
+    _, last_day = monthrange(year, month)
+    month_end = min(today, date(year, month, last_day))
+    qs = user.expenses.filter(date__gte=month_start, date__lte=month_end)
+    total = qs.aggregate(s=Sum("amount"))["s"] or Decimal("0")
+    budget = user.monthly_budget or Decimal("0")
+    top_cat = (
+        qs.values("category__name", "category__emoji")
+        .annotate(s=Sum("amount"))
+        .order_by("-s")
+        .first()
+    )
+    forecast = get_month_end_forecast(user, year=year, month=month)
+    wins = []
+    risks = []
+    actions = []
+    if budget > 0 and total <= budget * Decimal("0.8"):
+        wins.append("Byudjet intizomi yaxshi ketmoqda.")
+    if top_cat and total > 0:
+        pct = int((top_cat["s"] or 0) * 100 / total)
+        risks.append(f"Eng katta ulush: {(top_cat.get('category__emoji') or '').strip()} {top_cat.get('category__name') or 'Boshqa'} ({pct}%).")
+    if forecast["expected_remaining"] is not None and forecast["expected_remaining"] < 0:
+        risks.append("Oy oxirida byudjetdan oshish ehtimoli bor.")
+        actions.append("Keyingi 7 kunda discretionary xarajatlarni cheklang.")
+    else:
+        actions.append("Shu tempni saqlang va katta xaridlarni rejalab kiriting.")
+    return {
+        "wins": wins[:2] or ["Xarajatlar nazorati davom etmoqda."],
+        "risks": risks[:2] or ["Kritik risk aniqlanmadi."],
+        "actions": actions[:2],
+    }

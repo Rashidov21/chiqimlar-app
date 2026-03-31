@@ -33,7 +33,12 @@ from .models import Expense, SavingGoal, RecurringExpense, Debt
 from .currency import get_currency_rates_to_uzs
 from .forms import ExpenseForm, SavingGoalForm, RecurringExpenseForm, DebtForm
 from .services import advance_next_payment, get_dashboard_context, get_monthly_totals, invalidate_monthly_totals_cache
-from analytics.services import get_insights_for_user, get_user_achievements, get_month_end_forecast
+from analytics.services import (
+    get_insights_for_user,
+    get_user_achievements,
+    get_month_end_forecast,
+    get_monthly_review_card,
+)
 from notifications.services import (
     maybe_send_limit_warning_after_expense,
     maybe_send_expense_confirmation_after_expense,
@@ -221,6 +226,15 @@ def dashboard(request):
         )
     except Exception:
         context["month_forecast"] = None
+    if request.user.is_supporter:
+        try:
+            context["monthly_review_card"] = get_monthly_review_card(
+                request.user, year=selected_date.year, month=selected_date.month
+            )
+        except Exception:
+            context["monthly_review_card"] = None
+    else:
+        context["monthly_review_card"] = None
     try:
         rates = get_currency_rates_to_uzs()
         usd_rate = rates.get("USD")

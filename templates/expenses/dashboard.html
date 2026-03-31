@@ -124,6 +124,37 @@
 </div>
 {% endif %}
 
+{% if monthly_review_card %}
+<details class="card card-compact ux-collapsible" data-collapse-id="dash-monthly-review" style="margin-bottom: 16px; background: #f8fafc;">
+    <summary style="list-style:none;cursor:pointer; display:flex; align-items:center; justify-content:space-between;">
+    <h2 style="font-weight: 600; margin-bottom: 8px; font-size: 0.95rem; display: flex; align-items: center; gap: 6px;">
+        <i class="bi bi-stars"></i> Donater: oy yakuni razbor
+    </h2>
+    <i class="bi bi-chevron-down" style="color: var(--text-muted);"></i>
+    </summary>
+    <div style="display:grid; gap:8px;">
+        <div>
+            <p style="font-size:.8rem; font-weight:600; margin:0 0 4px;">Nima yaxshi bo'ldi</p>
+            {% for item in monthly_review_card.wins %}
+            <p style="font-size:.8rem; color:var(--text-muted); margin:0;">• {{ item }}</p>
+            {% endfor %}
+        </div>
+        <div>
+            <p style="font-size:.8rem; font-weight:600; margin:0 0 4px;">Risklar</p>
+            {% for item in monthly_review_card.risks %}
+            <p style="font-size:.8rem; color:var(--text-muted); margin:0;">• {{ item }}</p>
+            {% endfor %}
+        </div>
+        <div>
+            <p style="font-size:.8rem; font-weight:600; margin:0 0 4px;">Amaliy tavsiya</p>
+            {% for item in monthly_review_card.actions %}
+            <p style="font-size:.8rem; color:var(--text-muted); margin:0;">• {{ item }}</p>
+            {% endfor %}
+        </div>
+    </div>
+</details>
+{% endif %}
+
 {% if usd_rate_uzs %}
 <div class="card card-compact" style="margin-bottom: 16px; background: #f8fafc;">
     <h2 style="font-weight: 600; margin-bottom: 8px; font-size: 0.95rem; display: flex; align-items: center; gap: 6px;">

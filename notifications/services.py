@@ -2,8 +2,12 @@
 Bildirishnomalar - xabar yuborish (Telegram va boshqa kanallar sender orqali).
 """
 import logging
+import random
 from decimal import Decimal
+from datetime import datetime, time, timedelta
 
+from django.utils import timezone
+from .models import CampaignMessageTemplate, CampaignDeliveryLog, UserCampaignState
 from .senders import get_default_sender
 
 logger = logging.getLogger(__name__)
@@ -98,3 +102,156 @@ def maybe_send_expense_confirmation_after_expense(user, expense):
         lines.append(f"Oylik limit: {int(budget):,} so'm, qolgan: {int(remaining):,} so'm.")
 
     send_telegram_message(user.telegram_id, "\n".join(lines))
+
+
+PROMO_MAX_PER_WEEK = 3
+PROMO_MIN_HOURS_BETWEEN_SENDS = 48
+PROMO_MAX_HOURS_BETWEEN_SENDS = 84
+PROMO_QUIET_HOURS_START = 22
+PROMO_QUIET_HOURS_END = 9
+
+
+def _segment_for_user(user):
+    age_days = (timezone.now() - user.date_joined).days
+    if age_days <= 3:
+        return CampaignMessageTemplate.Segment.NEW
+    from expenses.models import Expense
+    active_recently = Expense.objects.filter(
+        user=user, created_at__gte=timezone.now() - timedelta(days=7)
+    ).exists()
+    return CampaignMessageTemplate.Segment.ACTIVE if active_recently else CampaignMessageTemplate.Segment.INACTIVE
+
+
+def _in_quiet_hours(now):
+    hour = now.hour
+    return hour >= PROMO_QUIET_HOURS_START or hour < PROMO_QUIET_HOURS_END
+
+
+def _next_random_send_time(now):
+    delta_hours = random.randint(PROMO_MIN_HOURS_BETWEEN_SENDS, PROMO_MAX_HOURS_BETWEEN_SENDS)
+    target = now + timedelta(hours=delta_hours)
+    target_date = target.date()
+    target_hour = random.randint(PROMO_QUIET_HOURS_END, PROMO_QUIET_HOURS_START - 1)
+    target_minute = random.randint(0, 59)
+    return timezone.make_aware(
+        datetime.combine(target_date, time(target_hour, target_minute)),
+        timezone.get_current_timezone(),
+    )
+
+
+def _week_start(d):
+    return d - timedelta(days=d.weekday())
+
+
+def _reset_week_if_needed(state, today):
+    ws = _week_start(today)
+    if state.weekly_window_start != ws:
+        state.weekly_window_start = ws
+        state.weekly_send_count = 0
+
+
+def choose_weighted_template(user, state):
+    segment = _segment_for_user(user)
+    qs = CampaignMessageTemplate.objects.filter(segment=segment, is_active=True)
+    if state.last_topic:
+        qs = qs.exclude(topic=state.last_topic)
+    templates = list(qs)
+    if not templates:
+        templates = list(CampaignMessageTemplate.objects.filter(is_active=True))
+    if not templates:
+        return None
+    weights = [max(1, t.weight) for t in templates]
+    return random.choices(templates, weights=weights, k=1)[0]
+
+
+def eligible_for_non_donater_promo(user, now=None):
+    now = now or timezone.now()
+    if not user.is_active or user.is_supporter or not user.telegram_id:
+        return False, "not_target"
+    if _in_quiet_hours(now):
+        return False, "quiet_hours"
+    if not getattr(user, "telegram_notifications", True):
+        return False, "notifications_off"
+    from accounts.models import Donation
+    if Donation.objects.filter(user=user, status=Donation.Status.PENDING).exists():
+        return False, "pending_donation"
+    from expenses.models import Expense
+    if Expense.objects.filter(user=user, created_at__gte=now - timedelta(hours=24)).exists():
+        return False, "active_last_24h"
+    state, _ = UserCampaignState.objects.get_or_create(
+        user=user, defaults={"weekly_window_start": _week_start(now.date())}
+    )
+    if state.promo_opt_out:
+        return False, "opt_out"
+    _reset_week_if_needed(state, now.date())
+    if state.weekly_send_count >= PROMO_MAX_PER_WEEK:
+        state.save(update_fields=["weekly_window_start", "weekly_send_count", "updated_at"])
+        return False, "weekly_cap"
+    if state.next_send_at and now < state.next_send_at:
+        return False, "not_due"
+    return True, ""
+
+
+def send_non_donater_promo(user, now=None):
+    now = now or timezone.now()
+    ok, reason = eligible_for_non_donater_promo(user, now=now)
+    state, _ = UserCampaignState.objects.get_or_create(
+        user=user, defaults={"weekly_window_start": _week_start(now.date())}
+    )
+    if not ok:
+        CampaignDeliveryLog.objects.create(
+            user=user,
+            status=CampaignDeliveryLog.Status.SKIPPED,
+            skip_reason=reason,
+            sent_at=now,
+        )
+        return False, reason
+
+    template = choose_weighted_template(user, state)
+    if not template:
+        CampaignDeliveryLog.objects.create(
+            user=user,
+            status=CampaignDeliveryLog.Status.SKIPPED,
+            skip_reason="no_template",
+            sent_at=now,
+        )
+        return False, "no_template"
+
+    text = template.text.strip()
+    if template.cta_url:
+        text += f"\n\n👉 {template.cta_url}"
+    sent = send_telegram_message(user.telegram_id, text)
+    if sent:
+        _reset_week_if_needed(state, now.date())
+        state.weekly_send_count += 1
+        state.last_sent_at = now
+        state.last_topic = template.topic
+        state.next_send_at = _next_random_send_time(now)
+        state.save()
+        CampaignDeliveryLog.objects.create(
+            user=user,
+            template=template,
+            status=CampaignDeliveryLog.Status.SENT,
+            message_text=text,
+            sent_at=now,
+        )
+        return True, "sent"
+    CampaignDeliveryLog.objects.create(
+        user=user,
+        template=template,
+        status=CampaignDeliveryLog.Status.FAILED,
+        message_text=text,
+        sent_at=now,
+    )
+    return False, "failed"
+
+
+def get_non_donater_promo_candidates(limit=200):
+    from django.contrib.auth import get_user_model
+    User = get_user_model()
+    return User.objects.filter(
+        is_active=True,
+        is_supporter=False,
+        telegram_id__isnull=False,
+        telegram_notifications=True,
+    ).exclude(telegram_id=0)[:limit]
