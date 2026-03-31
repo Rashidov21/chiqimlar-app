@@ -110,7 +110,7 @@
 
 <div class="card card-compact" style="margin-bottom: 14px;">
     <div style="display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 10px;">
-        <p style="font-size: 0.82rem; color: var(--text-muted); margin: 0;">Filtrlar</p>
+        <p style="font-size: 0.82rem; color: var(--text-muted); margin: 0;">Davrni tanlang</p>
         <form method="get" action="{% url 'analytics:statistics' %}" style="margin: 0;">
             <input type="hidden" name="view" value="{{ view_type }}">
             <input type="hidden" name="month" value="{{ selected_month }}">
@@ -210,11 +210,16 @@
     </ul>
     {% if not can_see_advanced_statistics and insights|length > 2 %}
     <p style="font-size: 0.8rem; color: var(--text-muted); margin-top: 10px; margin-bottom: 10px;">
-        To'liq maslahatlar va 12 oylik trend uchun donat qiling — Donater bo'ling.
+        To'liq maslahatlar va 12 oylik trend Donater rejimida ochiladi.
     </p>
-    <a href="{% url 'expenses:settings' %}" class="btn-primary btn-sm" style="display: inline-flex; align-items: center; gap: 6px; text-decoration: none;">
-        <i class="bi bi-heart"></i> Donater bo'lish
-    </a>
+    <div style="display:flex; gap:8px; flex-wrap:wrap;">
+        <a href="/donater/" class="btn-primary btn-sm" style="display: inline-flex; align-items: center; gap: 6px; text-decoration: none;">
+            <i class="bi bi-stars"></i> Donater imkoniyatlari
+        </a>
+        <a href="{% url 'expenses:settings' %}" class="btn-secondary btn-sm" style="display: inline-flex; align-items: center; gap: 6px; text-decoration: none;">
+            <i class="bi bi-heart"></i> Donat qilish
+        </a>
+    </div>
     {% endif %}
 </div>
 {% endif %}

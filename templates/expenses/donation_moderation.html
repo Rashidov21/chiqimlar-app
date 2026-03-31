@@ -130,6 +130,21 @@
                     </div>
                 </div>
 
+                <div style="display:flex; gap:6px; flex-wrap:wrap; margin-top:8px;">
+                    <form method="post" action="{% url 'expenses:donation_moderation' %}" style="display: inline;">
+                        {% csrf_token %}
+                        <input type="hidden" name="donation_id" value="{{ d.pk }}">
+                        <input type="hidden" name="action" value="approve">
+                        <button type="submit" class="btn-primary btn-sm" style="padding: 7px 10px; min-height: 36px;"><i class="bi bi-check2-circle"></i> Tez tasdiqlash</button>
+                    </form>
+                    <form method="post" action="{% url 'expenses:donation_moderation' %}" style="display: inline-flex; gap: 6px; align-items: center; flex-wrap: wrap;">
+                        {% csrf_token %}
+                        <input type="hidden" name="donation_id" value="{{ d.pk }}">
+                        <input type="hidden" name="action" value="reject">
+                        <button type="submit" class="btn-secondary btn-sm" style="border-color:#fecaca;color:#b91c1c; padding: 7px 10px; min-height: 36px;"><i class="bi bi-x-circle"></i> Tez rad etish</button>
+                    </form>
+                </div>
+
                 <details style="margin-top: 7px;">
                     <summary style="list-style:none;cursor:pointer;display:flex;align-items:center;justify-content:space-between;border:1px solid var(--border-soft);border-radius:10px;padding:8px 10px;">
                         <span style="font-size:0.8rem;font-weight:600;">Moderatsiya amallari</span>
@@ -162,19 +177,12 @@
                         </button>
                     </form>
                     {% endif %}
-                    <form method="post" action="{% url 'expenses:donation_moderation' %}" style="display: inline;">
-                        {% csrf_token %}
-                        <input type="hidden" name="donation_id" value="{{ d.pk }}">
-                        <input type="hidden" name="action" value="approve">
-                        <button type="submit" class="btn-primary btn-sm" style="padding: 7px 10px; min-height: 36px;"><i class="bi bi-check2-circle"></i> Tasdiqlash</button>
-                    </form>
-
                     <form method="post" action="{% url 'expenses:donation_moderation' %}" style="display: inline-flex; gap: 6px; align-items: center; flex-wrap: wrap;">
                         {% csrf_token %}
                         <input type="hidden" name="donation_id" value="{{ d.pk }}">
                         <input type="hidden" name="action" value="reject">
                         <input type="text" name="rejection_reason" placeholder="Rad etish sababi (ixtiyoriy)" class="input-field" style="max-width: 220px; padding-top: 7px; padding-bottom: 7px; font-size: 0.78rem;">
-                        <button type="submit" class="btn-secondary btn-sm" style="border-color:#fecaca;color:#b91c1c; padding: 7px 10px; min-height: 36px;"><i class="bi bi-x-circle"></i> Rad etish</button>
+                        <button type="submit" class="btn-secondary btn-sm" style="border-color:#fecaca;color:#b91c1c; padding: 7px 10px; min-height: 36px;"><i class="bi bi-x-circle"></i> Sabab bilan rad etish</button>
                     </form>
 
                     <form method="post" action="{% url 'expenses:donation_moderation' %}" style="display: inline;">

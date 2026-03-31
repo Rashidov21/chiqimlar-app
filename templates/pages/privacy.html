@@ -12,20 +12,29 @@
 
 <div class="card" style="max-width: 720px;">
     <div style="font-size: 0.95rem; line-height: 1.6; color: var(--text-main);">
-        <p style="margin-bottom: 12px;"><strong>1. Umumiy ma'lumot</strong></p>
-        <p style="margin-bottom: 16px;">Chiqimlar — shaxsiy moliya yordamchi ilova. Siz kiritgan ma'lumotlar (xarajatlar, byudjet, turkumlar) faqat sizning hisobingiz bilan bog‘liq va boshqalar bilan baham ko‘rilmaydi.</p>
+        <p style="margin-bottom: 10px; font-weight: 600;">Qisqa maxfiylik savol-javoblari</p>
 
-        <p style="margin-bottom: 12px;"><strong>2. Yig‘iladigan ma'lumotlar</strong></p>
-        <p style="margin-bottom: 16px;">Ilova quyidagilardan foydalanadi: Telegram orqali kirishda — Telegram ID va ism; ro‘yxatdan o‘tishda — login, ism, parol (shifrlangan); xarajatlar — summa, sana, turkum, valyuta, ixtiyoriy izoh. Barcha ma'lumotlar serverda saqlanadi va faqat sizga tegishli hisob uchun ko‘rsatiladi.</p>
+        <details style="margin-bottom: 10px;" open>
+            <summary style="cursor:pointer; font-weight: 600;">Qaysi ma'lumotlar saqlanadi?</summary>
+            <p style="margin-top: 8px; color: var(--text-muted);">Telegram ID, profil nomi, xarajat yozuvlari (summa, sana, turkum, valyuta, ixtiyoriy izoh) va sozlamalaringiz saqlanadi.</p>
+        </details>
 
-        <p style="margin-bottom: 12px;"><strong>3. Maqsad</strong></p>
-        <p style="margin-bottom: 16px;">Ma'lumotlar faqat ilova funksiyalari (byudjet, statistika, eslatmalar, household ulashish) uchun ishlatiladi. Reklama yoki uchinchi tomonlarga sotish yo‘q.</p>
+        <details style="margin-bottom: 10px;">
+            <summary style="cursor:pointer; font-weight: 600;">Bu ma'lumotlar nima uchun ishlatiladi?</summary>
+            <p style="margin-top: 8px; color: var(--text-muted);">Faqat ilova funksiyalari uchun: byudjet nazorati, statistika, bildirishnomalar va household ulashish. Reklama uchun sotilmaydi.</p>
+        </details>
 
-        <p style="margin-bottom: 12px;"><strong>4. Xavfsizlik va uchinchi tomon xizmatlari</strong></p>
-        <p style="margin-bottom: 16px;">Parollar xeshlanadi; Telegram orqali kirishda rasmiy Telegram imzo tekshiruvi qo‘llanadi. Donat screenshotlari moderatsiya jarayonida saqlanishi mumkin. OCR yordamchi tekshiruv yoqilgan bo‘lsa, screenshot matnini ajratish uchun uchinchi tomon OCR API’dan foydalanilishi mumkin. Valyuta kurslari tashqi manbadan yangilanishi mumkin.</p>
+        <details style="margin-bottom: 10px;">
+            <summary style="cursor:pointer; font-weight: 600;">Uchinchi tomon xizmatlari bormi?</summary>
+            <p style="margin-top: 8px; color: var(--text-muted);">Ha, valyuta kurslari tashqi manbadan olinishi mumkin. OCR yoqilgan bo'lsa, screenshot matni OCR API orqali tekshiriladi.</p>
+        </details>
 
-        <p style="margin-bottom: 12px;"><strong>5. Aloqa</strong></p>
-        <p style="margin-bottom: 0;">Savollar uchun: loyiha muallifi — Abdurahmon Rashidov. Ilova ochiq manba loyiha sifatida ishlab chiqilgan.</p>
+        <details style="margin-bottom: 10px;">
+            <summary style="cursor:pointer; font-weight: 600;">Xavfsizlik qanday ta'minlanadi?</summary>
+            <p style="margin-top: 8px; color: var(--text-muted);">Parollar xeshlangan holda saqlanadi, Telegram kirishida rasmiy imzo tekshiruvi qo'llanadi. Donat screenshotlari faqat moderatsiya maqsadida ishlatiladi.</p>
+        </details>
+
+        <p style="margin-bottom: 0;">Savollar uchun: loyiha muallifi — Abdurahmon Rashidov.</p>
     </div>
 </div>
 {% endblock %}

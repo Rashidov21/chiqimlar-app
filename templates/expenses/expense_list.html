@@ -22,7 +22,7 @@
         name="q"
         value="{{ query_text }}"
         class="input-field"
-        placeholder="Qidiruv: izoh yoki turkum"
+        placeholder="Qidiruv: masalan, ovqat yoki yo'l"
         style="padding-top: 10px; padding-bottom: 10px;"
     >
     {% if selected_year and selected_month %}
@@ -104,6 +104,7 @@
     <p style="text-align: center; color: var(--text-muted); padding: 48px 24px;">
         <i class="bi bi-inbox" style="font-size: 3rem; display: block; margin-bottom: 16px; color: var(--border-subtle);"></i>
         Hali yozuv topilmadi.<br>
+        <span style="font-size:0.82rem;">Bugun birinchi xarajatingizni qo'shib boshlang.</span><br>
         <a href="{% url 'expenses:add' %}" class="btn-primary" style="margin-top: 16px;">Birinchi xarajatni qo'shing</a>
     </p>
     {% endif %}

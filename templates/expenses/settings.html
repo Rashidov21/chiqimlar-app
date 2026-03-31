@@ -63,171 +63,14 @@
         </div>
     </form>
 
-    <div style="margin-top: 20px; display: flex; flex-direction: column; gap: 16px;">
-        <div style="display: flex; align-items: flex-start; gap: 12px;">
-            <span style="font-size: 1.4rem;">🔑</span>
-            <div>
-                <p style="font-weight: 500; color: var(--text-main); margin-bottom: 2px;">Kirish</p>
-                <p style="font-size: 0.85rem; color: var(--text-muted);">
-                    Endi alohida kirish kodi yo'q. Telegram botda <strong>/start</strong> yuboring va pastdagi
-                    <strong>«Chiqimlarni ochish»</strong> tugmasini bosing — ilova ochiladi va siz avtomatik kirasiz.
-                </p>
-            </div>
-        </div>
+    <div style="margin-top: 20px; display: flex; flex-direction: column; gap: 14px;">
 
-        <div style="display: flex; align-items: flex-start; gap: 12px;">
-            <span style="font-size: 1.4rem;">📁</span>
-            <div>
-                <p style="font-weight: 500; color: var(--text-main); margin-bottom: 2px;">Turkumlar</p>
-                <a href="{% url 'categories:list' %}" style="color: var(--primary); font-weight: 500; font-size: 0.9rem; text-decoration: none;">Barcha turkumlarni boshqarish →</a>
-            </div>
-        </div>
-        {% if user.is_staff %}
-        <div style="display: flex; align-items: flex-start; gap: 12px;">
-            <span style="font-size: 1.4rem;">🛡️</span>
-            <div>
-                <p style="font-weight: 500; color: var(--text-main); margin-bottom: 2px;">Donat moderatsiya</p>
-                <a href="{% url 'expenses:donation_moderation' %}" style="color: var(--primary); font-weight: 500; font-size: 0.9rem; text-decoration: none;">Admin sahifasini ochish →</a>
-            </div>
-        </div>
-        {% endif %}
-
-        <details class="card card-compact" style="padding: 10px;" open>
-            <summary style="list-style:none;cursor:pointer;display:flex;align-items:center;justify-content:space-between;">
-                <span style="font-size: 0.84rem; color: var(--text-main); font-weight: 600;">Ilova bo'limlari</span>
-                <i class="bi bi-chevron-down" style="color: var(--text-muted);"></i>
-            </summary>
-        <div style="display: grid; gap: 10px; margin-top: 10px;">
-            <a href="{% url 'expenses:saving_goal_list' %}" class="card card-compact" style="display: flex; align-items: center; gap: 12px; text-decoration: none; color: inherit; padding: 14px 16px;">
-                <i class="bi bi-bullseye" style="font-size: 1.5rem; color: var(--primary);"></i>
-                <div>
-                    <div style="font-weight: 600; font-size: 0.95rem;">Maqsadlar</div>
-                    <div style="font-size: 0.8rem; color: var(--text-muted);">Jamg'arma maqsadlari</div>
-                </div>
-                <i class="bi bi-chevron-right" style="margin-left: auto; color: var(--text-muted);"></i>
-            </a>
-            <a href="{% url 'expenses:recurring_list' %}" class="card card-compact" style="display: flex; align-items: center; gap: 12px; text-decoration: none; color: inherit; padding: 14px 16px;">
-                <i class="bi bi-arrow-repeat" style="font-size: 1.5rem; color: var(--primary);"></i>
-                <div>
-                    <div style="font-weight: 600; font-size: 0.95rem;">Qayta to'lov</div>
-                    <div style="font-size: 0.8rem; color: var(--text-muted);">Takrorlanuvchi to'lovlar</div>
-                </div>
-                <i class="bi bi-chevron-right" style="margin-left: auto; color: var(--text-muted);"></i>
-            </a>
-            <a href="{% url 'expenses:debt_list' %}" class="card card-compact" style="display: flex; align-items: center; gap: 12px; text-decoration: none; color: inherit; padding: 14px 16px;">
-                <i class="bi bi-people" style="font-size: 1.5rem; color: var(--primary);"></i>
-                <div>
-                    <div style="font-weight: 600; font-size: 0.95rem;">Qarzlar</div>
-                    <div style="font-size: 0.8rem; color: var(--text-muted);">Olingan va berilgan qarzlar</div>
-                </div>
-                <i class="bi bi-chevron-right" style="margin-left: auto; color: var(--text-muted);"></i>
-            </a>
-            <a href="/privacy/" class="card card-compact" style="display: flex; align-items: center; gap: 12px; text-decoration: none; color: inherit; padding: 14px 16px;">
-                <i class="bi bi-shield-lock" style="font-size: 1.5rem; color: var(--primary);"></i>
-                <div>
-                    <div style="font-weight: 600; font-size: 0.95rem;">Maxfiylik</div>
-                    <div style="font-size: 0.8rem; color: var(--text-muted);">Maxfiylik siyosati</div>
-                </div>
-                <i class="bi bi-chevron-right" style="margin-left: auto; color: var(--text-muted);"></i>
-            </a>
-            <a href="/yordam/" class="card card-compact" style="display: flex; align-items: center; gap: 12px; text-decoration: none; color: inherit; padding: 14px 16px;">
-                <i class="bi bi-question-circle" style="font-size: 1.5rem; color: var(--primary);"></i>
-                <div>
-                    <div style="font-weight: 600; font-size: 0.95rem;">Yordam</div>
-                    <div style="font-size: 0.8rem; color: var(--text-muted);">Tez-tez beriladigan savollar</div>
-                </div>
-                <i class="bi bi-chevron-right" style="margin-left: auto; color: var(--text-muted);"></i>
-            </a>
-        </div>
-        </details>
-
-        <details class="card card-compact" style="padding: 12px;">
-            <summary style="list-style:none;cursor:pointer;display:flex;align-items:center;justify-content:space-between;">
-                <span style="font-size: 0.84rem; color: var(--text-main); font-weight: 600;">Eksport va hisobotlar</span>
-                <i class="bi bi-chevron-down" style="color: var(--text-muted);"></i>
-            </summary>
-        <div style="display: flex; align-items: flex-start; gap: 12px; margin-top: 10px;">
-            <span style="font-size: 1.4rem;">📥</span>
-            <div>
-                <p style="font-weight: 500; color: var(--text-main); margin-bottom: 4px;">Ma'lumotlarni eksport qilish</p>
-                <p style="font-size: 0.82rem; color: var(--text-muted); margin-bottom: 8px;">
-                    Tugmani bossangiz Excel fayl bot orqali yuboriladi. Faylda: joriy oy chiqimlari, byudjet, qarzlar va maqsadlar.
-                </p>
-                <form method="post" action="{% url 'expenses:export_excel_to_telegram' %}" id="excel-export-form">
-                    {% csrf_token %}
-                    <button type="submit" class="btn-secondary btn-sm" id="excel-export-btn">
-                        <i class="bi bi-file-earmark-excel"></i> <span id="excel-export-btn-text">Excelni botga yuborish</span>
-                    </button>
-                </form>
-                {% if user.is_supporter %}
-                <form method="post" action="{% url 'expenses:export_supporter_report' %}" data-submit-loading="1" style="margin-top:8px;">
-                    {% csrf_token %}
-                    <button type="submit" class="btn-secondary btn-sm" data-loading-text="Botga yuborilmoqda...">
-                        <i class="bi bi-stars"></i> <span class="btn-text">Donater Pro hisobotni botga yuborish</span>
-                    </button>
-                </form>
-                {% endif %}
-            </div>
-        </div>
-        </details>
-
-        <details class="card card-compact" style="margin-top: 8px;" open>
-            <summary style="list-style:none;cursor:pointer;display:flex;align-items:center;justify-content:space-between;">
-                <span style="font-weight: 600;">👨‍👩‍👧‍👦 Family / Household</span>
-                <i class="bi bi-chevron-down" style="color: var(--text-muted);"></i>
-            </summary>
-            <div style="font-size:0.8rem; color:var(--text-muted); margin-bottom:8px; border:1px dashed var(--border-soft); border-radius:10px; padding:8px 10px;">
-                <strong style="color:var(--text-main);">Bu nima?</strong>
-                Bir nechta yaqin odam bitta householdga ulanadi va umumiy sarf trendini ko'radi.
-                Har kim o'z xarajatini kiritadi, tizim esa household bo'yicha jamlanmani chiqaradi.
-            </div>
-            {% if not user.is_supporter %}
-                <p style="font-size:0.84rem; color:var(--text-muted); margin-bottom:8px;">
-                    Bu premium imkoniyat donaterlar uchun: oilaviy/byudjet guruhini ochish, a'zolar bilan sarf ko'rsatkichlarini ulashish,
-                    household bo'yicha umumiy trendlarni ko'rish.
-                </p>
-                <a href="{% url 'expenses:settings' %}" class="btn-primary btn-sm" style="text-decoration:none;">
-                    <i class="bi bi-heart"></i> Donater bo'lib ochish
-                </a>
-            {% elif user.household %}
-                <p style="font-size:0.84rem; color:var(--text-muted); margin-bottom:6px;">
-                    Ulangan household: <strong>{{ user.household.name }}</strong> (kod: <code>{{ user.household.invite_code }}</code>)
-                </p>
-                <p style="font-size:0.8rem; color:var(--text-muted); margin-bottom:8px;">
-                    Imkoniyatlar: umumiy sarf ko'rsatkichlari, household list ko'rinishi, oilaviy trendlarni kuzatish.
-                </p>
-                {% if household_members %}
-                <p style="font-size:0.8rem; color:var(--text-muted); margin-bottom:8px;">
-                    A'zolar: {{ household_members|join:", " }}
-                </p>
-                {% endif %}
-                <form method="post" action="{% url 'expenses:settings' %}">
-                    {% csrf_token %}
-                    <input type="hidden" name="action" value="household_leave">
-                    <button type="submit" class="btn-secondary btn-sm" style="border-color:#fecaca;color:#b91c1c;">Householddan chiqish</button>
-                </form>
-            {% else %}
-                <form method="post" action="{% url 'expenses:settings' %}" style="display:flex; gap:8px; align-items:center; flex-wrap:wrap; margin-bottom:8px;">
-                    {% csrf_token %}
-                    <input type="hidden" name="action" value="household_create">
-                    <input type="text" name="household_name" class="input-field" placeholder="Yangi household nomi" style="max-width:240px;">
-                    <button type="submit" class="btn-primary btn-sm">Yaratish</button>
-                </form>
-                <form method="post" action="{% url 'expenses:settings' %}" style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
-                    {% csrf_token %}
-                    <input type="hidden" name="action" value="household_join">
-                    <input type="text" name="invite_code" class="input-field" placeholder="Taklif kodi" style="max-width:200px; text-transform:uppercase;">
-                    <button type="submit" class="btn-secondary btn-sm">Qo'shilish</button>
-                </form>
-            {% endif %}
-        </details>
-
-        <details class="card card-compact" style="margin-top: 8px; padding: 16px; background: linear-gradient(135deg, rgba(var(--primary-rgb, 59, 130, 246), 0.08), rgba(var(--primary-rgb, 59, 130, 246), 0.02)); border: 1px solid rgba(var(--primary-rgb, 59, 130, 246), 0.2);">
+        <details class="card card-compact" style="margin-top: 2px;" open>
             <summary style="list-style:none;cursor:pointer;display:flex;align-items:center;justify-content:space-between;">
                 <span style="font-weight: 600; color: var(--text-main); display: flex; align-items: center; gap: 8px;"><span style="font-size: 1.2rem;">⭐</span> Donater bo'limi</span>
                 <i class="bi bi-chevron-down" style="color: var(--text-muted);"></i>
             </summary>
-            <p style="font-weight: 600; color: var(--text-main); margin-bottom: 4px; display: flex; align-items: center; gap: 8px;">
+            <p style="font-weight: 600; color: var(--text-main); margin: 8px 0 4px; display: flex; align-items: center; gap: 8px;">
                 <span style="font-size: 1.2rem;">⭐</span> Donater bo'ling
             </p>
             {% if user.is_supporter %}
@@ -236,7 +79,7 @@
                     Tasdiqlangan donatlar soni: <strong>{{ confirmed_donations_count }}</strong>.
                 </p>
             {% else %}
-                <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 12px;">
+                <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 10px;">
                     Ilovani rivojlantirishga yordam bering — donat qilsangiz to'liq moliyaviy tushunchalar va 12 oylik statistikaga ega bo'lasiz.
                 </p>
                 <a href="/donater/" class="btn-secondary btn-sm" style="text-decoration:none; margin-bottom: 10px; display: inline-flex; align-items: center; gap: 6px;">
@@ -295,6 +138,154 @@
                 {% endif %}
             {% endif %}
         </details>
+
+        <details class="card card-compact" style="margin-top: 2px;" open>
+            <summary style="list-style:none;cursor:pointer;display:flex;align-items:center;justify-content:space-between;">
+                <span style="font-weight: 600;">👨‍👩‍👧‍👦 Family / Household</span>
+                <i class="bi bi-chevron-down" style="color: var(--text-muted);"></i>
+            </summary>
+            <div style="font-size:0.8rem; color:var(--text-muted); margin-bottom:8px; border:1px dashed var(--border-soft); border-radius:10px; padding:8px 10px;">
+                <strong style="color:var(--text-main);">Bu nima?</strong>
+                Bir nechta yaqin odam bitta householdga ulanadi va umumiy sarf trendini ko'radi.
+                Har kim o'z xarajatini kiritadi, tizim esa household bo'yicha jamlanmani chiqaradi.
+            </div>
+            {% if not user.is_supporter %}
+                <p style="font-size:0.84rem; color:var(--text-muted); margin-bottom:8px;">
+                    Bu premium imkoniyat donaterlar uchun: oilaviy/byudjet guruhini ochish, a'zolar bilan sarf ko'rsatkichlarini ulashish,
+                    household bo'yicha umumiy trendlarni ko'rish.
+                </p>
+                <a href="/donater/" class="btn-primary btn-sm" style="text-decoration:none;">
+                    <i class="bi bi-heart"></i> Donater bo'lib ochish
+                </a>
+            {% elif user.household %}
+                <p style="font-size:0.84rem; color:var(--text-muted); margin-bottom:6px;">
+                    Ulangan household: <strong>{{ user.household.name }}</strong> (kod: <code>{{ user.household.invite_code }}</code>)
+                </p>
+                <p style="font-size:0.8rem; color:var(--text-muted); margin-bottom:8px;">
+                    Imkoniyatlar: umumiy sarf ko'rsatkichlari, household list ko'rinishi, oilaviy trendlarni kuzatish.
+                </p>
+                {% if household_members %}
+                <p style="font-size:0.8rem; color:var(--text-muted); margin-bottom:8px;">
+                    A'zolar: {{ household_members|join:", " }}
+                </p>
+                {% endif %}
+                <form method="post" action="{% url 'expenses:settings' %}">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="household_leave">
+                    <button type="submit" class="btn-secondary btn-sm" style="border-color:#fecaca;color:#b91c1c;">Householddan chiqish</button>
+                </form>
+            {% else %}
+                <form method="post" action="{% url 'expenses:settings' %}" style="display:flex; gap:8px; align-items:center; flex-wrap:wrap; margin-bottom:8px;">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="household_create">
+                    <input type="text" name="household_name" class="input-field" placeholder="Yangi household nomi" style="max-width:240px;">
+                    <button type="submit" class="btn-primary btn-sm">Yaratish</button>
+                </form>
+                <form method="post" action="{% url 'expenses:settings' %}" style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="household_join">
+                    <input type="text" name="invite_code" class="input-field" placeholder="Taklif kodi" style="max-width:200px; text-transform:uppercase;">
+                    <button type="submit" class="btn-secondary btn-sm">Qo'shilish</button>
+                </form>
+            {% endif %}
+        </details>
+
+        <details class="card card-compact" style="padding: 12px;">
+            <summary style="list-style:none;cursor:pointer;display:flex;align-items:center;justify-content:space-between;">
+                <span style="font-size: 0.84rem; color: var(--text-main); font-weight: 600;">Eksport va hisobotlar</span>
+                <i class="bi bi-chevron-down" style="color: var(--text-muted);"></i>
+            </summary>
+        <div style="display: flex; align-items: flex-start; gap: 12px; margin-top: 10px;">
+            <span style="font-size: 1.4rem;">📥</span>
+            <div>
+                <p style="font-weight: 500; color: var(--text-main); margin-bottom: 4px;">Ma'lumotlarni eksport qilish</p>
+                <p style="font-size: 0.82rem; color: var(--text-muted); margin-bottom: 8px;">
+                    Tugmani bossangiz Excel fayl bot orqali yuboriladi. Faylda: joriy oy chiqimlari, byudjet, qarzlar va maqsadlar.
+                </p>
+                <form method="post" action="{% url 'expenses:export_excel_to_telegram' %}" id="excel-export-form">
+                    {% csrf_token %}
+                    <button type="submit" class="btn-secondary btn-sm" id="excel-export-btn">
+                        <i class="bi bi-file-earmark-excel"></i> <span id="excel-export-btn-text">Excelni botga yuborish</span>
+                    </button>
+                </form>
+                {% if user.is_supporter %}
+                <form method="post" action="{% url 'expenses:export_supporter_report' %}" data-submit-loading="1" style="margin-top:8px;">
+                    {% csrf_token %}
+                    <button type="submit" class="btn-secondary btn-sm" data-loading-text="Botga yuborilmoqda...">
+                        <i class="bi bi-stars"></i> <span class="btn-text">Donater Pro hisobotni botga yuborish</span>
+                    </button>
+                </form>
+                {% endif %}
+            </div>
+        </div>
+        </details>
+
+        {% if user.is_staff %}
+        <div class="card card-compact" style="padding: 12px;">
+            <p style="font-size: 0.84rem; color: var(--text-main); font-weight: 600; margin-bottom: 8px;">🛡️ Admin</p>
+            <a href="{% url 'expenses:donation_moderation' %}" class="btn-secondary btn-sm" style="text-decoration: none;">
+                <i class="bi bi-shield-check"></i> Donat moderatsiya sahifasini ochish
+            </a>
+        </div>
+        {% endif %}
+
+        <details class="card card-compact" style="padding: 10px;">
+            <summary style="list-style:none;cursor:pointer;display:flex;align-items:center;justify-content:space-between;">
+                <span style="font-size: 0.84rem; color: var(--text-main); font-weight: 600;">Tezkor bo'limlar va yordam</span>
+                <i class="bi bi-chevron-down" style="color: var(--text-muted);"></i>
+            </summary>
+            <div style="display: grid; gap: 10px; margin-top: 10px;">
+                <a href="{% url 'categories:list' %}" class="card card-compact" style="display: flex; align-items: center; gap: 12px; text-decoration: none; color: inherit; padding: 14px 16px;">
+                    <i class="bi bi-folder" style="font-size: 1.5rem; color: var(--primary);"></i>
+                    <div>
+                        <div style="font-weight: 600; font-size: 0.95rem;">Turkumlar</div>
+                        <div style="font-size: 0.8rem; color: var(--text-muted);">Barcha turkumlarni boshqarish</div>
+                    </div>
+                    <i class="bi bi-chevron-right" style="margin-left: auto; color: var(--text-muted);"></i>
+                </a>
+                <a href="{% url 'expenses:saving_goal_list' %}" class="card card-compact" style="display: flex; align-items: center; gap: 12px; text-decoration: none; color: inherit; padding: 14px 16px;">
+                    <i class="bi bi-bullseye" style="font-size: 1.5rem; color: var(--primary);"></i>
+                    <div>
+                        <div style="font-weight: 600; font-size: 0.95rem;">Maqsadlar</div>
+                        <div style="font-size: 0.8rem; color: var(--text-muted);">Jamg'arma maqsadlari</div>
+                    </div>
+                    <i class="bi bi-chevron-right" style="margin-left: auto; color: var(--text-muted);"></i>
+                </a>
+                <a href="{% url 'expenses:recurring_list' %}" class="card card-compact" style="display: flex; align-items: center; gap: 12px; text-decoration: none; color: inherit; padding: 14px 16px;">
+                    <i class="bi bi-arrow-repeat" style="font-size: 1.5rem; color: var(--primary);"></i>
+                    <div>
+                        <div style="font-weight: 600; font-size: 0.95rem;">Qayta to'lov</div>
+                        <div style="font-size: 0.8rem; color: var(--text-muted);">Takrorlanuvchi to'lovlar</div>
+                    </div>
+                    <i class="bi bi-chevron-right" style="margin-left: auto; color: var(--text-muted);"></i>
+                </a>
+                <a href="{% url 'expenses:debt_list' %}" class="card card-compact" style="display: flex; align-items: center; gap: 12px; text-decoration: none; color: inherit; padding: 14px 16px;">
+                    <i class="bi bi-people" style="font-size: 1.5rem; color: var(--primary);"></i>
+                    <div>
+                        <div style="font-weight: 600; font-size: 0.95rem;">Qarzlar</div>
+                        <div style="font-size: 0.8rem; color: var(--text-muted);">Olingan va berilgan qarzlar</div>
+                    </div>
+                    <i class="bi bi-chevron-right" style="margin-left: auto; color: var(--text-muted);"></i>
+                </a>
+                <a href="/yordam/" class="card card-compact" style="display: flex; align-items: center; gap: 12px; text-decoration: none; color: inherit; padding: 14px 16px;">
+                    <i class="bi bi-question-circle" style="font-size: 1.5rem; color: var(--primary);"></i>
+                    <div>
+                        <div style="font-weight: 600; font-size: 0.95rem;">Yordam</div>
+                        <div style="font-size: 0.8rem; color: var(--text-muted);">Kirish va foydalanish bo'yicha yo'riqnoma</div>
+                    </div>
+                    <i class="bi bi-chevron-right" style="margin-left: auto; color: var(--text-muted);"></i>
+                </a>
+                <a href="/privacy/" class="card card-compact" style="display: flex; align-items: center; gap: 12px; text-decoration: none; color: inherit; padding: 14px 16px;">
+                    <i class="bi bi-shield-lock" style="font-size: 1.5rem; color: var(--primary);"></i>
+                    <div>
+                        <div style="font-weight: 600; font-size: 0.95rem;">Maxfiylik</div>
+                        <div style="font-size: 0.8rem; color: var(--text-muted);">Ma'lumotlar bilan ishlash siyosati</div>
+                    </div>
+                    <i class="bi bi-chevron-right" style="margin-left: auto; color: var(--text-muted);"></i>
+                </a>
+            </div>
+        </details>
+
         {% if donation_timeline %}
         <div class="card card-compact" style="padding: 14px;">
             <p style="font-weight: 600; margin-bottom: 8px; font-size: 0.9rem;">

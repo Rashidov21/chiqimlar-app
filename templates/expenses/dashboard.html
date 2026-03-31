@@ -10,6 +10,11 @@
         <span>{{ selected_date_display }}</span>
     </button>
 </p>
+<div style="display:flex; justify-content:center; margin-bottom: 12px;">
+    <a href="{% url 'expenses:add' %}" class="btn-primary btn-sm" style="text-decoration:none; display:inline-flex; align-items:center; gap:6px;">
+        <i class="bi bi-plus-circle"></i> Bugungi xarajatni qo'shish
+    </a>
+</div>
 {% if needs_budget %}
 <div class="card card-compact" style="margin-bottom: 16px; background: #fefce8; border-color: #facc15;">
     <div style="display: flex; align-items: flex-start; gap: 10px;">
@@ -211,7 +216,7 @@
         {% endfor %}
     </ul>
     {% if not can_see_full_insights and insights|length > 2 %}
-    <p style="font-size: 0.8rem; color: var(--text-muted); margin-top: 10px; margin-bottom: 10px;">To'liq maslahatlar va 12 oylik statistika uchun donat qiling — Donater bo'ling.</p>
+    <p style="font-size: 0.8rem; color: var(--text-muted); margin-top: 10px; margin-bottom: 10px;">To'liq tahlil, 12 oylik trend va oy yakuni razbor Donater rejimida ochiladi.</p>
     <div style="display:flex; gap:8px; flex-wrap:wrap;">
         <a href="/donater/" class="btn-primary btn-sm" style="display: inline-flex; align-items: center; gap: 6px; text-decoration: none;"><i class="bi bi-stars"></i> Donater imkoniyatlari</a>
         <a href="{% url 'expenses:settings' %}" class="btn-secondary btn-sm" style="display: inline-flex; align-items: center; gap: 6px; text-decoration: none;"><i class="bi bi-heart"></i> Donat qilish</a>

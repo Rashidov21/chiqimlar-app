@@ -23,26 +23,26 @@
         {% if request.GET.next %}<input type="hidden" name="next" value="{{ request.GET.next }}">{% endif %}
         {% include "partials/form_errors.html" with form=form %}
         <div>
+            <label for="id_amount" class="input-label">Summasi</label>
+            {{ form.amount }}
+            {% if form.amount.errors %}<p class="field-error">{{ form.amount.errors.0 }}</p>{% endif %}
+        </div>
+        <div>
             <label for="id_category" class="input-label">Chiqim turkumi</label>
             {{ form.category }}
         </div>
         <div>
-            <label for="id_amount" class="input-label">Summasi</label>
-            {{ form.amount }}
-            {% if form.amount.errors %}<p class="field-error">{{ form.amount.errors.0 }}</p>{% endif %}
+            <label for="id_date" class="input-label">Sana</label>
+            {{ form.date }}
+            {% if form.date.errors %}<p class="field-error">{{ form.date.errors.0 }}</p>{% endif %}
         </div>
         <div>
             <label for="id_currency" class="input-label">Valyuta</label>
             {{ form.currency }}
         </div>
         <div>
-            <label for="id_note" class="input-label">Izoh (to'ldirish shart emas)</label>
+            <label for="id_note" class="input-label">Izoh (ixtiyoriy)</label>
             {{ form.note }}
-        </div>
-        <div>
-            <label for="id_date" class="input-label">Sana</label>
-            {{ form.date }}
-            {% if form.date.errors %}<p class="field-error">{{ form.date.errors.0 }}</p>{% endif %}
         </div>
         <div class="form-actions-sticky" style="margin-top: 8px;">
             <button type="submit" class="btn-primary btn-block" id="expense-submit-btn" data-loading-text="Saqlanmoqda..." style="box-shadow: 0 8px 24px rgba(90, 63, 255, 0.35);">
