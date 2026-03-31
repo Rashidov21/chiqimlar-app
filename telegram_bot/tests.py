@@ -3,6 +3,7 @@ from django.test import TestCase
 from unittest.mock import patch
 
 from .handlers import process_update, handle_start
+from accounts.models import DonationMethod
 
 
 class TelegramHandlerTest(TestCase):
@@ -37,4 +38,26 @@ class TelegramHandlerTest(TestCase):
             reply_markup = kwargs.get("reply_markup") or {}
             self.assertIn("keyboard", reply_markup)
             self.assertIn("✅ Obuna bo'ldim", str(reply_markup))
+
+    def test_process_update_start_donat_payload_shows_donation_text(self):
+        """`/start donat` bo'lsa donat oqimining xabari yuboriladi."""
+        DonationMethod.objects.create(
+            title="Click",
+            payment_link="https://example.com/pay",
+            is_active=True,
+            sort_order=1,
+        )
+        update = {
+            "message": {
+                "chat": {"id": 123},
+                "from": {"first_name": "Test"},
+                "text": "/start donat",
+            }
+        }
+        with patch("telegram_bot.handlers._send_message", return_value=True) as mock_send:
+            process_update(update)
+            mock_send.assert_called_once()
+            args, kwargs = mock_send.call_args
+            self.assertEqual(args[0], 123)
+            self.assertIn("Donater bo'ling", args[1])
 

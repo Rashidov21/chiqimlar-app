@@ -1,6 +1,7 @@
 """
 Telegram bot - Webhook orqali komandalar (sinxron).
 """
+import html
 import logging
 import re
 from decimal import Decimal
@@ -277,7 +278,10 @@ def handle_donate(chat_id: int) -> bool:
     ]
     for m in methods:
         if m.payment_link:
-            lines.append(f"• <b>{m.title}</b>\n{m.payment_link}")
+            lines.append(f"• <b>{m.title}</b>")
+            if m.description:
+                lines.append(f"{html.escape(m.description.strip())}")
+            lines.append(f"{m.payment_link}")
     lines.append(
         "\n\u2705 To'lov qilganingizdan so'ng, iltimos <b>chek / to'lov screenshotini</b> aynan shu bot chatiga yuboring.\n"
         "Rasm captionida <b>donat summasini</b> va <b>qaysi usul orqali (masalan, karta/Click/Payme)</b> bo'lganini yozib qo'ying.\n"
@@ -407,8 +411,12 @@ def process_update(update_dict: dict) -> None:
                     logger.exception("donation_photo: error: %s", e)
 
     # 2) Matnli komandalar
-    if text == "/start":
-        handle_start(chat_id, first_name)
+    if text.startswith("/start"):
+        start_payload = text[6:].strip().lower()
+        if start_payload in {"donat", "donate", "support"}:
+            handle_donate(chat_id)
+        else:
+            handle_start(chat_id, first_name)
     elif text == "✅ Obuna bo'ldim":
         handle_start(chat_id, first_name)
     elif text == "❤️ Donat qilish":
