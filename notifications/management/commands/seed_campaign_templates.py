@@ -1,3 +1,5 @@
+from urllib.parse import urlparse
+from django.conf import settings
 from django.core.management.base import BaseCommand
 
 from notifications.models import CampaignMessageTemplate
@@ -31,6 +33,12 @@ class Command(BaseCommand):
     help = "Promo kampaniya message template'larini yaratadi yoki yangilaydi."
 
     def handle(self, *args, **options):
+        raw = (getattr(settings, "TELEGRAM_WEBAPP_URL", "") or "").strip()
+        parsed = urlparse(raw)
+        if parsed.scheme and parsed.netloc:
+            landing_url = f"{parsed.scheme}://{parsed.netloc}/donater/"
+        else:
+            landing_url = "/donater/"
         created = 0
         updated = 0
         for key, segment, topic, text in TEMPLATES:
@@ -40,7 +48,7 @@ class Command(BaseCommand):
                     "segment": segment,
                     "topic": topic,
                     "text": text,
-                    "cta_url": "/expenses/settings/",
+                    "cta_url": landing_url,
                     "is_active": True,
                     "weight": 1,
                 },

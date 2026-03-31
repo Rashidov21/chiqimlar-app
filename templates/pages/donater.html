@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Donater Pro{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <i class="bi bi-stars" style="font-size: 1.3rem; color: var(--primary);"></i>
+    <div>
+        <h1 class="page-title">Donater Pro</h1>
+        <p class="page-subtitle">Moliyaviy nazoratni keyingi bosqichga olib chiqing</p>
+    </div>
+</div>
+
+<div class="card" style="max-width: 760px; margin-bottom: 14px; background: linear-gradient(135deg, rgba(var(--primary-rgb, 59, 130, 246), 0.1), rgba(var(--primary-rgb, 59, 130, 246), 0.03)); border: 1px solid rgba(var(--primary-rgb, 59, 130, 246), 0.25);">
+    <p style="font-size: 1rem; font-weight: 700; margin-bottom: 6px;">Nega Donater bo'lish kerak?</p>
+    <p style="font-size: 0.88rem; color: var(--text-muted); margin-bottom: 10px;">
+        Chiqimlar nazoratini oddiy ro'yxatdan real tahlilga olib o'tadi: oy yakuni razbor, oldindan risk signal, 12 oylik trend va oilaviy ko'rinish.
+    </p>
+    <div style="display:flex; gap:8px; flex-wrap:wrap;">
+        {% if bot_link %}
+        <a href="{{ bot_link }}" target="_blank" rel="noopener noreferrer" class="btn-primary btn-sm" style="text-decoration:none;">
+            <i class="bi bi-telegram"></i> Botni ochish
+        </a>
+        {% endif %}
+        {% if webapp_login_url %}
+        <a href="{{ webapp_login_url }}" class="btn-secondary btn-sm" style="text-decoration:none;">
+            <i class="bi bi-box-arrow-up-right"></i> WebAppni ochish
+        </a>
+        {% endif %}
+    </div>
+</div>
+
+<div class="card card-compact" style="margin-bottom: 12px;">
+    <p style="font-size: 0.92rem; font-weight: 600; margin-bottom: 8px;">Donater ochadigan asosiy imkoniyatlar</p>
+    <ul style="list-style:none; padding:0; margin:0; display:grid; gap:8px;">
+        <li style="font-size:0.86rem; color:var(--text-main);"><i class="bi bi-graph-up-arrow"></i> Oy yakuni razbor card: nima yaxshi bo'ldi, risklar, aniq keyingi qadam.</li>
+        <li style="font-size:0.86rem; color:var(--text-main);"><i class="bi bi-bar-chart-line"></i> Oxirgi 12 oy trendi va chuqur statistika.</li>
+        <li style="font-size:0.86rem; color:var(--text-main);"><i class="bi bi-bell"></i> Erta ogohlantirish: limitdan oshish xavfini oldindan ko'rsatadi.</li>
+        <li style="font-size:0.86rem; color:var(--text-main);"><i class="bi bi-people"></i> Family / Household Pro: umumiy sarf trendi va ulashilgan ko'rinish.</li>
+        <li style="font-size:0.86rem; color:var(--text-main);"><i class="bi bi-file-earmark-excel"></i> Donater Pro hisobotlar (botga yuborish).</li>
+    </ul>
+</div>
+
+<div class="card card-compact" style="margin-bottom: 12px;">
+    <p style="font-size: 0.92rem; font-weight: 600; margin-bottom: 8px;">2 qadamda faollashtirasiz</p>
+    <ol style="margin:0; padding-left: 18px; color: var(--text-main); font-size: 0.86rem; display:grid; gap:6px;">
+        <li>Botdagi donat usulidan to'lov qiling.</li>
+        <li>Chek screenshotini botga yuboring — tasdiqlangach Donater avtomatik yoqiladi.</li>
+    </ol>
+    <p style="font-size:0.8rem; color:var(--text-muted); margin-top:8px;">
+        Odatda tekshiruv tez yakunlanadi. Tasdiqdan keyin premium bloklar darhol ochiladi.
+    </p>
+</div>
+
+<div class="card card-compact" style="margin-bottom: 12px;">
+    <p style="font-size: 0.92rem; font-weight: 600; margin-bottom: 8px;">Kimlar uchun ayniqsa foydali?</p>
+    <p style="font-size:0.85rem; color:var(--text-muted); margin-bottom:0;">
+        Byudjetni qat'iy ushlamoqchi bo'lganlar, oilaviy xarajatni birga boshqaradiganlar, va oy oxiri "qaerda oshib ketdim?" savoliga aniq javob olishni istaydiganlar.
+    </p>
+</div>
+
+<div class="card card-compact" style="margin-bottom: 20px; border-style:dashed;">
+    <p style="font-size: 0.9rem; font-weight: 700; margin-bottom: 8px;">Hoziroq ochib ko'ring</p>
+    <p style="font-size: 0.84rem; color: var(--text-muted); margin-bottom: 10px;">
+        Har bir oy yakunida aniq qaror uchun Donater premium funksiyalarini yoqing.
+    </p>
+    <div style="display:flex; gap:8px; flex-wrap:wrap;">
+        {% if bot_link %}
+        <a href="{{ bot_link }}" target="_blank" rel="noopener noreferrer" class="btn-primary btn-sm" style="text-decoration:none;">
+            <i class="bi bi-telegram"></i> Botga o'tish
+        </a>
+        {% endif %}
+        <a href="/yordam/" class="btn-secondary btn-sm" style="text-decoration:none;">
+            <i class="bi bi-question-circle"></i> Qanday ishlashini ko'rish
+        </a>
+    </div>
+</div>
+{% endblock %}

@@ -5,6 +5,8 @@ import logging
 import random
 from decimal import Decimal
 from datetime import datetime, time, timedelta
+from urllib.parse import urlparse
+from django.conf import settings
 
 from django.utils import timezone
 from .models import CampaignMessageTemplate, CampaignDeliveryLog, UserCampaignState
@@ -219,7 +221,14 @@ def send_non_donater_promo(user, now=None):
 
     text = template.text.strip()
     if template.cta_url:
-        text += f"\n\n👉 {template.cta_url}"
+        cta = (template.cta_url or "").strip()
+        parsed = urlparse(cta)
+        if not parsed.scheme and cta.startswith("/"):
+            base = (getattr(settings, "TELEGRAM_WEBAPP_URL", "") or "").strip()
+            b = urlparse(base)
+            if b.scheme and b.netloc:
+                cta = f"{b.scheme}://{b.netloc}{cta}"
+        text += f"\n\n👉 {cta}"
     sent = send_telegram_message(user.telegram_id, text)
     if sent:
         _reset_week_if_needed(state, now.date())
