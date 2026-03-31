@@ -238,7 +238,11 @@ def dashboard(request):
     try:
         rates = get_currency_rates_to_uzs()
         usd_rate = rates.get("USD")
+        eur_rate = rates.get("EUR")
+        rub_rate = rates.get("RUB")
         context["usd_rate_uzs"] = int(usd_rate) if usd_rate else None
+        context["eur_rate_uzs"] = int(eur_rate) if eur_rate else None
+        context["rub_rate_uzs"] = int(rub_rate) if rub_rate else None
         from .models import ExchangeRate
 
         latest_rate_date = ExchangeRate.objects.order_by("-date").values_list("date", flat=True).first()
@@ -246,6 +250,8 @@ def dashboard(request):
         context["usd_rate_source"] = "db" if latest_rate_date else "env"
     except Exception:
         context["usd_rate_uzs"] = None
+        context["eur_rate_uzs"] = None
+        context["rub_rate_uzs"] = None
         context["usd_rate_date"] = None
         context["usd_rate_source"] = "env"
     return render(request, "expenses/dashboard.html", context)

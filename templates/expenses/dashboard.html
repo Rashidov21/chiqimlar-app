@@ -163,6 +163,16 @@
     <p style="font-size: 0.85rem; margin-bottom: 4px;">
         <strong>1 USD = {{ usd_rate_uzs|intcomma }} UZS</strong>
     </p>
+    {% if eur_rate_uzs %}
+    <p style="font-size: 0.85rem; margin-bottom: 4px;">
+        <strong>1 EUR = {{ eur_rate_uzs|intcomma }} UZS</strong>
+    </p>
+    {% endif %}
+    {% if rub_rate_uzs %}
+    <p style="font-size: 0.85rem; margin-bottom: 4px;">
+        <strong>1 RUB = {{ rub_rate_uzs|intcomma }} UZS</strong>
+    </p>
+    {% endif %}
     {% if usd_rate_source == "db" and usd_rate_date %}
     <p style="font-size: 0.78rem; color: var(--text-muted); margin: 0;">
         Manba sanasi: {{ usd_rate_date }}
