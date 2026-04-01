@@ -32,7 +32,7 @@
                 </div>
                 {% endif %}
             </div>
-            <div style="display: flex; flex-direction: column; gap: 6px; align-items: flex-end; flex-wrap: wrap;">
+            <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap; justify-content: flex-end;">
                 <form method="post" action="{% url 'expenses:recurring_mark_paid' r.pk %}" style="display: inline;">
                     {% csrf_token %}
                     <input type="hidden" name="create_expense" value="1">
@@ -40,13 +40,13 @@
                         <i class="bi bi-check-circle"></i> To'lov qilindi
                     </button>
                 </form>
-                <a href="{% url 'expenses:recurring_edit' r.pk %}" class="btn-secondary btn-sm">
-                    <i class="bi bi-pencil"></i> Tahrir
+                <a href="{% url 'expenses:recurring_edit' r.pk %}" class="icon-action-btn" title="Tahrir">
+                    <i class="bi bi-pencil"></i>
                 </a>
                 <form method="post" action="{% url 'expenses:recurring_delete' r.pk %}" onsubmit="return confirm('Ushbu qayta takrorlanuvchi chiqimni o\u2018chirishni xohlaysizmi?');">
                     {% csrf_token %}
-                    <button type="submit" class="btn-danger-sm">
-                        <i class="bi bi-trash"></i> O'chirish
+                    <button type="submit" class="icon-action-btn btn-danger" title="O'chirish">
+                        <i class="bi bi-trash"></i>
                     </button>
                 </form>
             </div>

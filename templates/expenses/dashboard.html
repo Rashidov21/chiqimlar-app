@@ -283,10 +283,11 @@
 
 {% if achievements %}
 <details class="card card-compact ux-collapsible" data-collapse-id="dash-achievements" style="margin-bottom: 16px;" open>
-    <summary style="list-style:none;cursor:pointer;">
+    <summary style="list-style:none;cursor:pointer; display:flex; align-items:center; justify-content:space-between;">
     <h2 style="font-weight: 600; margin-bottom: 8px; font-size: 0.95rem; display: flex; align-items: center; gap: 6px;">
         <i class="bi bi-trophy"></i> Yutuqlar
     </h2>
+    <i class="bi bi-chevron-down" style="color: var(--text-muted);"></i>
     </summary>
     <ul style="list-style: none; padding: 0; margin: 0;">
         {% for ua in achievements %}
@@ -301,10 +302,11 @@
 
 {% if upcoming_recurring %}
 <details class="card card-compact ux-collapsible" data-collapse-id="dash-recurring" style="margin-bottom: 16px;">
-    <summary style="list-style:none;cursor:pointer;">
+    <summary style="list-style:none;cursor:pointer; display:flex; align-items:center; justify-content:space-between;">
     <h2 style="font-weight: 600; margin-bottom: 8px; font-size: 0.95rem; display: flex; align-items: center; gap: 6px;">
         <i class="bi bi-calendar-event"></i> Yaqin qayta takrorlanuvchi to'lovlar
     </h2>
+    <i class="bi bi-chevron-down" style="color: var(--text-muted);"></i>
     </summary>
     <ul style="list-style: none; padding: 0; margin: 0;">
         {% for r in upcoming_recurring %}
@@ -326,10 +328,11 @@
 
 {% if active_goals %}
 <details class="card card-compact ux-collapsible" data-collapse-id="dash-goals" style="margin-bottom: 16px;">
-    <summary style="list-style:none;cursor:pointer;">
+    <summary style="list-style:none;cursor:pointer; display:flex; align-items:center; justify-content:space-between;">
     <h2 style="font-weight: 600; margin-bottom: 8px; font-size: 0.95rem; display: flex; align-items: center; gap: 6px;">
         <i class="bi bi-bullseye"></i> Maqsadlar bo'yicha holat
     </h2>
+    <i class="bi bi-chevron-down" style="color: var(--text-muted);"></i>
     </summary>
     <ul style="list-style: none; padding: 0; margin: 0;">
         {% for g in active_goals %}
@@ -357,10 +360,11 @@
 
 {% if net_debt is not None %}
 <details class="card card-compact ux-collapsible" data-collapse-id="dash-debt" style="margin-bottom: 16px;">
-    <summary style="list-style:none;cursor:pointer;">
+    <summary style="list-style:none;cursor:pointer; display:flex; align-items:center; justify-content:space-between;">
     <h2 style="font-weight: 600; margin-bottom: 8px; font-size: 0.95rem; display: flex; align-items: center; gap: 6px;">
         <i class="bi bi-people"></i> Qarz holati
     </h2>
+    <i class="bi bi-chevron-down" style="color: var(--text-muted);"></i>
     </summary>
     <p style="font-size: 0.9rem; margin-bottom: 4px;">
         Olingan ochiq qarzlar: <strong>{{ taken_debt_total|intcomma }}</strong> so'm ·

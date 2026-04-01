@@ -56,8 +56,45 @@
     </form>
 </div>
 <script>
-(function(){ var f=document.querySelector('.card form'); var b=document.getElementById('saving-goal-submit-btn');
-if(f&&b){ f.addEventListener('submit',function(){ b.disabled=true; var t=b.querySelector('.btn-text'); if(t)t.textContent='Saqlanmoqda…'; if(window.haptic)window.haptic(); }); } })();
+(function(){
+    var f = document.querySelector('.card form');
+    var b = document.getElementById('saving-goal-submit-btn');
+    var targetAmountInput = document.getElementById('id_target_amount');
+    var currentAmountInput = document.getElementById('id_current_amount');
+    function formatAmountValue(raw) {
+        var digits = String(raw || '').replace(/[^\d]/g, '');
+        if (!digits) return '';
+        return digits.replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
+    }
+    function bindAmountFormat(el) {
+        if (!el) return;
+        el.addEventListener('input', function() {
+            var startPos = this.selectionStart || 0;
+            var before = this.value;
+            var formatted = formatAmountValue(before);
+            this.value = formatted;
+            var delta = formatted.length - before.length;
+            var nextPos = Math.max(0, startPos + delta);
+            try { this.setSelectionRange(nextPos, nextPos); } catch (e) {}
+        });
+    }
+    bindAmountFormat(targetAmountInput);
+    bindAmountFormat(currentAmountInput);
+    if (f && b) {
+        f.addEventListener('submit', function(){
+            if (targetAmountInput && targetAmountInput.value) {
+                targetAmountInput.value = String(targetAmountInput.value).replace(/[^\d]/g, '');
+            }
+            if (currentAmountInput && currentAmountInput.value) {
+                currentAmountInput.value = String(currentAmountInput.value).replace(/[^\d]/g, '');
+            }
+            b.disabled = true;
+            var t = b.querySelector('.btn-text');
+            if (t) t.textContent = 'Saqlanmoqda...';
+            if (window.haptic) window.haptic();
+        });
+    }
+})();
 </script>
 {% endblock %}
 
