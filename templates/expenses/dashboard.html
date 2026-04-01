@@ -25,10 +25,28 @@
 </div>
 {% endif %}
 <p style="text-align: center; font-size: 2rem; font-weight: 800; color: var(--text-main); margin-bottom: 8px; letter-spacing: -0.02em;">{{ totals.total_spent|intcomma }}</p>
-<div style="display: flex; justify-content: center; margin-bottom: 18px;">
+<div style="display: flex; justify-content: center; margin-bottom: 14px;">
     <a href="{% url 'expenses:add' %}" class="icon-action-btn" style="color: var(--primary); border-color: rgba(106, 99, 217, 0.28); background: rgba(241, 239, 255, 0.95); text-decoration: none;" title="Xarajat qo'shish" aria-label="Xarajat qo'shish">
         <i class="bi bi-plus-lg" style="font-size: 1.2rem;"></i>
     </a>
+</div>
+
+<div class="card card-compact" style="margin-bottom: 16px;">
+    <p style="font-size: 0.72rem; font-weight: 600; color: var(--text-muted); margin: 0 0 10px;">Tezkor bo'limlar</p>
+    <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px;">
+        <a href="{% url 'expenses:debt_list' %}" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; padding: 10px 6px; border-radius: 12px; border: 1px solid var(--border-soft); background: rgba(255,255,255,0.85); text-decoration: none; color: inherit; min-height: 72px;">
+            <i class="bi bi-people" style="font-size: 1.35rem; color: var(--primary);"></i>
+            <span style="font-size: 0.78rem; font-weight: 600; color: var(--text-main); text-align: center; line-height: 1.2;">Qarzlar</span>
+        </a>
+        <a href="{% url 'expenses:saving_goal_list' %}" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; padding: 10px 6px; border-radius: 12px; border: 1px solid var(--border-soft); background: rgba(255,255,255,0.85); text-decoration: none; color: inherit; min-height: 72px;">
+            <i class="bi bi-bullseye" style="font-size: 1.35rem; color: var(--primary);"></i>
+            <span style="font-size: 0.78rem; font-weight: 600; color: var(--text-main); text-align: center; line-height: 1.2;">Maqsadlar</span>
+        </a>
+        <a href="{% url 'expenses:recurring_list' %}" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; padding: 10px 6px; border-radius: 12px; border: 1px solid var(--border-soft); background: rgba(255,255,255,0.85); text-decoration: none; color: inherit; min-height: 72px;">
+            <i class="bi bi-arrow-repeat" style="font-size: 1.35rem; color: var(--primary);"></i>
+            <span style="font-size: 0.78rem; font-weight: 600; color: var(--text-main); text-align: center; line-height: 1.2;">Qayta to'lov</span>
+        </a>
+    </div>
 </div>
 
 {% if daily_summary %}
