@@ -149,6 +149,14 @@ CURRENCY_RATES_TO_UZS = json.loads(
         default='{"UZS": 1, "USD": 12500, "EUR": 13500, "RUB": 140}',
     )
 )
+# CBU kurslarini yangilash (update_currency_rates). VPS cbu.uz ga ulanmasa — CBU_REQUEST_PROXY qo'ying.
+CBU_RATES_URL = env(
+    "CBU_RATES_URL",
+    default="https://cbu.uz/uz/arkhiv-kursov-valyut/json/",
+)
+CBU_REQUEST_PROXY = env("CBU_REQUEST_PROXY", default="").strip()
+CBU_REQUEST_RETRIES = env.int("CBU_REQUEST_RETRIES", default=3)
+CBU_REQUEST_TIMEOUT = env.float("CBU_REQUEST_TIMEOUT", default=45.0)
 # initData qabul qilinadigan maksimal yoshi (soniya). 7 kun = 604800
 TELEGRAM_INITDATA_MAX_AGE = int(env("TELEGRAM_INITDATA_MAX_AGE", default="604800"))
 

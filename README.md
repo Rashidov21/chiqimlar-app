@@ -115,11 +115,13 @@ Kunlik eslatma va haftalik xulosa **cron** orqali ishga tushadi. Batafsil: [docs
 # Har hafta dushanba 09:00 da haftalik xulosa (oxirgi 7 kun)
 0 9 * * 1 cd /path/to/chiqimlar-app && .venv/bin/python manage.py send_weekly_summaries
 
-# Har 3 kunda 06:00 da valyuta kurslarini yangilash (USD/EUR/RUB -> UZS)
-0 6 */3 * * cd /path/to/chiqimlar-app && .venv/bin/python manage.py update_currency_rates
+# Har kuni 06:00 da valyuta kurslarini yangilash (USD/EUR/RUB -> UZS)
+0 6 * * * cd /path/to/chiqimlar-app && .venv/bin/python manage.py update_currency_rates
 ```
 
 `/path/to/chiqimlar-app` o‘rniga loyiha papkasining to‘liq yo‘lini yozing (masalan `/var/www/chiqimlar-app`). Byudjet ogohlantirishi xarajat qo‘shilganda yoki tahrirlanganda avtomatik yuboriladi (byudjetning 90% dan ortiq sarflangan bo‘lsa, 24 soat ichida ko‘pi bilan 1 marta).
+
+Agar VPS `cbu.uz` ga ulanmasa (timeout), `.env` da `CBU_REQUEST_PROXY` orqali HTTP(S) proxy ko‘rsating; `update_currency_rates` bir necha marta qayta urinadi va `User-Agent` yuboradi.
 
 **Tekshirish (VPS da):**
 
