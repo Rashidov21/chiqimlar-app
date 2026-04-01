@@ -7,6 +7,37 @@ from .currency import SUPPORTED_CURRENCIES, convert_to_uzs, get_currency_rates_t
 from categories.models import Category
 
 
+def _normalize_money_fields_in_post(data, field_names):
+    """POST/QueryDict: minglik bo'shliqlari va not-raqam belgilarini olib tashlaydi."""
+    if data is None:
+        return None
+    mutable = data.copy()
+    for name in field_names:
+        raw = (mutable.get(name) or "").strip()
+        if raw:
+            normalized = re.sub(r"[^\d]", "", raw)
+            if normalized:
+                mutable[name] = normalized
+    return mutable
+
+
+def _merge_normalized_post_into_init_args(*args, field_names, **kwargs):
+    """
+    View odatda Form(request.POST, ...) beradi — data kwargs'da emas, birinchi args'da.
+    Minglik formatni shu yerda normalizatsiya qilmasak, DecimalField 'raqam kiriting' beradi.
+    """
+    data = kwargs.pop("data", None)
+    if data is None and args:
+        data = args[0]
+    if data is not None:
+        mutable = _normalize_money_fields_in_post(data, field_names)
+        if args:
+            args = (mutable,) + tuple(args[1:])
+        else:
+            kwargs["data"] = mutable
+    return args, kwargs
+
+
 class ExpenseForm(forms.ModelForm):
     currency = forms.ChoiceField(choices=SUPPORTED_CURRENCIES, required=False)
 
@@ -16,15 +47,7 @@ class ExpenseForm(forms.ModelForm):
 
     def __init__(self, *args, user=None, **kwargs):
         # Frontenddagi minglik format (masalan: "1 200 000") kelganida ham backend qabul qilsin.
-        data = kwargs.get("data")
-        if data is not None:
-            mutable = data.copy()
-            raw_amount = (mutable.get("amount") or "").strip()
-            if raw_amount:
-                normalized = re.sub(r"[^\d]", "", raw_amount)
-                if normalized:
-                    mutable["amount"] = normalized
-            kwargs["data"] = mutable
+        args, kwargs = _merge_normalized_post_into_init_args(*args, field_names=("amount",), **kwargs)
         super().__init__(*args, **kwargs)
         self.user = user
         if user:
@@ -93,6 +116,9 @@ class SavingGoalForm(forms.ModelForm):
         fields = ("name", "target_amount", "current_amount", "start_date", "target_date", "is_active")
 
     def __init__(self, *args, user=None, **kwargs):
+        args, kwargs = _merge_normalized_post_into_init_args(
+            *args, field_names=("target_amount", "current_amount"), **kwargs
+        )
         super().__init__(*args, **kwargs)
         self.user = user
         if not self.instance.pk:
@@ -141,6 +167,7 @@ class RecurringExpenseForm(forms.ModelForm):
         fields = ("name", "amount", "category", "interval", "next_payment_date", "is_active")
 
     def __init__(self, *args, user=None, **kwargs):
+        args, kwargs = _merge_normalized_post_into_init_args(*args, field_names=("amount",), **kwargs)
         super().__init__(*args, **kwargs)
         self.user = user
         if user:
@@ -191,6 +218,7 @@ class DebtForm(forms.ModelForm):
         fields = ("kind", "counterparty", "amount", "date", "due_date", "note", "is_closed")
 
     def __init__(self, *args, user=None, **kwargs):
+        args, kwargs = _merge_normalized_post_into_init_args(*args, field_names=("amount",), **kwargs)
         super().__init__(*args, **kwargs)
         self.user = user
         if not self.instance.pk:

@@ -10,11 +10,6 @@
         <span>{{ selected_date_display }}</span>
     </button>
 </p>
-<div style="display:flex; justify-content:center; margin-bottom: 12px;">
-    <a href="{% url 'expenses:add' %}" class="btn-primary btn-sm" style="text-decoration:none; display:inline-flex; align-items:center; gap:6px;">
-        <i class="bi bi-plus-circle"></i> Bugungi xarajatni qo'shish
-    </a>
-</div>
 {% if needs_budget %}
 <div class="card card-compact" style="margin-bottom: 16px; background: #fefce8; border-color: #facc15;">
     <div style="display: flex; align-items: flex-start; gap: 10px;">
@@ -29,7 +24,12 @@
     </div>
 </div>
 {% endif %}
-<p style="text-align: center; font-size: 2rem; font-weight: 800; color: var(--text-main); margin-bottom: 20px; letter-spacing: -0.02em;">{{ totals.total_spent|intcomma }}</p>
+<p style="text-align: center; font-size: 2rem; font-weight: 800; color: var(--text-main); margin-bottom: 8px; letter-spacing: -0.02em;">{{ totals.total_spent|intcomma }}</p>
+<div style="display: flex; justify-content: center; margin-bottom: 18px;">
+    <a href="{% url 'expenses:add' %}" class="icon-action-btn" style="color: var(--primary); border-color: rgba(106, 99, 217, 0.28); background: rgba(241, 239, 255, 0.95); text-decoration: none;" title="Xarajat qo'shish" aria-label="Xarajat qo'shish">
+        <i class="bi bi-plus-lg" style="font-size: 1.2rem;"></i>
+    </a>
+</div>
 
 {% if daily_summary %}
 <div class="card card-compact" style="margin-bottom: 16px; background: #f8f8fc;">

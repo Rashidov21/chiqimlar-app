@@ -1,5 +1,6 @@
 from django import forms
 from django.utils import timezone
+from expenses.forms import _merge_normalized_post_into_init_args
 from .models import Category, CategoryBudget
 
 
@@ -33,6 +34,7 @@ class CategoryBudgetForm(forms.ModelForm):
         fields = ("category", "year", "month", "amount")
 
     def __init__(self, *args, user=None, **kwargs):
+        args, kwargs = _merge_normalized_post_into_init_args(*args, field_names=("amount",), **kwargs)
         super().__init__(*args, **kwargs)
         self.user = user
         today = timezone.now().date()

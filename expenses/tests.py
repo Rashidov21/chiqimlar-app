@@ -1,5 +1,6 @@
 """Xarajatlar testlari."""
 from decimal import Decimal
+from django.http import QueryDict
 from django.test import TestCase
 from django.urls import reverse
 from django.utils import timezone
@@ -8,6 +9,7 @@ from django.core.cache import cache
 from accounts.models import User
 from categories.models import Category
 
+from .forms import ExpenseForm
 from .models import Expense, SavingGoal
 from .services import get_dashboard_context, get_monthly_totals
 
@@ -36,6 +38,29 @@ class ExpenseServiceTest(TestCase):
         self.assertEqual(data["total_spent"], Decimal("50000"))
         self.assertEqual(data["budget"], Decimal("100000"))
         self.assertEqual(data["remaining"], Decimal("50000"))
+
+
+class ExpenseFormAmountNormalizationTest(TestCase):
+    """Minglik format POST birinchi positional arg orqali kelganda ham validatsiya o'tishi kerak."""
+
+    def setUp(self):
+        self.user = User.objects.create_user(username="amountnorm", password="testpass123")
+
+    def _post_data(self, amount_str):
+        qd = QueryDict(mutable=True)
+        qd["amount"] = amount_str
+        qd["currency"] = "UZS"
+        qd["date"] = str(timezone.now().date())
+        qd["note"] = ""
+        return qd
+
+    def test_positional_post_with_spaces_valid(self):
+        form = ExpenseForm(self._post_data("1 000 500"), user=self.user)
+        self.assertTrue(form.is_valid(), msg=form.errors.as_json())
+
+    def test_kwarg_data_with_spaces_valid(self):
+        form = ExpenseForm(data=self._post_data("2 000 000"), user=self.user)
+        self.assertTrue(form.is_valid(), msg=form.errors.as_json())
 
 
 class DashboardContextTest(TestCase):
