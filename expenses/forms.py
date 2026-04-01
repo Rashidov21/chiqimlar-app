@@ -129,11 +129,22 @@ class SavingGoalForm(forms.ModelForm):
         for name in ("name", "target_amount", "current_amount"):
             if name in self.fields:
                 self.fields[name].widget.attrs.setdefault("class", "input-field")
-
-        self.fields["target_amount"].widget.attrs.setdefault("placeholder", "Masalan: 5 000 000")
-        self.fields["target_amount"].widget.attrs.setdefault("inputmode", "numeric")
-        self.fields["current_amount"].widget.attrs.setdefault("placeholder", "0 yoki masalan: 1 000 000")
-        self.fields["current_amount"].widget.attrs.setdefault("inputmode", "numeric")
+        self.fields["target_amount"].widget = forms.TextInput(
+            attrs={
+                "class": "input-field",
+                "placeholder": "Masalan: 5 000 000",
+                "inputmode": "numeric",
+                "autocomplete": "off",
+            }
+        )
+        self.fields["current_amount"].widget = forms.TextInput(
+            attrs={
+                "class": "input-field",
+                "placeholder": "0 yoki masalan: 1 000 000",
+                "inputmode": "numeric",
+                "autocomplete": "off",
+            }
+        )
 
     def clean_target_amount(self):
         value = self.cleaned_data.get("target_amount")
@@ -181,9 +192,14 @@ class RecurringExpenseForm(forms.ModelForm):
         for name in ("name", "amount", "category", "interval"):
             if name in self.fields:
                 self.fields[name].widget.attrs.setdefault("class", "input-field")
-
-        self.fields["amount"].widget.attrs.setdefault("placeholder", "Masalan: 500 000")
-        self.fields["amount"].widget.attrs.setdefault("inputmode", "numeric")
+        self.fields["amount"].widget = forms.TextInput(
+            attrs={
+                "class": "input-field",
+                "placeholder": "Masalan: 500 000",
+                "inputmode": "numeric",
+                "autocomplete": "off",
+            }
+        )
 
     def clean_amount(self):
         amount = self.cleaned_data.get("amount")
@@ -231,8 +247,14 @@ class DebtForm(forms.ModelForm):
                 self.fields[name].widget.attrs.setdefault("class", "input-field")
 
         self.fields["counterparty"].widget.attrs.setdefault("placeholder", "Ism yoki tashkilot nomi")
-        self.fields["amount"].widget.attrs.setdefault("placeholder", "Masalan: 1 000 000")
-        self.fields["amount"].widget.attrs.setdefault("inputmode", "numeric")
+        self.fields["amount"].widget = forms.TextInput(
+            attrs={
+                "class": "input-field",
+                "placeholder": "Masalan: 1 000 000",
+                "inputmode": "numeric",
+                "autocomplete": "off",
+            }
+        )
         self.fields["note"].widget.attrs.setdefault("placeholder", "Izoh (ixtiyoriy)")
 
     def clean_amount(self):

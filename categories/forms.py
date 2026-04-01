@@ -43,9 +43,14 @@ class CategoryBudgetForm(forms.ModelForm):
         self.fields["category"].widget.attrs.setdefault("class", "input-field")
         self.fields["year"].widget.attrs.setdefault("class", "input-field")
         self.fields["month"].widget.attrs.setdefault("class", "input-field")
-        self.fields["amount"].widget.attrs.setdefault("class", "input-field")
-        self.fields["amount"].widget.attrs.setdefault("placeholder", "Masalan: 500 000")
-        self.fields["amount"].widget.attrs.setdefault("inputmode", "numeric")
+        self.fields["amount"].widget = forms.TextInput(
+            attrs={
+                "class": "input-field",
+                "placeholder": "Masalan: 500 000",
+                "inputmode": "numeric",
+                "autocomplete": "off",
+            }
+        )
 
         if not self.instance.pk:
             self.fields["year"].initial = today.year

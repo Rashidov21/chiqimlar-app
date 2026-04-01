@@ -12,6 +12,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
 from django.http import JsonResponse
 from django.conf import settings
+from django.core.cache import cache
 
 from core.rate_limit import rate_limit_ip
 from .services import (
@@ -21,7 +22,7 @@ from .services import (
     get_or_create_user_by_telegram,
 )
 from telegram_bot.services import required_channels_ok_for_telegram_id
-from .telegram_auth import validate_telegram_init_data
+from .telegram_auth import validate_telegram_init_data, replay_cache_key, REPLAY_CACHE_TTL
 
 logger = logging.getLogger(__name__)
 
@@ -111,6 +112,12 @@ def telegram_webapp_auth(request):
     if not telegram_id:
         logger.warning("tg_webapp_auth: no_user (user_data without id)")
         return JsonResponse({"ok": False, "error": "no_user"}, status=400)
+    init_hash = (user_data.get("_init_hash") or "").strip()
+    if init_hash:
+        replay_key = replay_cache_key(init_hash)
+        if cache.get(replay_key):
+            logger.warning("tg_webapp_auth: replay detected telegram_id=%s", telegram_id)
+            return JsonResponse({"ok": False, "error": "invalid_init_data"}, status=400)
 
     # Majburiy kanallarga obuna bo'lgan-bo'lmaganini tekshirish
     if not required_channels_ok_for_telegram_id(telegram_id):
@@ -129,6 +136,8 @@ def telegram_webapp_auth(request):
         first_name=user_data.get("first_name", ""),
     )
     login(request, user, backend="django.contrib.auth.backends.ModelBackend")
+    if init_hash:
+        cache.set(replay_cache_key(init_hash), 1, timeout=REPLAY_CACHE_TTL)
     logger.info("tg_webapp_auth: ok telegram_id=%s user_id=%s", telegram_id, user.pk)
     return JsonResponse({"ok": True, "redirect": "/"})
 

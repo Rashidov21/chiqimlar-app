@@ -104,7 +104,7 @@
                     var textEl = miniappError.querySelector('p');
                     if (textEl) {
                         if (result.error === 'invalid_init_data') {
-                            textEl.innerText = "Sessiya muddati tugagan. Botda /start yuboring va «Chiqimlarni ochish» tugmasini qayta bosing.";
+                            textEl.innerText = "Telegram kirish ma'lumoti yaroqsiz yoki qayta ishlatilgan. Botda /start yuboring va «Chiqimlarni ochish» tugmasini qayta bosing.";
                         } else if (result.error === 'rate_limited') {
                             textEl.innerText = "Juda ko'p urinish. Bir necha soniyadan so'ng qayta urinib ko'ring.";
                         } else if (result.error === 'subscription_required') {
@@ -161,7 +161,7 @@
                     var textEl = miniappError.querySelector('p');
                     if (textEl) {
                         if (result.error === 'invalid_or_used_token' || result.error === 'no_token') {
-                            textEl.innerText = "Sessiya muddati tugagan yoki token noto'g'ri. Botda /start yuboring va «Chiqimlarni ochish» tugmasini qayta bosing.";
+                            textEl.innerText = "Bir martalik token ishlatilgan yoki yaroqsiz. Botda /start yuboring va «Chiqimlarni ochish» tugmasini qayta bosing.";
                         } else if (result.error === 'rate_limited') {
                             textEl.innerText = "Juda ko'p urinish. Bir necha soniyadan so'ng qayta urinib ko'ring.";
                         } else if (result.error === 'subscription_required') {

@@ -54,7 +54,11 @@ def _get_chat_member_status(chat_identifier: str | int, user_id: int) -> Optiona
 SUBSCRIPTION_CACHE_TTL = 600  # sekund, kanal obunasi holati uchun cache
 
 
-def is_member_of_required_channel(telegram_id: int, channel: RequiredChannel) -> bool:
+def is_member_of_required_channel(
+    telegram_id: int,
+    channel: RequiredChannel,
+    force_refresh: bool = False,
+) -> bool:
     """
     Bitta RequiredChannel uchun foydalanuvchi obunasini tekshiradi (cache bilan).
     """
@@ -62,6 +66,8 @@ def is_member_of_required_channel(telegram_id: int, channel: RequiredChannel) ->
         return False
 
     cache_key = f"sub:{telegram_id}:{channel.pk}"
+    if force_refresh:
+        cache.delete(cache_key)
     cached = cache.get(cache_key)
     if cached is not None:
         return cached
@@ -85,7 +91,7 @@ def is_member_of_required_channel(telegram_id: int, channel: RequiredChannel) ->
     return ok
 
 
-def required_channels_ok_for_telegram_id(telegram_id: int) -> bool:
+def required_channels_ok_for_telegram_id(telegram_id: int, force_refresh: bool = False) -> bool:
     """
     Foydalanuvchi barcha active+mandatory kanallarga obuna bo'lganmi?
     Hech qanday majburiy kanal bo'lmasa, True.
@@ -98,7 +104,7 @@ def required_channels_ok_for_telegram_id(telegram_id: int) -> bool:
         return True
 
     for ch in channels:
-        if not is_member_of_required_channel(telegram_id, ch):
+        if not is_member_of_required_channel(telegram_id, ch, force_refresh=force_refresh):
             return False
     return True
 

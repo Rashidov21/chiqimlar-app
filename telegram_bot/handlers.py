@@ -10,7 +10,7 @@ from django.conf import settings
 from django.core.cache import cache
 from django.utils import timezone
 
-from .services import required_channels_ok_for_telegram_id
+from .services import required_channels_ok_for_telegram_id, clear_subscription_cache_for_user
 from .models import RequiredChannel
 
 logger = logging.getLogger(__name__)
@@ -418,7 +418,17 @@ def process_update(update_dict: dict) -> None:
         else:
             handle_start(chat_id, first_name)
     elif text == "✅ Obuna bo'ldim":
-        handle_start(chat_id, first_name)
+        clear_subscription_cache_for_user(chat_id)
+        now_ok = required_channels_ok_for_telegram_id(chat_id, force_refresh=True)
+        cache.set(f"sub_prev:{chat_id}", now_ok, 3600)
+        if now_ok:
+            handle_start(chat_id, first_name)
+        else:
+            text = _required_channels_text() + (
+                "\n\nHali obuna tasdiqlanmadi. Iltimos kanallarga obuna bo'lganingizni tekshirib, yana "
+                "<b>✅ Obuna bo'ldim</b> tugmasini bosing."
+            )
+            _send_message(chat_id, text, reply_markup=_subscription_keyboard())
     elif text == "❤️ Donat qilish":
         handle_donate(chat_id)
     elif text == "/help":

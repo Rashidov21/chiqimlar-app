@@ -10,12 +10,15 @@ from urllib.parse import unquote
 
 from django.conf import settings
 from django.utils import timezone
-from django.core.cache import cache
 
 logger = logging.getLogger(__name__)
 
 REPLAY_CACHE_KEY_PREFIX = "tg_initdata:"
 REPLAY_CACHE_TTL = 300  # 5 daqiqa - bir xil init_data qayta ishlatilmasin
+
+
+def replay_cache_key(init_hash: str) -> str:
+    return f"{REPLAY_CACHE_KEY_PREFIX}{init_hash}"
 
 
 def validate_telegram_init_data(init_data: str) -> dict | None:
@@ -74,15 +77,9 @@ def validate_telegram_init_data(init_data: str) -> dict | None:
             logger.warning("tg_init_data: hash mos kelmadi (token boshqa botga tegishli bo'lishi mumkin)")
             return None
 
-        # Replay himoya: bir xil init_data ikkinchi marta ishlatilmasin
-        replay_key = f"{REPLAY_CACHE_KEY_PREFIX}{received_hash}"
-        if cache.get(replay_key):
-            logger.warning("tg_init_data: replay urinishi (init_data allaqachon ishlatilgan)")
-            return None
-        cache.set(replay_key, 1, timeout=REPLAY_CACHE_TTL)
-
         if "user" in parsed:
             user_data = json.loads(parsed["user"])
+            user_data["_init_hash"] = received_hash
             return user_data
         logger.warning("tg_init_data: user maydoni yo'q")
         return None
